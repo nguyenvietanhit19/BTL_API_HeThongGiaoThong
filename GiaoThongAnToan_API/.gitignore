@@ -1,0 +1,78 @@
+# ========================
+# Python
+# ========================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+*.egg
+*.egg-info/
+dist/
+build/
+eggs/
+parts/
+var/
+sdist/
+develop-eggs/
+.installed.cfg
+lib/
+lib64/
+
+# ========================
+# Virtual Environment
+# ========================
+venv/
+.venv/
+env/
+.env/
+ENV/
+
+# ========================
+# Environment Variables
+# ========================
+.env
+.env.local
+.env.production
+*.env
+
+# ========================
+# Flask
+# ========================
+instance/
+.webassets-cache
+flask_session/
+
+# ========================
+# FastAPI
+# ========================
+.pytest_cache/
+
+# ========================
+# Database
+# ========================
+*.db
+*.sqlite
+*.sqlite3
+
+# ========================
+# PyCharm
+# ========================
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# ========================
+# Logs
+# ========================
+*.log
+logs/
+
+# ========================
+# OS
+# ========================
+.DS_Store
+Thumbs.db
+desktop.ini
