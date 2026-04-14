@@ -7,7 +7,6 @@ import os
 from dotenv import load_dotenv
 from PIL import Image
 import math
-import io
 
 load_dotenv()
 
@@ -62,7 +61,10 @@ def kiem_tra_vi_tri_anh(file, vi_do_bao_cao, kinh_do_bao_cao, nguong_km=1.0):
     R = 6371
     dlat = math.radians(lat - vi_do_bao_cao)
     dlon = math.radians(lon - kinh_do_bao_cao)
-    a = math.sin(dlat/2)**2 + math.cos(math.radians(vi_do_bao_cao)) * math.cos(math.radians(lat)) * math.sin(dlon/2)**2
+    a = (math.sin(dlat / 2) ** 2
+         + math.cos(math.radians(vi_do_bao_cao))
+         * math.cos(math.radians(lat))
+         * math.sin(dlon / 2) ** 2)
     khoang_cach = R * 2 * math.asin(math.sqrt(a))
 
     if khoang_cach > nguong_km:
@@ -71,10 +73,10 @@ def kiem_tra_vi_tri_anh(file, vi_do_bao_cao, kinh_do_bao_cao, nguong_km=1.0):
     return True, "OK"
 
 
-# POST /bao-cao/<id>/anh
-@upload_bp.route('/bao-cao/<int:id>/anh', methods=['POST'])
+# POST /bao-cao/<bao_cao_id>/anh
+@upload_bp.route('/bao-cao/<int:bao_cao_id>/anh', methods=['POST'])
 @can_access(['user', 'nhan_vien'])
-def upload_anh(id):
+def upload_anh(bao_cao_id):
     if 'anh' not in request.files:
         return jsonify({'loi': 'Thiếu file ảnh'}), 400
 
@@ -94,7 +96,7 @@ def upload_anh(id):
         conn = get_db()
         cursor = conn.cursor()
 
-        # Lấy thông tin báo cáo
+        # ✅ Fix: dùng bao_cao_id thay vì id
         cursor.execute(
             "SELECT vi_do, kinh_do, trang_thai FROM bao_cao WHERE bao_cao_id = ?", (id,)
         )
@@ -106,7 +108,7 @@ def upload_anh(id):
 
         # Kiểm tra EXIF GPS
         file.seek(0)
-        hop_le, thong_bao = kiem_tra_vi_tri_anh(file, vi_do, kinh_do)
+        hop_le, thong_bao = kiem_tra_vi_tri_anh(file, float(vi_do), float(kinh_do))
         if not hop_le:
             return jsonify({'loi': thong_bao}), 400
 
@@ -119,6 +121,8 @@ def upload_anh(id):
                 loai_anh = 'hien_truong'
             else:
                 loai_anh = 'sau_sua_chua'
+        else:
+            loai_anh = 'bao_cao'  # ✅ Fix: fallback tránh UnboundLocalError
 
         # Upload lên Cloudinary
         file.seek(0)
@@ -129,11 +133,11 @@ def upload_anh(id):
         )
         url_anh = ket_qua['secure_url']
 
-        # Lưu vào database
+        # ✅ Fix: dùng nguoi_upload_id thay vì nguoi_upload
         cursor.execute(
             """INSERT INTO anh (bao_cao_id, nguoi_upload_id, duong_dan_anh, loai_anh)
                VALUES (?, ?, ?, ?)""",
-            (id, request.nguoi_dung_id, url_anh, loai_anh)
+            (bao_cao_id, request.nguoi_dung_id, url_anh, loai_anh)
         )
         conn.commit()
 

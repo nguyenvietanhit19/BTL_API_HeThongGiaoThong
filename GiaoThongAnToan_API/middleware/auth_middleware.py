@@ -24,7 +24,7 @@ def can_access(vai_tro_cho_phep=[]):
             try:
                 payload = jwt.decode(
                     token,
-                    os.getenv('JWT_SECRET_KEY'),
+                    'day_la_secret_key_rat_dai_va_kho_doan_123456',
                     algorithms=['HS256']
                 )
                 request.nguoi_dung_id = payload['nguoi_dung_id']

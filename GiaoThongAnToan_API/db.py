@@ -4,6 +4,7 @@ import os
 
 load_dotenv()
 
+
 def get_db():
     conn_str = (
         "DRIVER={ODBC Driver 17 for SQL Server};"

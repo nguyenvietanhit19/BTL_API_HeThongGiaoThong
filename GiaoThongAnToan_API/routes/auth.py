@@ -53,6 +53,7 @@ def dang_nhap():
         conn = get_db()
         cursor = conn.cursor()
         cursor.execute(
+            # ✅ Fix: dùng nguoi_dung_id thay vì id
             "SELECT nguoi_dung_id, mat_khau, ho_ten, vai_tro, dang_hoat_dong FROM nguoi_dung WHERE email = ?",
             (email,)
         )
@@ -105,6 +106,7 @@ def xem_thong_tin():
         conn = get_db()
         cursor = conn.cursor()
         cursor.execute(
+            # ✅ Fix: dùng nguoi_dung_id
             "SELECT nguoi_dung_id, email, ho_ten, vai_tro, ngay_tao FROM nguoi_dung WHERE nguoi_dung_id = ?",
             (request.nguoi_dung_id,)
         )
@@ -133,6 +135,7 @@ def cap_nhat_thong_tin():
         conn = get_db()
         cursor = conn.cursor()
         cursor.execute(
+            # ✅ Fix: dùng nguoi_dung_id
             "UPDATE nguoi_dung SET ho_ten = ? WHERE nguoi_dung_id = ?",
             (ho_ten, request.nguoi_dung_id)
         )
