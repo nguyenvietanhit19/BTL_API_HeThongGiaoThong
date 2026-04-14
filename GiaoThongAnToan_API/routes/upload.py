@@ -96,7 +96,7 @@ def upload_anh(id):
 
         # Lấy thông tin báo cáo
         cursor.execute(
-            "SELECT vi_do, kinh_do, trang_thai FROM bao_cao WHERE id = ?", (id,)
+            "SELECT vi_do, kinh_do, trang_thai FROM bao_cao WHERE bao_cao_id = ?", (id,)
         )
         bao_cao = cursor.fetchone()
         if not bao_cao:
@@ -131,7 +131,7 @@ def upload_anh(id):
 
         # Lưu vào database
         cursor.execute(
-            """INSERT INTO anh (bao_cao_id, nguoi_upload, duong_dan_anh, loai_anh)
+            """INSERT INTO anh (bao_cao_id, nguoi_upload_id, duong_dan_anh, loai_anh)
                VALUES (?, ?, ?, ?)""",
             (id, request.nguoi_dung_id, url_anh, loai_anh)
         )
