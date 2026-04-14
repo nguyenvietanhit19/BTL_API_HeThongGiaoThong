@@ -6,11 +6,12 @@ load_dotenv()
 
 
 def get_db():
-    chuoi_ket_noi = (
-    "Driver={ODBC Driver 17 for SQL Server};"
-    "Server=DESKTOP-90IHRHM;" 
-    "Database=giao_thong_cong_dong2;"
-    "Trusted_Connection=yes;"
-)
-    conn = pyodbc.connect(chuoi_ket_noi)
-    return conn
+    conn_str = (
+        "DRIVER={ODBC Driver 17 for SQL Server};"
+        "SERVER=DESKTOP-S8OVI3U;"  # Dùng chính xác tên từ SSMS
+        "DATABASE=giao_thong_cong_dong2;"
+        "Trusted_Connection=yes;"
+        "Encrypt=no;"
+        "Connection Timeout=30;"
+    )
+    return pyodbc.connect(conn_str)

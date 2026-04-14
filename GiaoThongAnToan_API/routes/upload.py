@@ -98,8 +98,7 @@ def upload_anh(bao_cao_id):
 
         # ✅ Fix: dùng bao_cao_id thay vì id
         cursor.execute(
-            "SELECT vi_do, kinh_do, trang_thai FROM bao_cao WHERE bao_cao_id = ?",
-            (bao_cao_id,)
+            "SELECT vi_do, kinh_do, trang_thai FROM bao_cao WHERE bao_cao_id = ?", (id,)
         )
         bao_cao = cursor.fetchone()
         if not bao_cao:
