@@ -5,6 +5,8 @@ from routes.upload import upload_bp
 from routes.reports import reports_bp
 from dotenv import load_dotenv
 import os  # <--- BẠN THÊM DÒNG NÀY VÀO ĐÂY NHÉ
+from routes.admin import admin_bp
+from routes.nhan_vien import nhan_vien_bp
 
 load_dotenv()
 
@@ -14,6 +16,9 @@ app = Flask(__name__)
 app.register_blueprint(auth_bp, url_prefix='/auth')
 app.register_blueprint(upload_bp, url_prefix='')  # ← thêm dòng này
 app.register_blueprint(reports_bp, url_prefix='/api/Reports')
+app.register_blueprint(nhan_vien_bp, url_prefix='/nhan-vien')
+
+app.register_blueprint(admin_bp, url_prefix='/admin')
 
 if __name__ == '__main__':
     # In ra toàn bộ các đường dẫn API đang có thật trong app
