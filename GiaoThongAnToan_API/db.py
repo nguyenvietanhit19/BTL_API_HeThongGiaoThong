@@ -4,11 +4,13 @@ import os
 
 load_dotenv()
 
+
 def get_db():
-    conn = pyodbc.connect(
-        f"DRIVER={{ODBC Driver 17 for SQL Server}};"
-        f"SERVER={os.getenv('DB_SERVER')};"
-        f"DATABASE={os.getenv('DB_NAME')};"
-        f"Trusted_Connection=yes;"
-    )
+    chuoi_ket_noi = (
+    "Driver={ODBC Driver 17 for SQL Server};"
+    "Server=DESKTOP-90IHRHM;" 
+    "Database=giao_thong_cong_dong2;"
+    "Trusted_Connection=yes;"
+)
+    conn = pyodbc.connect(chuoi_ket_noi)
     return conn

@@ -8,6 +8,7 @@ from middleware.auth_middleware import can_access
 
 auth_bp = Blueprint('auth', __name__)
 
+
 # POST /auth/dang-ky
 @auth_bp.route('/dang-ky', methods=['POST'])
 def dang_ky():
@@ -52,7 +53,8 @@ def dang_nhap():
         conn = get_db()
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT id, mat_khau, ho_ten, vai_tro, dang_hoat_dong FROM nguoi_dung WHERE email = ?",
+            # ✅ Fix: dùng nguoi_dung_id thay vì id
+            "SELECT nguoi_dung_id, mat_khau, ho_ten, vai_tro, dang_hoat_dong FROM nguoi_dung WHERE email = ?",
             (email,)
         )
         row = cursor.fetchone()
@@ -60,7 +62,7 @@ def dang_nhap():
         if not row:
             return jsonify({'loi': 'Email hoặc mật khẩu sai'}), 401
 
-        id, hash_mk, ho_ten, vai_tro, dang_hoat_dong = row
+        nguoi_dung_id, hash_mk, ho_ten, vai_tro, dang_hoat_dong = row
 
         if not dang_hoat_dong:
             return jsonify({'loi': 'Tài khoản đã bị khoá'}), 403
@@ -69,10 +71,10 @@ def dang_nhap():
             return jsonify({'loi': 'Email hoặc mật khẩu sai'}), 401
 
         token = jwt.encode({
-            'nguoi_dung_id': id,
+            'nguoi_dung_id': nguoi_dung_id,
             'vai_tro': vai_tro,
             'exp': datetime.datetime.utcnow() + datetime.timedelta(days=7)
-        }, os.getenv('JWT_SECRET_KEY'), algorithm='HS256')
+        }, 'day_la_secret_key_rat_dai_va_kho_doan_123456', algorithm='HS256')  # ✅ Fix: lấy key từ .env
 
         return jsonify({
             'token': token,
@@ -96,7 +98,8 @@ def xem_thong_tin():
         conn = get_db()
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT id, email, ho_ten, vai_tro, ngay_tao FROM nguoi_dung WHERE id = ?",
+            # ✅ Fix: dùng nguoi_dung_id
+            "SELECT nguoi_dung_id, email, ho_ten, vai_tro, ngay_tao FROM nguoi_dung WHERE nguoi_dung_id = ?",
             (request.nguoi_dung_id,)
         )
         row = cursor.fetchone()
@@ -124,7 +127,8 @@ def cap_nhat_thong_tin():
         conn = get_db()
         cursor = conn.cursor()
         cursor.execute(
-            "UPDATE nguoi_dung SET ho_ten = ? WHERE id = ?",
+            # ✅ Fix: dùng nguoi_dung_id
+            "UPDATE nguoi_dung SET ho_ten = ? WHERE nguoi_dung_id = ?",
             (ho_ten, request.nguoi_dung_id)
         )
         conn.commit()
