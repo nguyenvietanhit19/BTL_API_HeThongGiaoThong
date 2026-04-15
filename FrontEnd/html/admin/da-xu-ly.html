@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đã xử lý - Giao Thông Cộng Đồng</title>
+    <link rel="stylesheet" href="/FrontEnd/css/common.css">
+    <link rel="stylesheet" href="/FrontEnd/css/admin/admin.css">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+</head>
+<body>
+    <div id="topbar-container"></div>
+    <div id="sidebar-container"></div>
+
+    <div class="main-content">
+        <div class="page-header">
+            <h1 id="topbar-title" style="display: none;">GiaoThôngAn - Lịch sử đã xử lý</h1>
+            <h2>Hồ sơ sự cố đã hoàn tất</h2>
+            <div class="filters">
+                <input type="month" id="filter-month">
+                <button class="btn-export" style="padding: 6px 12px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;">Xuất Excel</button>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>MÃ BC</th>
+                        <th>SỰ CỐ ĐÃ KHẮC PHỤC</th>
+                        <th>NGƯỜI XỬ LÝ</th>
+                        <th>NGÀY HOÀN THÀNH</th>
+                        <th>HÀNH ĐỘNG</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body-da-xu-ly">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="/FrontEnd/js/layout.js"></script>
+</body>
+</html>
