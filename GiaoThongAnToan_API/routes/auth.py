@@ -70,13 +70,13 @@ def dang_nhap():
         if not bcrypt.checkpw(mat_khau.encode('utf-8'), hash_mk.encode('utf-8')):
             return jsonify({'loi': 'Email hoặc mật khẩu sai'}), 401
 
-        SECRET_KEY = "abc123"
+
 
         token = jwt.encode({
             'nguoi_dung_id': nguoi_dung_id,
             'vai_tro': vai_tro,
             'exp': datetime.datetime.utcnow() + datetime.timedelta(days=7)
-        }, SECRET_KEY, algorithm='HS256')
+        }, os.getenv('JWT_SECRET_KEY'), algorithm='HS256')
         #
         # token = jwt.encode({
         #     'nguoi_dung_id': id,
