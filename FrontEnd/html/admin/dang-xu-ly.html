@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đang xử lý - Giao Thông Cộng Đồng</title>
+    <link rel="stylesheet" href="/FrontEnd/css/common.css">
+    <link rel="stylesheet" href="/FrontEnd/css/admin/admin.css">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+</head>
+<body>
+    <div id="topbar-container"></div>
+    <div id="sidebar-container"></div>
+
+    <div class="main-content">
+        <div class="page-header">
+            <h1 id="topbar-title" style="display: none;">GiaoThôngAn - Đang xử lý</h1>
+            <h2>Tiến độ khắc phục sự cố</h2>
+            <div class="filters">
+                <input type="text" id="search-progress" placeholder="Tìm kiếm...">
+                <select id="filter-staff">
+                    <option value="">Tất cả nhân viên</option>
+                    </select>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>SỰ CỐ</th>
+                        <th>NHÂN VIÊN PHỤ TRÁCH</th>
+                        <th>NGÀY GIAO VIỆC</th>
+                        <th>TRẠNG THÁI</th>
+                        <th>HÀNH ĐỘNG</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body-dang-xu-ly">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="/FrontEnd/js/layout.js"></script>
+</body>
+</html>

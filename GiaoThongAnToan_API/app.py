@@ -22,7 +22,6 @@ app = Flask(__name__)
 
 app.register_blueprint(auth_bp, url_prefix='/auth')
 app.register_blueprint(bao_cao_bp, url_prefix='/bao-cao')
-app.register_blueprint(upload_bp, url_prefix='')  # ← thêm dòng này
 app.register_blueprint(reports_bp, url_prefix='/api/Reports')
 app.register_blueprint(nhan_vien_bp, url_prefix='/nhan-vien')
 

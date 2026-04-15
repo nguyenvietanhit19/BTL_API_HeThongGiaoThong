@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify
 from db import get_db
+import pyodbc
 from .auth import can_access
 
 admin_bp = Blueprint('admin_bp', __name__)

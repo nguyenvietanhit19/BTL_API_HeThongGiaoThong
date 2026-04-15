@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tổng quan - Giao Thông Cộng Đồng</title>
+    <link rel="stylesheet" href="/FrontEnd/css/common.css">
+    <link rel="stylesheet" href="/FrontEnd/css/admin/tong-quan.css">
+    <link rel="stylesheet" href="/FrontEnd/css/admin/admin.css">
+</head>
+<body>
+    <div id="topbar-container"></div>
+    <div id="sidebar-container"></div>
+
+    <div class="main-content">
+        <div class="stats-container">
+            <div class="card red">
+                <h2 id="stat-cho-duyet">...</h2>
+                <p>Chờ duyệt</p>
+            </div>
+            <div class="card orange">
+                <h2 id="stat-dang-xu-ly">...</h2>   
+                <p>Đang xử lý</p>
+            </div>
+            <div class="card green">
+                <h2 id="stat-da-xu-ly">...</h2>
+                <p>Đã xử lý</p>
+            </div>
+            <div class="card black">
+                <h2 id="stat-tong-bao-cao">...</h2>
+                <p>Tổng báo cáo</p>
+            </div>
+        </div>
+
+        <div class="table-section">
+            <h3>Báo cáo cần xử lý</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>SỰ CỐ</th>
+                            <th>LOẠI</th>
+                            <th>TRẠNG THÁI</th>
+                            <th>HÀNH ĐỘNG</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body-reports"> 
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="/FrontEnd/js/layout.js"></script>
+</body>
+</html>

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phân công việc - Giao Thông Cộng Đồng</title>
+    <link rel="stylesheet" href="/FrontEnd/css/common.css">
+    <link rel="stylesheet" href="/FrontEnd/css/admin/admin.css">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <style>
+        .assign-select { padding: 6px; border-radius: 4px; border: 1px solid #ccc; }
+        .btn-assign { background: #6b46c1; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div id="topbar-container"></div>
+    <div id="sidebar-container"></div>
+
+    <div class="main-content">
+        <div class="page-header">
+            <h1 id="topbar-title" style="display: none;">GiaoThôngAn - Phân công xử lý</h1>
+            <h2>Báo cáo chờ phân công</h2>
+            <div class="filters">
+                <input type="text" id="search-assign" placeholder="Tìm theo tiêu đề...">
+                <button class="btn-assign" id="bulk-assign-btn" style="display:none;">Phân công hàng loạt</button>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>SỰ CỐ CẦN XỬ LÝ</th>
+                        <th>MỨC ĐỘ / LOẠI</th>
+                        <th>CHỌN NHÂN VIÊN</th>
+                        <th>HÀNH ĐỘNG</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body-phan-cong">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="/FrontEnd/js/layout.js"></script>
+</body>
+</html>
