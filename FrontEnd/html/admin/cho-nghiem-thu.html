@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>GiaoThôngAn - Chờ nghiệm thu</title>
+    <link rel="stylesheet" href="/FrontEnd/css/common.css">
+    <link rel="stylesheet" href="/FrontEnd/css/admin/cho-nghiem-thu.css">
+</head>
+<body>
+    <div id="topbar-container"></div>
+    <div id="sidebar-container"></div>
+
+    <div class="main-content">
+        <div id="view-list">
+            <div class="page-header" style="margin-bottom: 20px;">
+                <h2 style="font-size: 18px; font-weight: 600;">Danh sách chờ nghiệm thu</h2>
+            </div>
+            <div class="table-container">
+                <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 8px; border: 1px solid #eaeaea;">
+                    <thead>
+                        <tr style="background: #fcfcfc; text-align: left; border-bottom: 1px solid #f0f0f0;">
+                            <th style="padding: 16px; font-size: 12px; color: #777;">MÃ BC</th>
+                            <th style="padding: 16px; font-size: 12px; color: #777;">SỰ CỐ</th>
+                            <th style="padding: 16px; font-size: 12px; color: #777;">NHÂN VIÊN XỬ LÝ</th>
+                            <th style="padding: 16px; font-size: 12px; color: #777;">THỜI GIAN HOÀN THÀNH</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body-nghiem-thu">
+                        <tr class="report-row" style="cursor: pointer; border-bottom: 1px solid #f0f0f0; transition: 0.2s;">
+                            <td style="padding: 16px; font-weight: 600;">#5</td>
+                            <td style="padding: 16px;">Ổ gà Nguyễn Trãi</td>
+                            <td style="padding: 16px;">Trần Văn An</td>
+                            <td style="padding: 16px;">14:30 hôm nay</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="view-detail" style="display: none;">
+            <button id="btn-back-to-list" class="btn-back">← Quay lại danh sách</button>
+            
+            <div class="breadcrumb">Chờ nghiệm thu › <strong id="bc-breadcrumb">Báo cáo #5...</strong></div>
+            <div class="report-header">
+                <div class="report-title"><h2 id="bc-tieu-de">...</h2><p id="bc-dia-chi-time">...</p></div>
+                <div class="status-badge" id="bc-trang-thai">...</div>
+            </div>
+
+            <div class="alert-warning" id="bc-canh-bao" style="display: none;"></div>
+
+            <div class="info-panels">
+                <div class="panel">
+                    <h3>THÔNG TIN BÁO CÁO</h3>
+                    <div class="info-list">
+                        <div class="info-row"><span class="info-label">Loại sự cố</span><span class="info-value" id="info-loai">...</span></div>
+                        </div>
+                </div>
+                <div class="panel">
+                    <h3>THÔNG TIN XỬ LÝ</h3>
+                    <div class="info-list">
+                        <div class="info-row"><span class="info-label">Nhân viên</span><span class="info-value" id="info-nhan-vien">...</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="image-section">
+                <div class="section-header"><h3>ẢNH BÁO CÁO GỐC</h3></div>
+                <div class="image-grid" id="grid-anh-goc"></div>
+            </div>
+
+            <div class="image-section">
+                <div class="section-header"><h3>SO SÁNH TRƯỚC VÀ SAU SỬA CHỮA</h3></div>
+                <div class="image-grid" id="grid-anh-so-sanh"></div>
+            </div>
+
+            <div class="content-section">
+                <div class="section-header"><h3>LỊCH SỬ XỬ LÝ</h3></div>
+                <div class="timeline" id="bc-timeline"></div>
+            </div>
+
+            <div class="content-section">
+                <h3 class="decision-title">Quyết định nghiệm thu</h3>
+                <div class="decision-actions">
+                    <button class="btn-decision" id="btn-nghiem-thu">Nghiệm thu — Đạt ✓</button>
+                    <button class="btn-decision" id="btn-tu-choi">Từ chối nghiệm thu ✕</button>
+                </div>
+                <div class="decision-warning" id="bc-ghi-chu-quyet-dinh"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="/FrontEnd/js/layout.js"></script>
+    <script src="/FrontEnd/js/nghiem-thu.js"></script>
+</body>
+</html>

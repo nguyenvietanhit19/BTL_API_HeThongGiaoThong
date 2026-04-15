@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from db import get_db
-
+import pyodbc
 admin_bp = Blueprint('admin_bp', __name__)
 
 # 1. Xem báo cáo

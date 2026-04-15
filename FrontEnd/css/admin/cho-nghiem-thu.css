@@ -1,0 +1,28 @@
+/* =========================================
+   TRANG CHỜ NGHIỆM THU (REPORT DETAIL)
+   (Đã đồng bộ font chữ, màu viền và border-radius)
+   ========================================= */
+
+.breadcrumb { font-size: 13px; color: #a3aed1; margin-bottom: 12px; font-weight: 500;}
+.report-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; }
+
+/* Cảnh báo vàng đồng bộ góc bo tròn */
+.alert-warning { background-color: #fff8e1; border: 1px solid #ffe082; padding: 16px 20px; border-radius: 12px; color: #ffb300; font-size: 14px; margin-bottom: 24px; font-weight: 500;}
+
+/* Panel thông tin chung */
+.info-panels { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px; }
+.panel { border: 1px solid #e0e5f2; border-radius: 16px; padding: 20px; background: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.02); }
+
+.image-section, .content-section { border: 1px solid #e0e5f2; border-radius: 16px; padding: 24px; margin-bottom: 24px; background: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.02); }
+.image-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.img-placeholder { border-radius: 12px; height: 180px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px dashed #a3aed1; background: #f4f7fe; color: #a3aed1; }
+
+/* Timeline cập nhật */
+.timeline { display: flex; flex-direction: column; }
+.timeline-item { display: flex; gap: 12px; padding: 16px 0; border-bottom: 1px solid #f4f7fe; }
+.timeline-item:last-child { border-bottom: none; }
+.timeline-dot { width: 10px; height: 10px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; background-color: #4318ff; }
+
+/* Nút quay lại */
+.btn-back { background: none; border: none; color: #4318ff; font-size: 14px; font-weight: 600; cursor: pointer; padding: 0; margin-bottom: 20px; display: inline-flex; align-items: center; transition: 0.2s; }
+.btn-back:hover { color: #3311cc; text-decoration: underline; }

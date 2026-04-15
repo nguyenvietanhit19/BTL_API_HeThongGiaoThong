@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý tài khoản - Giao Thông Cộng Đồng</title>
+    <link rel="stylesheet" href="/FrontEnd/css/common.css">
+    <link rel="stylesheet" href="/FrontEnd/css/admin/quan-ly-user.css">
+    <link rel="stylesheet" href="/FrontEnd/css/admin/admin.css">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <style>
+        .user-row { cursor: pointer; transition: 0.2s; }
+        .user-row:hover { background-color: #f9f9fc; }
+        #userDetailPanel { display: none; margin-top: 16px; }
+        .table-container.panel-open table tbody tr { opacity: 0.4; }
+        .table-container.panel-open table tbody tr.active-row { opacity: 1; background-color: #f4f2ff; }
+    </style>
+</head>
+<body>
+    <div id="topbar-container"></div>
+    <div id="sidebar-container"></div>
+
+    <div class="main-content">
+        <div class="page-header">
+            <h1 id="topbar-title" style="display: none;">GiaoThôngAn - Quản lý tài khoản</h1>
+            <h2>Quản lý tài khoản</h2>
+            <div class="filters">
+                <input type="text" id="search-user" placeholder="Tìm theo tên, email..">
+                <select id="filter-role">
+                    <option value="">Tất cả vai trò</option>
+                    <option value="Admin">Admin</option>
+                    <option value="User">User</option>
+                </select>
+                <select id="filter-status">
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="active">Đang hoạt động</option>
+                    <option value="locked">Đã khoá</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="stats-container">
+            <div class="card purple"><h3 id="stat-admin">...</h3><p>Admin</p></div>
+            <div class="card blue"><h3 id="stat-user">...</h3><p>User</p></div>
+            <div class="card green"><h3 id="stat-active">...</h3><p>Đang hoạt động</p></div>
+            <div class="card red"><h3 id="stat-locked">...</h3><p>Đã khoá</p></div>
+        </div>
+
+        <div class="table-container" id="mainTableContainer">
+            <table>
+                <thead>
+                    <tr>
+                        <th>NGƯỜI DÙNG</th>
+                        <th>VAI TRÒ</th>
+                        <th>TRẠNG THÁI</th>
+                        <th>NGÀY TẠO</th>
+                        <th>HÀNH ĐỘNG</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body-users">
+                    </tbody>
+            </table>
+        </div>
+
+        <div class="user-detail-panel" id="userDetailPanel">
+            <div class="panel-header">
+                <h3 id="detailNameHeader">Chi tiết tài khoản</h3>
+                <button class="close-btn" id="closePanelBtn">&times;</button>
+            </div>
+            
+            <div class="panel-body">
+                <div class="info-column">
+                    <h4>THÔNG TIN TÀI KHOẢN</h4>
+                    <div class="info-list">
+                        <div class="info-row"><span class="info-label">Họ tên</span><span class="info-value" id="valName">...</span></div>
+                        <div class="info-row"><span class="info-label">Email</span><span class="info-value" id="valEmail">...</span></div>
+                        <div class="info-row"><span class="info-label">Vai trò</span><span class="info-value" id="valRole">...</span></div>
+                        <div class="info-row"><span class="info-label">Trạng thái</span><span class="info-value" id="valStatus">...</span></div>
+                        <div class="info-row"><span class="info-label">Ngày đăng ký</span><span class="info-value" id="valDate">...</span></div>
+                        <div class="info-row"><span class="info-label">Số báo cáo đã gửi</span><span class="info-value" id="valReportCount">...</span></div>
+                        <div class="info-row"><span class="info-label">Báo cáo hợp lệ</span><span class="info-value" id="valValidReports">...</span></div>
+                    </div>
+                </div>
+
+                <div class="log-column">
+                    <h4>NHẬT KÝ HÀNH ĐỘNG LIÊN QUAN</h4>
+                    <div class="log-list" id="user-log-list">
+                        </div>
+                </div>
+            </div>
+
+            <div class="panel-footer" id="detailPanelFooter">
+                </div>
+        </div>
+    </div>
+
+    <script src="/FrontEnd/js/layout.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            // Sử dụng Event Delegation để xử lý click cho các hàng (row) được sinh ra từ AJAX
+            $('#table-body-users').on('click', '.user-row', function() {
+                // Xóa trạng thái active của các hàng khác
+                $('.user-row').removeClass('active-row');
+                
+                // Highlight hàng được chọn và làm mờ các hàng khác
+                $(this).addClass('active-row');
+                $('#mainTableContainer').addClass('panel-open');
+                
+                // Hiển thị Panel chi tiết
+                $('#userDetailPanel').slideDown(200);
+
+                // Ghi chú: Tại đây bạn sẽ viết thêm lệnh AJAX (GET /admin/nguoi-dung/{id}) 
+                // để lấy thông tin chi tiết và fill vào #valName, #valEmail...
+            });
+
+            // Xử lý khi bấm nút đóng (X)
+            $('#closePanelBtn').on('click', function() {
+                $('#userDetailPanel').slideUp(200, function() {
+                    $('#mainTableContainer').removeClass('panel-open');
+                    $('.user-row').removeClass('active-row');
+                });
+            });
+        });
+    </script>
+</body>
+</html>

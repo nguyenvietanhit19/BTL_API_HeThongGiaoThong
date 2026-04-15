@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nhân viên xử lý - Giao Thông Cộng Đồng</title>
+    <link rel="stylesheet" href="/FrontEnd/css/common.css">
+    <link rel="stylesheet" href="/FrontEnd/css/admin/admin.css">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+</head>
+<body>
+    <div id="topbar-container"></div>
+    <div id="sidebar-container"></div>
+
+    <div class="main-content">
+        <div class="page-header">
+            <h1 id="topbar-title" style="display: none;">GiaoThôngAn - Đội ngũ nhân viên</h1>
+            <h2>Quản lý Đội ngũ thi công</h2>
+            <div class="filters">
+                <input type="text" id="search-staff" placeholder="Tìm theo tên nhân viên...">
+                <button style="padding: 6px 12px; background: #6b46c1; color: white; border: none; border-radius: 4px; cursor: pointer;">+ Thêm nhân viên</button>
+            </div>
+        </div>
+
+        <div class="stats-container">
+            <div class="card blue"><h3 id="stat-total-staff">...</h3><p>Tổng nhân viên</p></div>
+            <div class="card green"><h3 id="stat-available">...</h3><p>Đang rảnh</p></div>
+            <div class="card orange"><h3 id="stat-busy">...</h3><p>Đang thi công</p></div>
+        </div>
+
+        <div class="table-container" style="margin-top: 20px;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>HỌ TÊN</th>
+                        <th>EMAIL LIÊN HỆ</th>
+                        <th>VIỆC ĐANG XỬ LÝ</th>
+                        <th>TRẠNG THÁI</th>
+                        <th>HÀNH ĐỘNG</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body-nhan-vien">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="/FrontEnd/js/layout.js"></script>
+</body>
+</html>

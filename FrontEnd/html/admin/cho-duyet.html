@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chờ duyệt - Giao Thông Cộng Đồng</title>
+    <link rel="stylesheet" href="/FrontEnd/css/common.css">
+    <link rel="stylesheet" href="/FrontEnd/css/admin/admin.css"> 
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+</head>
+<body>
+    <div id="topbar-container"></div>
+    <div id="sidebar-container"></div>
+
+    <div class="main-content">
+        <div class="page-header">
+            <h1 id="topbar-title" style="display: none;">GiaoThôngAn - Chờ duyệt báo cáo</h1>
+            <h2>Danh sách báo cáo chờ duyệt</h2>
+            <div class="filters">
+                <input type="text" id="search-report" placeholder="Tìm theo tiêu đề, địa chỉ...">
+                <select id="filter-category">
+                    <option value="">Tất cả loại sự cố</option>
+                    </select>
+                <input type="date" id="filter-date">
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>SỰ CỐ & ĐỊA CHỈ</th>
+                        <th>LOẠI SỰ CỐ</th>
+                        <th>NGƯỜI BÁO CÁO</th>
+                        <th>THỜI GIAN GỬI</th>
+                        <th>HÀNH ĐỘNG</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body-cho-duyet">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="/FrontEnd/js/layout.js"></script>
+</body>
+</html>
