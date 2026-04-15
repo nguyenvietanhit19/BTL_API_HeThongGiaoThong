@@ -61,10 +61,7 @@ def kiem_tra_vi_tri_anh(file, vi_do_bao_cao, kinh_do_bao_cao, nguong_km=1.0):
     R = 6371
     dlat = math.radians(lat - vi_do_bao_cao)
     dlon = math.radians(lon - kinh_do_bao_cao)
-    a = (math.sin(dlat / 2) ** 2
-         + math.cos(math.radians(vi_do_bao_cao))
-         * math.cos(math.radians(lat))
-         * math.sin(dlon / 2) ** 2)
+    a = math.sin(dlat/2)**2 + math.cos(math.radians(vi_do_bao_cao)) * math.cos(math.radians(lat)) * math.sin(dlon/2)**2
     khoang_cach = R * 2 * math.asin(math.sqrt(a))
 
     if khoang_cach > nguong_km:
@@ -96,9 +93,10 @@ def upload_anh(bao_cao_id):
         conn = get_db()
         cursor = conn.cursor()
 
-        # ✅ Fix: dùng bao_cao_id thay vì id
+        # Lấy thông tin báo cáo
         cursor.execute(
-            "SELECT vi_do, kinh_do, trang_thai FROM bao_cao WHERE bao_cao_id = ?", (id,)
+            "SELECT vi_do, kinh_do, trang_thai FROM bao_cao WHERE bao_cao_id = ?",
+            (bao_cao_id,)
         )
         bao_cao = cursor.fetchone()
         if not bao_cao:
@@ -108,7 +106,7 @@ def upload_anh(bao_cao_id):
 
         # Kiểm tra EXIF GPS
         file.seek(0)
-        hop_le, thong_bao = kiem_tra_vi_tri_anh(file, float(vi_do), float(kinh_do))
+        hop_le, thong_bao = kiem_tra_vi_tri_anh(file, vi_do, kinh_do)
         if not hop_le:
             return jsonify({'loi': thong_bao}), 400
 
@@ -117,12 +115,7 @@ def upload_anh(bao_cao_id):
         if vai_tro == 'user':
             loai_anh = 'bao_cao'
         elif vai_tro == 'nhan_vien':
-            if trang_thai == 'dang_xu_ly':
-                loai_anh = 'hien_truong'
-            else:
-                loai_anh = 'sau_sua_chua'
-        else:
-            loai_anh = 'bao_cao'  # ✅ Fix: fallback tránh UnboundLocalError
+            loai_anh = 'sau_sua_chua'  # nhân viên luôn upload ảnh sau sửa chữa
 
         # Upload lên Cloudinary
         file.seek(0)
@@ -133,7 +126,7 @@ def upload_anh(bao_cao_id):
         )
         url_anh = ket_qua['secure_url']
 
-        # ✅ Fix: dùng nguoi_upload_id thay vì nguoi_upload
+        # Lưu vào database
         cursor.execute(
             """INSERT INTO anh (bao_cao_id, nguoi_upload_id, duong_dan_anh, loai_anh)
                VALUES (?, ?, ?, ?)""",

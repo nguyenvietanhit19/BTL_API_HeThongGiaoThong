@@ -5,7 +5,7 @@ from db import get_db
 nhan_vien_bp = Blueprint('nhan_vien', __name__)
 
 
-# GET /nhan-vien/viec-cua-toi
+# GET /nhan-vien/viec-cua-toi       (chỉ hiển thị các công việc đang làm)
 @nhan_vien_bp.route('/viec-cua-toi', methods=['GET'])
 @can_access(['nhan_vien'])
 def viec_cua_toi():
