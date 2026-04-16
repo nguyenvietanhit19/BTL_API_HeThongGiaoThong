@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đang xử lý - Giao Thông Cộng Đồng</title>
+    <title>Đã từ chối - Giao Thông Cộng Đồng</title>
     <link rel="stylesheet" href="/FrontEnd/css/common.css">
     <link rel="stylesheet" href="/FrontEnd/css/admin/admin.css">
 </head>
@@ -13,13 +13,15 @@
 
     <div class="main-content">
         <div class="page-header">
-            <h1 id="topbar-title" style="display: none;">GiaoThôngAn - Đang xử lý</h1>
-            <h2>Tiến độ khắc phục sự cố</h2>
+            <h1 id="topbar-title" style="display: none;">GiaoThôngAn - Đã từ chối</h1>
+            <h2>Báo cáo không được phê duyệt</h2>
             <div class="filters">
-                <input type="text" id="search-progress" placeholder="Tìm kiếm...">
-                <select id="filter-staff">
-                    <option value="">Tất cả nhân viên</option>
-                    </select>
+                <input type="month" id="filter-reject-month">
+                <select id="filter-reason">
+                    <option value="">Mọi lý do</option>
+                    <option value="spam">Spam/Ảnh giả</option>
+                    <option value="outside">Ngoài phạm vi xử lý</option>
+                </select>
             </div>
         </div>
 
@@ -27,14 +29,14 @@
             <table>
                 <thead>
                     <tr>
+                        <th>MÃ BC</th>
                         <th>SỰ CỐ</th>
-                        <th>NHÂN VIÊN PHỤ TRÁCH</th>
-                        <th>NGÀY GIAO VIỆC</th>
-                        <th>TRẠNG THÁI</th>
+                        <th>LÝ DO TỪ CHỐI</th>
+                        <th>NGÀY TỪ CHỐI</th>
                         <th>HÀNH ĐỘNG</th>
                     </tr>
                 </thead>
-                <tbody id="table-body-dang-xu-ly">
+                <tbody id="table-body-tu-choi">
                     </tbody>
             </table>
         </div>
