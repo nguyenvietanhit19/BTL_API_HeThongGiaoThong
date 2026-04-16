@@ -21,13 +21,6 @@
 
         <div class="profile-grid">
             <div class="profile-card profile-summary">
-                <div class="avatar-wrapper">
-                    <img src="/FrontEnd/img/default-avatar.png" alt="Avatar" id="profile-avatar">
-                    <label for="upload-avatar" class="upload-badge">
-                        <i class="fas fa-camera"></i>
-                    </label>
-                    <input type="file" id="upload-avatar" hidden accept="image/*">
-                </div>
                 <h3 id="display-name">...</h3>
                 <p class="user-role badge">...</p>
                 <div class="join-date">Thành viên từ: ...</div>
@@ -36,7 +29,6 @@
             <div class="profile-card profile-details">
                 <div class="tab-header">
                     <button class="tab-btn active" data-tab="info">Thông tin cơ bản</button>
-                    <button class="tab-btn" data-tab="password">Đổi mật khẩu</button>
                 </div>
 
                 <div id="info-tab" class="tab-content active">
@@ -46,10 +38,6 @@
                                 <label>Họ và tên</label>
                                 <input type="text" id="input-ho-ten" placeholder="Nhập họ tên">
                             </div>
-                            <div class="form-group">
-                                <label>Số điện thoại</label>
-                                <input type="text" id="input-sdt" placeholder="Nhập số điện thoại">
-                            </div>
                         </div>
                         <div class="form-group">
                             <label>Địa chỉ Email</label>
@@ -58,26 +46,6 @@
                         </div>
                         <div class="form-actions">
                             <button type="submit" class="btn-action btn-assign">Lưu thay đổi</button>
-                        </div>
-                    </form>
-                </div>
-
-                <div id="password-tab" class="tab-content">
-                    <form id="form-change-password">
-                        <div class="form-group">
-                            <label>Mật khẩu hiện tại</label>
-                            <input type="password" placeholder="********">
-                        </div>
-                        <div class="form-group">
-                            <label>Mật khẩu mới</label>
-                            <input type="password" placeholder="Ít nhất 8 ký tự">
-                        </div>
-                        <div class="form-group">
-                            <label>Xác nhận mật khẩu mới</label>
-                            <input type="password" placeholder="********">
-                        </div>
-                        <div class="form-actions">
-                            <button type="submit" class="btn-action btn-assign">Cập nhật mật khẩu</button>
                         </div>
                     </form>
                 </div>

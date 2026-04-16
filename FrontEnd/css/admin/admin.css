@@ -408,7 +408,14 @@ table tbody tr:hover {
     object-fit: cover;
     display: block;
 }
-
+#confirm-reject-btn:disabled {
+    opacity: 0.5;
+    background: #999 !important;
+}
+#confirm-reject-btn:not(:disabled) {
+    opacity: 1;
+    background: #dc3545 !important;
+}
 /* Image viewer modal basic styles */
 #imageViewerModal .iv-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.85); }
 #imageViewerModal .iv-content { position: relative; max-width: 90vw; max-height: 90vh; margin: 40px auto; display: flex; align-items: center; justify-content: center; }

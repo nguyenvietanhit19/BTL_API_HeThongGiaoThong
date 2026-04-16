@@ -6,11 +6,11 @@
     // 🛠 KHU VỰC CẤU HÌNH DEV
     // ==========================================
     const API_BASE = 'http://127.0.0.1:5000'; 
-    const HARDCODED_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuZ3VvaV9kdW5nX2lkIjoyLCJ2YWlfdHJvIjoibmhhbl92aWVuIiwiZXhwIjoxNzc2OTI3MTc0fQ.KBZMalsEOvOJ7dKVegskSyqVhPQkYQeX5xdO11wqCHI'; 
+    const HARDCODED_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuZ3VvaV9kdW5nX2lkIjoxLCJ2YWlfdHJvIjoiYWRtaW4iLCJleHAiOjE3NzY5NjAzMzR9.8p3F8PgbdELqrTsses5iNGblnpssj3J5-iID7VkuLYM'; 
     // ==========================================
 
     window.getToken = function() { 
-        if (HARDCODED_TOKEN && HARDCODED_TOKEN !== 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuZ3VvaV9kdW5nX2lkIjoyLCJ2YWlfdHJvIjoibmhhbl92aWVuIiwiZXhwIjoxNzc2OTI3MTc0fQ.KBZMalsEOvOJ7dKVegskSyqVhPQkYQeX5xdO11wqCHI') {
+        if (HARDCODED_TOKEN && HARDCODED_TOKEN !== 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuZ3VvaV9kdW5nX2lkIjoxLCJ2YWlfdHJvIjoiYWRtaW4iLCJleHAiOjE3NzY5NjAyODN9.6Kv7GFn0Cy32qYZ4ekN6bE8uEIZ9pcFzKtHCrcZUHDA') {
             return HARDCODED_TOKEN;
         }
         return localStorage.getItem('token'); 
@@ -23,6 +23,21 @@
 
     // Preferred timezone offset in hours for displaying timestamps (Asia/Bangkok = GMT+7)
     window.PREFERRED_TZ_OFFSET = 0;
+
+    window.parseJwt = function(token) {
+        if (!token || typeof token !== 'string') return null;
+
+        const parts = token.split('.');
+        if (parts.length < 2) return null;
+
+        try {
+            const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+            const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4);
+            return JSON.parse(window.atob(padded));
+        } catch (err) {
+            return null;
+        }
+    };
 
     // Format timestamp strings/numbers/Date to timezone-aware display (uses GMT offset)
     // Options: { tzOffsetHours: number, dateOnly: boolean }

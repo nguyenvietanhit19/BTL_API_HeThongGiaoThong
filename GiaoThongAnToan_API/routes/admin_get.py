@@ -98,6 +98,7 @@ def dashboard():
                 nd.ho_ten AS nguoi_bao_cao,
                 bc.ngay_tao,
                 bc.trang_thai,
+                bc.nhan_vien_id,
                 nv.ho_ten AS nhan_vien_phu_trach,
                 -- last time this report entered its current status
                 (SELECT MAX(ls.ngay_doi) FROM lich_su_trang_thai ls WHERE ls.bao_cao_id = bc.bao_cao_id AND ls.trang_thai_moi = bc.trang_thai) AS ngay_trang_thai,

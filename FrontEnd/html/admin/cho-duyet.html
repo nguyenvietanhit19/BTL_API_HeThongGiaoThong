@@ -30,6 +30,7 @@
             <table>
                 <thead>
                     <tr>
+                        <th>MÃ BC</th>
                         <th>SỰ CỐ & ĐỊA CHỈ</th>
                         <th>LOẠI SỰ CỐ</th>
                         <th>NGƯỜI BÁO CÁO</th>
@@ -41,34 +42,38 @@
                 </tbody>
             </table>
         </div>
-    </div>
-
-    <!-- Modals: Approve confirm and Reject with reason -->
-    <div id="confirmApproveModal" class="modal" style="display:none;position:fixed;inset:0;z-index:1200;">
-        <div class="modal-overlay" style="position:absolute;inset:0;background:rgba(0,0,0,0.4);"></div>
-        <div class="modal-content" style="position:relative;max-width:520px;margin:80px auto;background:#fff;border-radius:8px;padding:18px;z-index:1201;">
-            <h3 style="margin-top:0;">Xác nhận duyệt báo cáo</h3>
-            <p id="confirm-approve-text">Bạn có chắc chắn muốn duyệt báo cáo này?</p>
-            <div class="modal-actions" style="text-align:right;margin-top:12px;">
-                <button id="cancel-approve-btn" class="btn-action">Hủy</button>
-                <button id="confirm-approve-btn" class="btn-action primary">Duyệt</button>
+        
+        <div id="confirmApproveModal" class="modal" style="display:none; position:fixed; inset:0; z-index:9999;">
+            <div class="modal-overlay" style="position:absolute; inset:0; background:rgba(0,0,0,0.6); backdrop-filter:blur(2px);"></div>
+            <div class="modal-content" style="position:relative; max-width:450px; margin:80px auto; background:#fff; border-radius:12px; padding:25px; box-shadow:0 10px 30px rgba(0,0,0,0.2);">
+                <h3 style="margin-top:0; color:#333; font-size: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px;">Xác nhận duyệt</h3>
+                <p id="confirm-approve-text" style="color:#444; font-size:15px; margin: 20px 0 25px 0;">Bạn có chắc chắn muốn duyệt báo cáo này?</p>
+                <div class="modal-actions" style="display:flex; justify-content:flex-end; gap:12px;">
+                    <button id="cancel-approve-btn" style="padding:8px 16px; border:1px solid #ddd; background:#f8f9fa; border-radius:6px; cursor:pointer; color:#333; font-weight: 500;">Hủy bỏ</button>
+                    <button id="confirm-approve-btn" style="padding:8px 16px; border:none; background:#0d6efd; border-radius:6px; cursor:pointer; color:#fff; font-weight:bold;">Đồng ý duyệt</button>
+                </div>
             </div>
         </div>
-    </div>
 
-    <div id="rejectModal" class="modal" style="display:none;position:fixed;inset:0;z-index:1200;">
-        <div class="modal-overlay" style="position:absolute;inset:0;background:rgba(0,0,0,0.4);"></div>
-        <div class="modal-content" style="position:relative;max-width:640px;margin:60px auto;background:#fff;border-radius:8px;padding:18px;z-index:1201;">
-            <h3 style="margin-top:0;">Xác nhận từ chối</h3>
-            <p>Vui lòng nhập lý do từ chối (bắt buộc):</p>
-            <textarea id="reject-reason" maxlength="500" rows="4" style="width:100%;box-sizing:border-box;padding:8px;border:1px solid #ddd;border-radius:4px"></textarea>
-            <div class="modal-actions" style="text-align:right;margin-top:12px;">
-                <button id="cancel-reject-btn" class="btn-action">Hủy</button>
-                <button id="confirm-reject-btn" class="btn-action danger" disabled>Từ chối</button>
+        <div id="rejectModal" class="modal" style="display:none; position:fixed; inset:0; z-index:9999;">
+            <div class="modal-overlay" style="position:absolute; inset:0; background:rgba(0,0,0,0.6); backdrop-filter:blur(2px);"></div>
+            <div class="modal-content" style="position:relative; max-width:500px; margin:80px auto; background:#fff; border-radius:12px; padding:25px; box-shadow:0 10px 30px rgba(0,0,0,0.2);">
+                <h3 style="margin-top:0; color:#dc3545; font-size: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px;">Từ chối báo cáo</h3>
+                <p style="color:#555; font-size:14px; margin: 15px 0 10px 0;">Vui lòng nhập lý do từ chối (bắt buộc, ít nhất 3 ký tự):</p>
+                
+                <textarea id="reject-reason" maxlength="500" rows="4" placeholder="Nhập lý do tại đây để người dùng biết..." 
+                          style="width:100%; box-sizing:border-box; padding:12px; border:1px solid #ccc; border-radius:8px; font-size:14px; font-family:inherit; resize:vertical; outline:none;"></textarea>
+                
+                <div class="modal-actions" style="display:flex; justify-content:flex-end; gap:12px; margin-top:20px;">
+                    <button id="cancel-reject-btn" style="padding:8px 16px; border:1px solid #ddd; background:#f8f9fa; border-radius:6px; cursor:pointer; color:#333; font-weight: 500;">Hủy bỏ</button>
+                    <button id="confirm-reject-btn" disabled 
+                            style="padding:8px 16px; border:none; background:#dc3545; border-radius:6px; color:#fff; font-weight:bold; cursor:pointer;" 
+                            onmouseover="if(this.disabled) this.style.cursor='not-allowed'; else this.style.cursor='pointer';" 
+                            class="btn-reject-submit">Xác nhận từ chối</button>
+                </div>
             </div>
         </div>
-    </div>
-
+    </div> 
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="/FrontEnd/js/api.js"></script>
 <script src="/FrontEnd/js/pages/tongquan.js"></script>

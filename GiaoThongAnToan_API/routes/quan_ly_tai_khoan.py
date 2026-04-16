@@ -215,6 +215,9 @@ def cap_nhat_trang_thai_tk(id):
 @quan_ly_bp.route('/nguoi-dung/<int:id>/dinh-chi', methods=['PUT'])
 @can_access(['admin'])
 def go_dinh_chi(id):
+    data = request.get_json(silent=True) or {}
+    ly_do = str(data.get('ly_do') or '').strip()
+
     conn = None
     try:
         conn = get_db()
@@ -227,15 +230,34 @@ def go_dinh_chi(id):
         row = cursor.fetchone()
 
         if not row:
-            return jsonify({'loi': 'Không tìm thấy người dùng'}), 404
+            return jsonify({'loi': 'Khong tim thay nguoi dung'}), 404
 
         nguoi_dung_id, ho_ten, bi_dinh_chi, vai_tro = row
 
         if vai_tro != 'nhan_vien':
-            return jsonify({'loi': 'Chỉ có thể gỡ đình chỉ cho nhân viên'}), 400
+            return jsonify({'loi': 'Chi co the dinh chi nhan vien'}), 400
+
+        if ly_do:
+            if bi_dinh_chi:
+                return jsonify({'loi': f'{ho_ten} dang bi dinh chi roi'}), 400
+
+            cursor.execute(
+                "UPDATE nguoi_dung SET bi_dinh_chi = 1, ly_do_dinh_chi = ? WHERE nguoi_dung_id = ?",
+                (ly_do, id)
+            )
+
+            cursor.execute(
+                """INSERT INTO nhat_ky_admin
+                   (admin_id, nguoi_dung_id, hanh_dong, gia_tri_cu, gia_tri_moi)
+                   VALUES (?, ?, 'dinh_chi', 'False', 'True')""",
+                (request.nguoi_dung_id, id)
+            )
+
+            conn.commit()
+            return jsonify({'thong_bao': f'Da dinh chi nhan vien {ho_ten}'}), 200
 
         if not bi_dinh_chi:
-            return jsonify({'loi': f'{ho_ten} hiện không bị đình chỉ'}), 400
+            return jsonify({'loi': f'{ho_ten} hien khong bi dinh chi'}), 400
 
         cursor.execute(
             "UPDATE nguoi_dung SET bi_dinh_chi = 0, ly_do_dinh_chi = NULL WHERE nguoi_dung_id = ?",
@@ -250,14 +272,13 @@ def go_dinh_chi(id):
         )
 
         conn.commit()
-        return jsonify({'thong_bao': f'Đã gỡ đình chỉ cho nhân viên {ho_ten}'}), 200
+        return jsonify({'thong_bao': f'Da go dinh chi cho nhan vien {ho_ten}'}), 200
 
     except Exception as e:
         return jsonify({'loi': str(e)}), 500
     finally:
         if conn:
             conn.close()
-
 
 # ==========================================
 # 6. XEM NHẬT KÝ ADMIN
