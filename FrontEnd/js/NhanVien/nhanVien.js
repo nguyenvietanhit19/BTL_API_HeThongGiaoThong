@@ -1,45 +1,84 @@
-// ============ CẤU HÌNH ============
+// ============ CONFIG ============
 const API_BASE = "http://127.0.0.1:5000";
 
-// ============ INIT ============
+// ============ GLOBAL ============
 let currentTaskId = null;
 
-// ============ DOM READY ============
-document.addEventListener("DOMContentLoaded", () => {
+// ============ INIT ============
+$(document).ready(function () {
 
-    if (!localStorage.getItem('token')) {
+    const token = localStorage.getItem('token');
+
+    if (!token) {
         showToast("Chưa đăng nhập", true);
         return;
     }
 
+    // ===== LOAD BAN ĐẦU =====
     fetchTasks();
 
-    // ===== HIỂN THỊ TÊN USER =====
+    // ===== HIỂN THỊ TÊN =====
     const name = localStorage.getItem("user_name");
-    if (name) {
-        const el = document.getElementById("user-name");
-        if (el) el.textContent = name;
-    }
+    if (name) $('#user-name').text(name);
+
+    // ===== USER DROPDOWN (FIX CLICK + MOBILE) =====
+    $('.user-badge').click(function (e) {
+        e.stopPropagation(); // không cho lan ra ngoài
+        $('.user-dropdown').toggleClass('show');
+    });
+
+    // click ra ngoài thì đóng
+    $(document).click(function () {
+        $('.user-dropdown').removeClass('show');
+    });
+
+    // click bên trong menu không bị đóng
+    $('.user-dropdown').click(function (e) {
+        e.stopPropagation();
+    });
+
+    // ===== MOBILE MENU =====
+    $('#btn-menu').click(function () {
+        $('.sidebar').toggleClass('open');
+    });
 
     // ===== SIDEBAR NAV =====
-    const menuItems = document.querySelectorAll('.menu-item');
+    $('.menu-item').click(function () {
 
-    menuItems.forEach(item => {
-        item.addEventListener('click', () => {
+        $('.menu-item').removeClass('active');
+        $(this).addClass('active');
 
-            menuItems.forEach(i => i.classList.remove('active'));
-            item.classList.add('active');
+        $('.page').removeClass('active');
 
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        const page = $(this).data('page');
+        $(`#page-${page}`).addClass('active');
 
-            const page = item.dataset.page;
-            const target = document.getElementById(`page-${page}`);
-            if (target) target.classList.add('active');
+        // load data theo tab
+        if (page === 'da-hoan-thanh') loadDoneTasks();
+        if (page === 'lich-su') loadHistory();
 
-            // load theo tab
-            if (page === 'da-hoan-thanh') loadDoneTasks();
-            if (page === 'lich-su') loadHistory();
+        // mobile: auto đóng menu
+        $('.sidebar').removeClass('open');
+    });
+
+    // ===== PROFILE (AJAX LOAD) =====
+    $('#btn-profile').click(function (e) {
+        e.preventDefault();
+
+        $('.page').removeClass('active');
+
+        $('#page-profile').load('/FrontEnd/html/NhanVien/profileNV.html .container', function () {
+            $('#page-profile').addClass('active');
+
+            // gọi init profile
+            if (typeof initProfilePage === "function") {
+                initProfilePage();
+            } else {
+                console.error("Thiếu initProfilePage()");
+            }
         });
+
+        $('.sidebar').removeClass('open');
     });
 
     // ===== FILTER =====
@@ -49,28 +88,9 @@ document.addEventListener("DOMContentLoaded", () => {
         .on('input change', loadHistory);
 
     // ===== BTN HOÀN THÀNH =====
-    const btn = document.getElementById('btn-confirm-hoan');
-    if (btn) {
-        btn.onclick = () => {
-            if (!currentTaskId) return;
-            baoHoanThanhAPI(currentTaskId);
-        };
-    }
-
-    // ===== PROFILE =====
-        $('#btn-profile').click(function (e) {
-        e.preventDefault();
-
-        // ẩn tất cả page
-        $('.page').removeClass('active');
-
-        // load HTML vào page-profile
-        $('#page-profile').load('/FrontEnd/html/NhanVien/profileNV.html .container', function () {
-            $('#page-profile').addClass('active');
-
-            // 👉 GỌI INIT PROFILE SAU KHI LOAD
-            initProfilePage();
-        });
+    $('#btn-confirm-hoan').click(function () {
+        if (!currentTaskId) return;
+        baoHoanThanhAPI(currentTaskId);
     });
 
     // ===== LOGOUT =====
@@ -82,6 +102,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 // ============ API ============
+
 function fetchTasks() {
     $.ajax({
         url: `${API_BASE}/nhan-vien/viec-cua-toi`,
@@ -118,6 +139,7 @@ function baoHoanThanhAPI(id) {
 
 
 // ============ RENDER ============
+
 function getStatusLabel(status) {
     switch (status) {
         case 'dang_xu_ly': return 'Đang xử lý';
@@ -166,6 +188,7 @@ function renderTasks(tasks) {
 
 
 // ============ TAB DATA ============
+
 function loadDoneTasks() {
     const month = $('#filter-month-done').val();
 
@@ -229,6 +252,7 @@ function loadHistory() {
 
 
 // ============ UI ============
+
 function openHoanThanh(id) {
     currentTaskId = id;
     openModal('modal-hoan-thanh');
