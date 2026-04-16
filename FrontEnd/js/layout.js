@@ -1,6 +1,5 @@
 // FILE: js/layout.js
-
-$(document).ready(function() {
+$(document).ready(function () {
     // --- 1. LAYOUT (TOPBAR & SIDEBAR) ---
     $('#topbar-container').load('topbar.html', function() {
         let shortTitle = document.title.split(' - ')[0]; 
@@ -74,7 +73,7 @@ $(document).ready(function() {
         e.preventDefault();
         if (confirm("Bạn có chắc chắn muốn đăng xuất không?")) {
             window.setToken(null);
-            window.location.href = "/dang_nhap/dang_nhap.html";
+            window.location.href = "html/dang_nhap/dang_nhap.html";
         }
     });
 

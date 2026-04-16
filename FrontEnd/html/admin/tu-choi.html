@@ -16,11 +16,16 @@
             <h1 id="topbar-title" style="display: none;">GiaoThôngAn - Đã từ chối</h1>
             <h2>Báo cáo không được phê duyệt</h2>
             <div class="filters">
-                <input type="month" id="filter-reject-month">
-                <select id="filter-reason">
+                <input type="date" id="filter-reject-date">
+                <select id="filter-reason" style="margin-left:8px;">
                     <option value="">Mọi lý do</option>
                     <option value="spam">Spam/Ảnh giả</option>
+                    <option value="duplicate">Trùng lặp</option>
+                    <option value="insufficient">Thiếu thông tin</option>
+                    <option value="invalid_photo">Ảnh không liên quan</option>
+                    <option value="unclear">Thông tin không rõ</option>
                     <option value="outside">Ngoài phạm vi xử lý</option>
+                    <option value="other">Khác</option>
                 </select>
             </div>
         </div>
@@ -37,7 +42,7 @@
                     </tr>
                 </thead>
                 <tbody id="table-body-tu-choi">
-                    </tbody>
+                </tbody>
             </table>
         </div>
     </div>

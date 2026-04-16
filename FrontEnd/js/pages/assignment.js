@@ -1,4 +1,5 @@
-(function(window, $) {
+// FILE: js/pages/assignment.js
+(function(window, $){
     'use strict';
 
     function getTitleHtml(item) {
@@ -16,17 +17,20 @@
             limit: window.getPaginationPageSize ? window.getPaginationPageSize('assignment', 5) : 5
         };
     }
-
-    window.loadPhanCong = async function(page = 1, limit = 10) {
+    window.loadPhanCong = async function(page = 1, limit = 10, filters = {}) {
         try {
+            // Lấy báo cáo đã duyệt cần phân công
+            const res = await window.apiRequest('GET', `/admin_get/dashboard?trang_thai=da_duyet&page=${page}&limit=${limit}`);
+            let reports = (res.list && res.list.data) ? res.list.data : [];
+            let total = (res.list && (typeof res.list.total === 'number')) ? res.list.total : 0;
             const res = await window.apiRequest('GET', '/admin_get/dashboard?trang_thai=da_duyet&page=1&limit=1000');
-            let reports = res && res.list && Array.isArray(res.list.data) ? res.list.data : [];
-            reports = reports.filter(function(report) {
-                return !report.nhan_vien_phu_trach && !report.nhan_vien_id && !report.nhan_vien;
             });
 
-            const userRes = await window.apiRequest('GET', '/admin/nguoi-dung');
+            // Lấy danh sách nhân viên
+             const userRes = await window.apiRequest('GET', '/admin/nguoi-dung');
             const users = userRes.danh_sach || userRes.data || userRes || [];
+            const staff = users.filter(u => (u.vai_tro === 'nhan_vien' || u.vai_tro === 'nhân_vien') && !u.bi_dinh_chi);
+
             const staff = users.filter(function(user) {
                 return (user.vai_tro === 'nhan_vien' || user.vai_tro === 'nhân_vien') && !user.bi_dinh_chi;
             });
@@ -40,12 +44,31 @@
                     data: reports.slice((page - 1) * limit, page * limit)
                 };
 
-            if (!pagination.data.length && pagination.total > 0 && page > 1) {
-                return window.loadPhanCong(page - 1, limit);
+            const $tb = $('#table-body-phan-cong'); $tb.empty();
+
+            // Populate event filter select with events found in returned data
+            const $filter = $('#filter-event');
+            if ($filter.length) {
+                const prev = $filter.val() || '';
+                $filter.empty();
+                $filter.append('<option value="">Tất cả sự kiện</option>');
+                const evSet = new Set();
+                (res.list && res.list.data ? res.list.data : []).forEach(rr => {
+                    const ev = (rr.loai_su_co || rr.loai || '').toString();
+                    if (ev) evSet.add(ev);
+                });
+                Array.from(evSet).sort().forEach(ev => $filter.append(`<option value="${ev}">${ev}</option>`));
+                if (prev) $filter.val(prev);
             }
 
-            const $tbody = $('#table-body-phan-cong');
-            $tbody.empty();
+            // If client-side filtering by event requested, fetch all and filter locally so pagination reflects filtered count
+            if (filters && filters.event && total > 0) {
+                const allRes = await window.apiRequest('GET', `/admin_get/dashboard?trang_thai=da_duyet&page=1&limit=${Math.max(total, 1)}`);
+                let allReports = (allRes.list && allRes.list.data) ? allRes.list.data : [];
+                allReports = allReports.filter(item => ((item.loai_su_co || item.loai || '') + '').toLowerCase() === (filters.event + '').toLowerCase());
+                total = allReports.length;
+                reports = allReports.slice((page - 1) * limit, page * limit);
+            }
 
             if (!reports.length) {
                 $tbody.append('<tr><td colspan="5" class="text-center" style="padding:20px;">Không có báo cáo nào chờ phân công</td></tr>');
@@ -53,11 +76,11 @@
                     window.renderPagination({
                         key: 'assignment',
                         anchor: '#table-body-phan-cong',
-                        currentPage: 1,
+                        currentPage: page,
                         pageSize: limit,
-                        totalItems: 0,
+                        totalItems: total || 0,
                         onPageChange: function(nextPage, nextLimit) {
-                            window.loadPhanCong(nextPage, nextLimit);
+                            window.loadPhanCong(nextPage, nextLimit, filters);
                         }
                     });
                 }
@@ -90,11 +113,11 @@
                 window.renderPagination({
                     key: 'assignment',
                     anchor: '#table-body-phan-cong',
-                    currentPage: pagination.currentPage || page,
-                    pageSize: pagination.pageSize || limit,
-                    totalItems: pagination.total,
+                    currentPage: page,
+                    pageSize: limit,
+                    totalItems: total || ((res.list && res.list.total) || 0),
                     onPageChange: function(nextPage, nextLimit) {
-                        window.loadPhanCong(nextPage, nextLimit);
+                        window.loadPhanCong(nextPage, nextLimit, filters);
                     }
                 });
             }
@@ -127,4 +150,13 @@
             window.showApiError(err);
         });
     });
+
+    // Event filter change handler
+    $(document).off('change', '#filter-event').on('change', '#filter-event', function() {
+        const key = 'assignment';
+        const pageSize = window.getPaginationPageSize ? window.getPaginationPageSize(key, 10) : 10;
+        const ev = ($('#filter-event').val && $('#filter-event').val()) || '';
+        window.loadPhanCong(1, pageSize, { event: ev });
+    });
+
 })(window, jQuery);
