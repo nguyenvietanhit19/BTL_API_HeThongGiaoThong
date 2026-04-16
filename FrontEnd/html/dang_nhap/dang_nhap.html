@@ -1,0 +1,1266 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Giao thông Cộng đồng — Đăng nhập</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <style>
+        :root {
+            --do: #E24B4A;
+            --do-dam: #A32D2D;
+            --xam: #2C2C2A;
+            --xam-nhat: #F1EFE8;
+            --trang: #FFFFFF;
+            --border: rgba(44, 44, 42, 0.12);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Be Vietnam Pro', sans-serif;
+            background: var(--xam-nhat);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                radial-gradient(circle at 20% 20%, rgba(226, 75, 74, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(163, 45, 45, 0.06) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .grid-bg {
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(44, 44, 42, 0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(44, 44, 42, 0.04) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+        }
+
+        .container {
+            display: flex;
+            width: 900px;
+            min-height: 560px;
+            background: var(--trang);
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 32px 80px rgba(44, 44, 42, 0.15);
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Panel trái */
+        .panel-trai {
+            width: 380px;
+            background: var(--xam);
+            padding: 52px 44px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .panel-trai::before {
+            content: '';
+            position: absolute;
+            top: -80px;
+            right: -80px;
+            width: 280px;
+            height: 280px;
+            border-radius: 50%;
+            background: rgba(226, 75, 74, 0.12);
+        }
+
+        .panel-trai::after {
+            content: '';
+            position: absolute;
+            bottom: -60px;
+            left: -60px;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: rgba(226, 75, 74, 0.08);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .logo-icon {
+            width: 44px;
+            height: 44px;
+            background: var(--do);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Space Mono', monospace;
+            font-weight: 700;
+            color: white;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .logo-text {
+            font-size: 13px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.9);
+            line-height: 1.3;
+            letter-spacing: 0.01em;
+        }
+
+        .panel-trai-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .panel-trai h2 {
+            font-size: 28px;
+            font-weight: 700;
+            color: white;
+            line-height: 1.3;
+            margin-bottom: 16px;
+        }
+
+        .panel-trai h2 span {
+            color: var(--do);
+        }
+
+        .panel-trai p {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.55);
+            line-height: 1.7;
+        }
+
+        .stats {
+            display: flex;
+            gap: 24px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-num {
+            font-family: 'Space Mono', monospace;
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--do);
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.4);
+            margin-top: 2px;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        /* Panel phải */
+        .panel-phai {
+            flex: 1;
+            padding: 48px 44px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        /* Tab */
+        .tab-group {
+            display: flex;
+            gap: 0;
+            margin-bottom: 36px;
+            border-bottom: 2px solid var(--xam-nhat);
+        }
+
+        .tab-btn {
+            padding: 10px 24px;
+            font-family: 'Be Vietnam Pro', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            color: rgba(44, 44, 42, 0.4);
+            background: none;
+            border: none;
+            cursor: pointer;
+            position: relative;
+            transition: color 0.2s;
+            letter-spacing: 0.01em;
+        }
+
+        .tab-btn.active {
+            color: var(--xam);
+        }
+
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--do);
+        }
+
+        /* Form */
+        .form-section {
+            display: none;
+        }
+
+        .form-section.active {
+            display: block;
+        }
+
+        .form-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--xam);
+            margin-bottom: 6px;
+        }
+
+        .form-subtitle {
+            font-size: 13px;
+            color: rgba(44, 44, 42, 0.45);
+            margin-bottom: 28px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: rgba(44, 44, 42, 0.6);
+            margin-bottom: 6px;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            font-family: 'Be Vietnam Pro', sans-serif;
+            font-size: 14px;
+            color: var(--xam);
+            background: var(--xam-nhat);
+            outline: none;
+            transition: border-color 0.2s, background 0.2s;
+        }
+
+        .form-input:focus {
+            border-color: var(--do);
+            background: white;
+        }
+
+        .form-input::placeholder {
+            color: rgba(44, 44, 42, 0.3);
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 13px;
+            background: var(--do);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-family: 'Be Vietnam Pro', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            margin-top: 8px;
+            letter-spacing: 0.02em;
+        }
+
+        .btn-submit:hover {
+            background: var(--do-dam);
+        }
+
+        .btn-submit:active {
+            transform: scale(0.99);
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-outline {
+            width: 100%;
+            padding: 13px;
+            background: transparent;
+            color: var(--xam);
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            font-family: 'Be Vietnam Pro', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: border-color 0.2s, background 0.2s;
+            margin-top: 8px;
+            letter-spacing: 0.02em;
+        }
+
+        .btn-outline:hover {
+            border-color: var(--xam);
+            background: var(--xam-nhat);
+        }
+
+        .qmk-link {
+            text-align: right;
+            margin-top: -8px;
+            margin-bottom: 16px;
+        }
+
+        .qmk-link a {
+            font-size: 12px;
+            color: var(--do);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .qmk-link a:hover {
+            text-decoration: underline;
+        }
+
+        /* Alert */
+        .alert {
+            padding: 11px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-bottom: 16px;
+            display: none;
+        }
+
+        .alert.success {
+            background: #EAF3DE;
+            color: #27500A;
+            border: 1px solid #C0DD97;
+        }
+
+        .alert.error {
+            background: #FCEBEB;
+            color: #791F1F;
+            border: 1px solid #F7C1C1;
+        }
+
+        /* Bước đăng ký */
+        .buoc-dang-ky {
+            display: none;
+        }
+
+        .buoc-dang-ky.active {
+            display: block;
+        }
+
+        /* Bước indicator */
+        .buoc-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+
+        .buoc-dot {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+            font-family: 'Space Mono', monospace;
+            flex-shrink: 0;
+            transition: all 0.3s;
+        }
+
+        .buoc-dot.done {
+            background: var(--do);
+            color: white;
+        }
+
+        .buoc-dot.current {
+            background: var(--xam);
+            color: white;
+        }
+
+        .buoc-dot.pending {
+            background: var(--xam-nhat);
+            color: rgba(44, 44, 42, 0.35);
+            border: 1.5px solid var(--border);
+        }
+
+        .buoc-line {
+            flex: 1;
+            height: 2px;
+            background: var(--border);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .buoc-line-fill {
+            height: 100%;
+            background: var(--do);
+            width: 0%;
+            transition: width 0.4s ease;
+        }
+
+        .buoc-line-fill.done {
+            width: 100%;
+        }
+
+        .buoc-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: rgba(44, 44, 42, 0.4);
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        /* OTP input */
+        .otp-group {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .otp-input {
+            flex: 1;
+            padding: 14px 8px;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            font-family: 'Space Mono', monospace;
+            font-size: 22px;
+            font-weight: 700;
+            text-align: center;
+            color: var(--xam);
+            background: var(--xam-nhat);
+            outline: none;
+            transition: border-color 0.2s, background 0.2s;
+            width: 0;
+        }
+
+        .otp-input:focus {
+            border-color: var(--do);
+            background: white;
+        }
+
+        .otp-hint {
+            font-size: 12px;
+            color: rgba(44, 44, 42, 0.4);
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .otp-hint a {
+            color: var(--do);
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .otp-hint a:hover {
+            text-decoration: underline;
+        }
+
+        /* Modal quên mật khẩu */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(44, 44, 42, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 16px;
+            padding: 36px 32px;
+            width: 380px;
+            box-shadow: 0 24px 60px rgba(44, 44, 42, 0.2);
+        }
+
+        .modal h3 {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--xam);
+            margin-bottom: 6px;
+        }
+
+        .modal p {
+            font-size: 13px;
+            color: rgba(44, 44, 42, 0.5);
+            margin-bottom: 20px;
+        }
+
+        .modal-buoc {
+            display: none;
+        }
+
+        .modal-buoc.active {
+            display: block;
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .btn-huy {
+            flex: 1;
+            padding: 11px;
+            background: var(--xam-nhat);
+            color: var(--xam);
+            border: none;
+            border-radius: 8px;
+            font-family: 'Be Vietnam Pro', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-xac-nhan {
+            flex: 2;
+            padding: 11px;
+            background: var(--do);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Be Vietnam Pro', sans-serif;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .btn-xac-nhan:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .ma-input {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .ma-input input {
+            flex: 1;
+            padding: 14px;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            font-family: 'Space Mono', monospace;
+            font-size: 20px;
+            font-weight: 700;
+            text-align: center;
+            color: var(--xam);
+            background: var(--xam-nhat);
+            outline: none;
+            letter-spacing: 8px;
+        }
+
+        .ma-input input:focus {
+            border-color: var(--do);
+            background: white;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            margin-right: 6px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+
+
+        /* ================= RESPONSIVE ================= */
+
+        /* Tablet */
+        @media (max-width: 992px) {
+            .container {
+                width: 95%;
+                min-height: auto;
+            }
+
+            .panel-trai {
+                width: 320px;
+                padding: 40px 30px;
+            }
+
+            .panel-phai {
+                padding: 40px 30px;
+            }
+        }
+
+        /* Mobile */
+        @media (max-width: 768px) {
+            body {
+                overflow: auto;
+                padding: 20px 0;
+            }
+
+            .container {
+                flex-direction: column;
+                width: 95%;
+                border-radius: 16px;
+            }
+
+            /* Ẩn panel trái hoặc thu gọn */
+            .panel-trai {
+                width: 100%;
+                min-height: 220px;
+                padding: 24px;
+                text-align: center;
+            }
+
+            .panel-trai h2 {
+                font-size: 22px;
+            }
+
+            .stats {
+                justify-content: center;
+                gap: 16px;
+            }
+
+            .panel-phai {
+                padding: 24px;
+            }
+
+            .tab-group {
+                justify-content: center;
+            }
+
+            .form-title {
+                font-size: 20px;
+                text-align: center;
+            }
+
+            .form-subtitle {
+                text-align: center;
+            }
+
+            .otp-group {
+                gap: 6px;
+            }
+
+            .otp-input {
+                font-size: 18px;
+                padding: 12px 6px;
+            }
+
+            .modal {
+                width: 90%;
+                padding: 24px;
+            }
+        }
+
+        /* Điện thoại nhỏ */
+        @media (max-width: 480px) {
+            .panel-trai {
+                display: none;
+                /* ẩn hẳn cho gọn */
+            }
+
+            .container {
+                width: 100%;
+                border-radius: 0;
+                min-height: 100vh;
+            }
+
+            .panel-phai {
+                padding: 20px;
+            }
+
+            .tab-btn {
+                padding: 8px 14px;
+                font-size: 13px;
+            }
+
+            .form-input {
+                padding: 10px 12px;
+            }
+
+            .btn-submit,
+            .btn-outline {
+                padding: 11px;
+                font-size: 13px;
+            }
+
+            .otp-input {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="grid-bg"></div>
+
+    <div class="container">
+        <!-- Panel trái -->
+        <div class="panel-trai">
+            <div class="logo">
+                <div class="logo-icon">GT</div>
+                <div class="logo-text">Hệ thống Báo cáo<br>Sự cố Giao thông</div>
+            </div>
+
+            <div class="panel-trai-content">
+                <h2>Cùng nhau xây dựng<br><span>đô thị an toàn</span></h2>
+                <p>Báo cáo sự cố giao thông trong khu vực của bạn và giúp cộng đồng di chuyển an toàn hơn.</p>
+            </div>
+
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="stat-num">1.2k</div>
+                    <div class="stat-label">Báo cáo</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-num">94%</div>
+                    <div class="stat-label">Xử lý</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-num">48h</div>
+                    <div class="stat-label">Phản hồi</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel phải -->
+        <div class="panel-phai">
+            <div class="tab-group">
+                <button class="tab-btn active" onclick="doiTab('dang-nhap')">Đăng nhập</button>
+                <button class="tab-btn" onclick="doiTab('dang-ky')">Đăng ký</button>
+            </div>
+
+            <!-- Form đăng nhập -->
+            <div class="form-section active" id="form-dang-nhap">
+                <div class="form-title">Chào mừng trở lại</div>
+                <div class="form-subtitle">Đăng nhập để tiếp tục báo cáo sự cố</div>
+
+                <div class="alert" id="alert-dang-nhap"></div>
+
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" class="form-input" id="dn-email" placeholder="ten@gmail.com">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Mật khẩu</label>
+                    <input type="password" class="form-input" id="dn-matkhau" placeholder="••••••••">
+                </div>
+
+                <div class="qmk-link">
+                    <a href="#" onclick="moModalQMK()">Quên mật khẩu?</a>
+                </div>
+
+                <button class="btn-submit" id="btn-dang-nhap" onclick="dangNhap()">
+                    Đăng nhập
+                </button>
+            </div>
+
+            <!-- Form đăng ký — 2 bước -->
+            <div class="form-section" id="form-dang-ky">
+
+                <!-- Bước indicator -->
+                <div class="buoc-indicator">
+                    <div class="buoc-dot current" id="dot-1">1</div>
+                    <div class="buoc-line">
+                        <div class="buoc-line-fill" id="line-1"></div>
+                    </div>
+                    <div class="buoc-dot pending" id="dot-2">2</div>
+                </div>
+
+                <!-- Bước 1: Nhập thông tin -->
+                <div class="buoc-dang-ky active" id="dk-buoc1">
+                    <div class="form-title">Tạo tài khoản mới</div>
+                    <div class="form-subtitle">Nhập thông tin để nhận mã xác nhận qua email</div>
+
+                    <div class="alert" id="alert-dk-buoc1"></div>
+
+                    <div class="form-group">
+                        <label class="form-label">Họ và tên</label>
+                        <input type="text" class="form-input" id="dk-hoten" placeholder="Nguyễn Văn A">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-input" id="dk-email" placeholder="ten@gmail.com">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Mật khẩu</label>
+                        <input type="password" class="form-input" id="dk-matkhau" placeholder="Ít nhất 6 ký tự">
+                    </div>
+
+                    <button class="btn-submit" id="btn-gui-ma-dk" onclick="guiMaDangKy()">
+                        Gửi mã xác nhận
+                    </button>
+                </div>
+
+                <!-- Bước 2: Nhập mã xác nhận -->
+                <div class="buoc-dang-ky" id="dk-buoc2">
+                    <div class="form-title">Xác nhận email</div>
+                    <div class="form-subtitle" id="dk-subtitle-buoc2">Nhập mã 6 số đã gửi về email của bạn</div>
+
+                    <div class="alert" id="alert-dk-buoc2"></div>
+
+                    <div class="otp-group">
+                        <input class="otp-input" type="text" maxlength="1" id="otp-1">
+                        <input class="otp-input" type="text" maxlength="1" id="otp-2">
+                        <input class="otp-input" type="text" maxlength="1" id="otp-3">
+                        <input class="otp-input" type="text" maxlength="1" id="otp-4">
+                        <input class="otp-input" type="text" maxlength="1" id="otp-5">
+                        <input class="otp-input" type="text" maxlength="1" id="otp-6">
+                    </div>
+
+                    <div class="otp-hint">
+                        Không nhận được mã?
+                        <a onclick="guiLaiMa()">Gửi lại</a>
+                    </div>
+
+                    <button class="btn-submit" id="btn-xac-nhan-dk" onclick="xacNhanDangKy()">
+                        Xác nhận & Hoàn tất
+                    </button>
+
+                    <button class="btn-outline" onclick="quayLaiBuoc1()">
+                        ← Quay lại
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal quên mật khẩu -->
+    <div class="modal-overlay" id="modal-qmk">
+        <div class="modal">
+            <div class="modal-buoc active" id="qmk-buoc1">
+                <h3>Quên mật khẩu</h3>
+                <p>Nhập email để nhận mã xác nhận 6 số</p>
+
+                <div class="alert" id="alert-qmk1"></div>
+
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" class="form-input" id="qmk-email" placeholder="ten@gmail.com">
+                </div>
+
+                <div class="modal-footer">
+                    <button class="btn-huy" onclick="dongModal()">Huỷ</button>
+                    <button class="btn-xac-nhan" id="btn-gui-ma" onclick="guiMa()">Gửi mã</button>
+                </div>
+            </div>
+
+            <div class="modal-buoc" id="qmk-buoc2">
+                <h3>Nhập mã xác nhận</h3>
+                <p>Mã 6 số đã được gửi về email của bạn (hết hạn sau 10 phút)</p>
+
+                <div class="alert" id="alert-qmk2"></div>
+
+                <div class="ma-input">
+                    <input type="text" id="qmk-ma" maxlength="6" placeholder="000000">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Mật khẩu mới</label>
+                    <input type="password" class="form-input" id="qmk-matkhau-moi" placeholder="Ít nhất 6 ký tự">
+                </div>
+
+                <div class="modal-footer">
+                    <button class="btn-huy" onclick="dongModal()">Huỷ</button>
+                    <button class="btn-xac-nhan" id="btn-doi-mk" onclick="doiMatKhau()">Đổi mật khẩu</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API = 'http://127.0.0.1:5000';
+        let emailDangKy = ''; // Lưu email để dùng ở bước 2
+
+        // ==================== TAB ====================
+        function doiTab(tab) {
+            $('.tab-btn').removeClass('active');
+            $('.form-section').removeClass('active');
+            $(`#form-${tab}`).addClass('active');
+            $(`.tab-btn:contains('${tab === 'dang-nhap' ? 'Đăng nhập' : 'Đăng ký'}')`).addClass('active');
+            $('.alert').hide();
+        }
+
+        // ==================== ALERT ====================
+        function hienAlert(id, loai, msg) {
+            $(`#${id}`).attr('class', `alert ${loai}`).text(msg).show();
+        }
+
+        function kiemTraEmail(email) {
+            const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return regex.test(email);
+        }
+
+        // ==================== ĐĂNG NHẬP ====================
+        function dangNhap() {
+            const email = $('#dn-email').val().trim();
+            const matKhau = $('#dn-matkhau').val();
+
+            if (!email || !matKhau) {
+                hienAlert('alert-dang-nhap', 'error', 'Vui lòng nhập đầy đủ thông tin');
+                return;
+            }
+            // ✅ ĐÚNG — phải dùng id của form đăng nhập
+            if (!kiemTraEmail(email)) {
+                hienAlert('alert-dang-nhap', 'error', 'Email không đúng định dạng');
+                return;
+            }
+
+            $('#btn-dang-nhap').prop('disabled', true)
+                .html('<span class="spinner"></span>Đang đăng nhập...');
+
+            $.ajax({
+                url: `${API}/auth/dang-nhap`,
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ email, mat_khau: matKhau }),
+                success: function (res) {
+                    localStorage.setItem('token', res.token);
+                    localStorage.setItem('vai_tro', res.vai_tro);
+                    localStorage.setItem('ho_ten', res.ho_ten);
+
+                    hienAlert('alert-dang-nhap', 'success', `Chào mừng ${res.ho_ten}! Đang chuyển hướng...`);
+
+                    // ✅ SỬA LẠI — đúng đường dẫn theo folder structure
+                    setTimeout(() => {
+                        if (res.vai_tro === 'admin') window.location.replace('../admin/index.html');
+                        else if (res.vai_tro === 'nhan_vien') window.location.replace('../nhan_vien/index.html');
+                        else window.location.replace('../ban_do/index.html');
+                    }, 1000);
+                },
+                error: function (xhr) {
+                    const msg = xhr.responseJSON?.loi || 'Đăng nhập thất bại';
+                    hienAlert('alert-dang-nhap', 'error', msg);
+                    $('#btn-dang-nhap').prop('disabled', false).text('Đăng nhập');
+                }
+            });
+        }
+
+        // ==================== ĐĂNG KÝ BƯỚC 1: GỬI MÃ ====================
+        function guiMaDangKy() {
+            const hoTen = $('#dk-hoten').val().trim();
+            const email = $('#dk-email').val().trim();
+            const matKhau = $('#dk-matkhau').val();
+
+            if (!hoTen || !email || !matKhau) {
+                hienAlert('alert-dk-buoc1', 'error', 'Vui lòng nhập đầy đủ thông tin');
+                return;
+            }
+
+            if (matKhau.length < 6) {
+                hienAlert('alert-dk-buoc1', 'error', 'Mật khẩu phải có ít nhất 6 ký tự');
+                return;
+            }
+
+            if (!kiemTraEmail(email)) {
+                hienAlert('alert-dk-buoc1', 'error', 'Email không đúng định dạng');
+                return;
+            }
+
+            $('#btn-gui-ma-dk').prop('disabled', true)
+                .html('<span class="spinner"></span>Đang gửi mã...');
+
+            $.ajax({
+                url: `${API}/auth/gui-ma-dang-ky`,
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ email, mat_khau: matKhau, ho_ten: hoTen }),
+                success: function () {
+                    emailDangKy = email;
+
+                    // Cập nhật subtitle bước 2
+                    $('#dk-subtitle-buoc2').text(`Nhập mã 6 số đã gửi về ${email}`);
+
+                    // Chuyển sang bước 2
+                    chuyenBuoc(2);
+
+                    // Focus vào ô OTP đầu tiên
+                    setTimeout(() => $('#otp-1').focus(), 300);
+                },
+                error: function (xhr) {
+                    const msg = xhr.responseJSON?.loi || 'Không thể gửi mã, thử lại sau';
+                    hienAlert('alert-dk-buoc1', 'error', msg);
+                },
+                complete: function () {
+                    $('#btn-gui-ma-dk').prop('disabled', false).text('Gửi mã xác nhận');
+                }
+            });
+        }
+
+        // ==================== ĐĂNG KÝ BƯỚC 2: XÁC NHẬN MÃ ====================
+        function xacNhanDangKy() {
+            const ma = layMaOTP();
+
+            if (ma.length !== 6) {
+                hienAlert('alert-dk-buoc2', 'error', 'Vui lòng nhập đủ mã 6 số');
+                return;
+            }
+
+            $('#btn-xac-nhan-dk').prop('disabled', true)
+                .html('<span class="spinner"></span>Đang xác nhận...');
+
+            $.ajax({
+                url: `${API}/auth/dang-ky`,
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ email: emailDangKy, ma_xac_nhan: ma }),
+                success: function () {
+                    hienAlert('alert-dk-buoc2', 'success', '🎉 Đăng ký thành công! Đang chuyển sang đăng nhập...');
+                    setTimeout(() => {
+                        // Reset form đăng ký
+                        resetDangKy();
+                        doiTab('dang-nhap');
+                        // Điền sẵn email vào form đăng nhập
+                        $('#dn-email').val(emailDangKy);
+                    }, 1500);
+                },
+                error: function (xhr) {
+                    const msg = xhr.responseJSON?.loi || 'Mã xác nhận không đúng';
+                    hienAlert('alert-dk-buoc2', 'error', msg);
+                },
+                complete: function () {
+                    $('#btn-xac-nhan-dk').prop('disabled', false).text('Xác nhận & Hoàn tất');
+                }
+            });
+        }
+
+        // Gửi lại mã
+        function guiLaiMa() {
+            if (!emailDangKy) return;
+
+            const hoTen = $('#dk-hoten').val().trim();
+            const matKhau = $('#dk-matkhau').val();
+
+            hienAlert('alert-dk-buoc2', 'success', 'Đang gửi lại mã...');
+            xoaOTP();
+
+            $.ajax({
+                url: `${API}/auth/gui-ma-dang-ky`,
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ email: emailDangKy, mat_khau: matKhau, ho_ten: hoTen }),
+                success: function () {
+                    hienAlert('alert-dk-buoc2', 'success', `Đã gửi lại mã về ${emailDangKy}`);
+                    setTimeout(() => $('#otp-1').focus(), 300);
+                },
+                error: function (xhr) {
+                    const msg = xhr.responseJSON?.loi || 'Không thể gửi lại mã';
+                    hienAlert('alert-dk-buoc2', 'error', msg);
+                }
+            });
+        }
+
+        function quayLaiBuoc1() {
+            chuyenBuoc(1);
+            xoaOTP();
+            $('#alert-dk-buoc2').hide();
+        }
+
+        // ==================== HELPER ====================
+        function chuyenBuoc(buoc) {
+            $('.buoc-dang-ky').removeClass('active');
+            $(`#dk-buoc${buoc}`).addClass('active');
+
+            if (buoc === 2) {
+                $('#dot-1').removeClass('current pending').addClass('done').text('✓');
+                $('#line-1 .buoc-line-fill').addClass('done');
+                $('#dot-2').removeClass('pending').addClass('current');
+            } else {
+                $('#dot-1').removeClass('done').addClass('current').text('1');
+                $('#line-1 .buoc-line-fill').removeClass('done');
+                $('#dot-2').removeClass('current').addClass('pending');
+            }
+        }
+
+        function resetDangKy() {
+            $('#dk-hoten, #dk-email, #dk-matkhau').val('');
+            xoaOTP();
+            chuyenBuoc(1);
+            $('.alert').hide();
+            emailDangKy = '';
+        }
+
+        function layMaOTP() {
+            return ['#otp-1', '#otp-2', '#otp-3', '#otp-4', '#otp-5', '#otp-6']
+                .map(id => $(id).val()).join('');
+        }
+
+        function xoaOTP() {
+            $('.otp-input').val('');
+        }
+
+        // OTP auto-focus logic
+        $(document).on('input', '.otp-input', function () {
+            const val = $(this).val();
+            // Chỉ cho nhập số
+            $(this).val(val.replace(/\D/g, ''));
+            if ($(this).val().length === 1) {
+                $(this).next('.otp-input').focus();
+            }
+        });
+
+        $(document).on('keydown', '.otp-input', function (e) {
+            if (e.key === 'Backspace' && !$(this).val()) {
+                $(this).prev('.otp-input').focus();
+            }
+            // Enter để submit
+            if (e.key === 'Enter') xacNhanDangKy();
+        });
+
+        // Cho phép paste mã vào ô đầu tiên
+        $('#otp-1').on('paste', function (e) {
+            e.preventDefault();
+            const paste = (e.originalEvent.clipboardData || window.clipboardData)
+                .getData('text').replace(/\D/g, '').slice(0, 6);
+            paste.split('').forEach((char, i) => {
+                $(`#otp-${i + 1}`).val(char);
+            });
+            $(`#otp-${Math.min(paste.length, 6)}`).focus();
+        });
+
+        // ==================== QUÊN MẬT KHẨU ====================
+        function moModalQMK() {
+            $('#modal-qmk').addClass('show');
+            $('.modal-buoc').removeClass('active');
+            $('#qmk-buoc1').addClass('active');
+            $('.alert').hide();
+            $('#qmk-email, #qmk-ma, #qmk-matkhau-moi').val('');
+        }
+
+        function dongModal() {
+            $('#modal-qmk').removeClass('show');
+        }
+
+        function guiMa() {
+            const email = $('#qmk-email').val().trim();
+            if (!email) {
+                hienAlert('alert-qmk1', 'error', 'Vui lòng nhập email');
+                return;
+            }
+
+            if (!kiemTraEmail(email)) {
+                hienAlert('alert-qmk1', 'error', 'Email không đúng định dạng');
+                return;
+            }
+
+            $('#btn-gui-ma').prop('disabled', true)
+                .html('<span class="spinner"></span>Đang gửi...');
+
+            $.ajax({
+                url: `${API}/auth/quen-mat-khau`,
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ email }),
+                success: function () {
+                    $('.modal-buoc').removeClass('active');
+                    $('#qmk-buoc2').addClass('active');
+                },
+                error: function (xhr) {
+                    const msg = xhr.responseJSON?.loi || 'Không thể gửi email';
+                    hienAlert('alert-qmk1', 'error', msg);
+                },
+                complete: function () {
+                    $('#btn-gui-ma').prop('disabled', false).text('Gửi mã');
+                }
+            });
+        }
+
+        function doiMatKhau() {
+            const email = $('#qmk-email').val().trim();
+            const ma = $('#qmk-ma').val().trim();
+            const matKhauMoi = $('#qmk-matkhau-moi').val();
+
+            if (!ma || !matKhauMoi) {
+                hienAlert('alert-qmk2', 'error', 'Vui lòng nhập đầy đủ thông tin');
+                return;
+            }
+
+            $('#btn-doi-mk').prop('disabled', true)
+                .html('<span class="spinner"></span>Đang xử lý...');
+
+            $.ajax({
+                url: `${API}/auth/dat-lai-mat-khau`,
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ email, ma_xac_nhan: ma, mat_khau_moi: matKhauMoi }),
+                success: function () {
+                    hienAlert('alert-qmk2', 'success', 'Đổi mật khẩu thành công!');
+                    setTimeout(() => dongModal(), 1500);
+                },
+                error: function (xhr) {
+                    const msg = xhr.responseJSON?.loi || 'Đổi mật khẩu thất bại';
+                    hienAlert('alert-qmk2', 'error', msg);
+                },
+                complete: function () {
+                    $('#btn-doi-mk').prop('disabled', false).text('Đổi mật khẩu');
+                }
+            });
+        }
+
+        // Enter để submit đăng nhập
+        $(document).on('keypress', '#dn-email, #dn-matkhau', function (e) {
+            if (e.which === 13) dangNhap();
+        });
+
+        // Đóng modal khi click ngoài
+        $('#modal-qmk').on('click', function (e) {
+            if ($(e.target).is('#modal-qmk')) dongModal();
+        });
+    </script>
+</body>
+
+</html>
