@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chờ duyệt - Giao Thông Cộng Đồng</title>
     <link rel="stylesheet" href="/FrontEnd/css/common.css">
-    <link rel="stylesheet" href="/FrontEnd/css/admin/admin.css">
+    <link rel="stylesheet" href="/FrontEnd/css/admin/admin.css"> 
 </head>
 
 <body>
@@ -21,12 +21,6 @@
                 <input type="text" id="search-report" placeholder="Tìm theo tiêu đề, địa chỉ...">
                 <select id="filter-category">
                     <option value="">Tất cả loại sự cố</option>
-                    <option value="Ổ gà">Ổ gà</option>
-                    <option value="Ngập nước">Ngập nước</option>
-                    <option value="Đèn tín hiệu hỏng">Đèn tín hiệu hỏng</option>
-                    <option value="Tai nạn">Tai nạn</option>
-                    <option value="Vật cản">Vật cản</option>
-                    <option value="Khác">Khác</option>
                 </select>
                 <input type="date" id="filter-date">
             </div>
@@ -48,7 +42,7 @@
                 </tbody>
             </table>
         </div>
-
+        
         <div id="confirmApproveModal" class="modal" style="display:none; position:fixed; inset:0; z-index:9999;">
             <div class="modal-overlay" style="position:absolute; inset:0; background:rgba(0,0,0,0.6); backdrop-filter:blur(2px);"></div>
             <div class="modal-content" style="position:relative; max-width:450px; margin:80px auto; background:#fff; border-radius:12px; padding:25px; box-shadow:0 10px 30px rgba(0,0,0,0.2);">
@@ -66,20 +60,20 @@
             <div class="modal-content" style="position:relative; max-width:500px; margin:80px auto; background:#fff; border-radius:12px; padding:25px; box-shadow:0 10px 30px rgba(0,0,0,0.2);">
                 <h3 style="margin-top:0; color:#dc3545; font-size: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px;">Từ chối báo cáo</h3>
                 <p style="color:#555; font-size:14px; margin: 15px 0 10px 0;">Vui lòng nhập lý do từ chối (bắt buộc, ít nhất 3 ký tự):</p>
-
-                <textarea id="reject-reason" maxlength="500" rows="4" placeholder="Nhập lý do tại đây để người dùng biết..."
+                
+                <textarea id="reject-reason" maxlength="500" rows="4" placeholder="Nhập lý do tại đây để người dùng biết..." 
                           style="width:100%; box-sizing:border-box; padding:12px; border:1px solid #ccc; border-radius:8px; font-size:14px; font-family:inherit; resize:vertical; outline:none;"></textarea>
-
+                
                 <div class="modal-actions" style="display:flex; justify-content:flex-end; gap:12px; margin-top:20px;">
                     <button id="cancel-reject-btn" style="padding:8px 16px; border:1px solid #ddd; background:#f8f9fa; border-radius:6px; cursor:pointer; color:#333; font-weight: 500;">Hủy bỏ</button>
-                    <button id="confirm-reject-btn" disabled
-                            style="padding:8px 16px; border:none; background:#dc3545; border-radius:6px; color:#fff; font-weight:bold; cursor:pointer;"
-                            onmouseover="if(this.disabled) this.style.cursor='not-allowed'; else this.style.cursor='pointer';"
+                    <button id="confirm-reject-btn" disabled 
+                            style="padding:8px 16px; border:none; background:#dc3545; border-radius:6px; color:#fff; font-weight:bold; cursor:pointer;" 
+                            onmouseover="if(this.disabled) this.style.cursor='not-allowed'; else this.style.cursor='pointer';" 
                             class="btn-reject-submit">Xác nhận từ chối</button>
                 </div>
             </div>
         </div>
-    </div>
+    </div> 
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="/FrontEnd/js/api.js"></script>
 <script src="/FrontEnd/js/pages/tongquan.js"></script>

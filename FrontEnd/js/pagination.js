@@ -212,12 +212,28 @@
         const endItem = Math.min(currentPage * pageSize, totalItems);
 
         $root.show().html(`
+            <div class="shared-pagination-info"></div>
             <div class="shared-pagination-controls">
-                <button type="button" class="pagination-prev">Trước</button>
+                <div class="shared-pagination-size">
+                    <span>So dong</span>
+                    <select class="pagination-size">
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="10">10</option>
+                        <option value="20">20</option>
+                        <option value="50">50</option>
+                    </select>
+                </div>
+                <button type="button" class="pagination-prev">Truoc</button>
                 <div class="shared-pagination-pages"></div>
                 <button type="button" class="pagination-next">Sau</button>
             </div>
         `);
+
+        $root.find('.shared-pagination-info').text(
+            'Hien thi ' + startItem + '-' + endItem + ' / ' + totalItems + ' ban ghi'
+        );
+        $root.find('.pagination-size').val(String(pageSize));
         $root.find('.pagination-prev').prop('disabled', currentPage <= 1);
         $root.find('.pagination-next').prop('disabled', currentPage >= totalPages);
 
@@ -252,5 +268,13 @@
         state.onPageChange(state.currentPage + 1, state.pageSize);
     });
 
+    $(document).on('change', '.shared-pagination .pagination-size', function () {
+        const $root = $(this).closest('.shared-pagination');
+        const key = $root.data('pagination-key');
+        const state = states[key];
+        const nextPageSize = parseInt($(this).val(), 10) || DEFAULT_PAGE_SIZE;
 
+        if (!state || !state.onPageChange) return;
+        state.onPageChange(1, nextPageSize);
+    });
 })(window, jQuery);

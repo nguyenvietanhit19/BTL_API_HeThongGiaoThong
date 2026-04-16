@@ -1,4 +1,3 @@
-// FILE: js/pages/users.js
 (function(window, $) {
     'use strict';
 
@@ -93,101 +92,86 @@
         });
     }
 
-    window.loadUsers = async function (page = 1, limit = 10) {
+    window.loadUsers = async function(page = 1, limit = 10) {
         try {
             const res = await window.apiRequest('GET', '/admin/nguoi-dung');
-            const users = res.danh_sach || res.data || res || [];
+            const users = Array.isArray(res.danh_sach) ? res.danh_sach : [];
             window.currentUsersList = users;
 
-            // Xử lý bộ lọc
-            const q = ($('#search-user').val() || '').toString().trim().toLowerCase();
-            const roleFilter = ($('#filter-role').val() || '').toString().trim();
-            const statusFilter = ($('#filter-status').val() || '').toString().trim();
+            let adminCount = 0;
+            let activeCount = 0;
+            let lockedCount = 0;
 
-            let filteredUsers = users;
-            if (q) {
-                filteredUsers = filteredUsers.filter(u => ((u.ho_ten || '') + '').toLowerCase().indexOf(q) !== -1 || ((u.email || '') + '').toLowerCase().indexOf(q) !== -1);
-            }
-            if (roleFilter) {
-                filteredUsers = filteredUsers.filter(u => (((u.vai_tro || '') + '').toString().toLowerCase() === roleFilter.toString().toLowerCase()));
-            }
-            if (statusFilter) {
-                if (statusFilter === 'active') {
-                    filteredUsers = filteredUsers.filter(u => (u.dang_hoat_dong === 1 || u.dang_hoat_dong === true || String(u.dang_hoat_dong) === '1'));
-                } else if (statusFilter === 'locked') {
-                    filteredUsers = filteredUsers.filter(u => (u.bi_dinh_chi === 1 || u.bi_dinh_chi === true || String(u.bi_dinh_chi) === '1'));
-                }
-            }
+            users.forEach(function(user) {
+                const roleMeta = getRoleMeta(user.vai_tro);
+                const statusMeta = getStatusMeta(user);
 
-            // Cập nhật thống kê
-            try {
-                let adminCount = 0, userCount = 0, activeCount = 0, lockedCount = 0;
-                (users || []).forEach(function (u) {
-                    const role = (u.vai_tro || '').toString().toLowerCase();
-                    if (role === 'admin') adminCount++;
-                    if (role === 'user') userCount++;
-                    if (u.dang_hoat_dong === 1 || u.dang_hoat_dong === true || String(u.dang_hoat_dong) === '1') activeCount++;
-                    if (u.bi_dinh_chi === 1 || u.bi_dinh_chi === true || String(u.bi_dinh_chi) === '1') lockedCount++;
-                });
-                $('#stat-total').text(users.length || 0);
-                $('#stat-admin').text(adminCount);
-                $('#stat-user').text(userCount);
-                $('#stat-active').text(activeCount);
-                $('#stat-locked').text(lockedCount);
-            } catch (e) { console.warn('Không thể cập nhật thống kê', e); }
+                if (roleMeta.role === 'admin') adminCount++;
+                if (statusMeta.isSuspended || !statusMeta.isActive) lockedCount++;
+                else activeCount++;
+            });
+
+            $('#stat-total').text(users.length);
+            $('#stat-admin').text(adminCount);
+            $('#stat-active').text(activeCount);
+            $('#stat-locked').text(lockedCount);
 
             const pagination = typeof window.paginateArray === 'function'
-                ? window.paginateArray(filteredUsers, page, limit)
-                : { data: filteredUsers.slice((page - 1) * limit, page * limit), total: filteredUsers.length, currentPage: page, pageSize: limit };
-            
-            const visibleUsers = pagination.data || [];
-            const $tb = $('#table-body-users');
-            $tb.empty();
+                ? window.paginateArray(users, page, limit)
+                : {
+                    total: users.length,
+                    currentPage: page,
+                    pageSize: limit,
+                    data: users.slice((page - 1) * limit, page * limit)
+                };
 
-            if (!visibleUsers.length) {
-                $tb.append('<tr><td colspan="5" class="text-center" style="padding:20px;">Không có dữ liệu người dùng</td></tr>');
-            } else {
-                visibleUsers.forEach(function (u) {
-                    const id = u.nguoi_dung_id || u.id;
-                    const statusMeta = getStatusMeta(u);
-                    const roleMeta = getRoleMeta(u.vai_tro);
-                    const avatarChar = u.ho_ten ? u.ho_ten.charAt(0).toUpperCase() : '?';
+            const $tbody = $('#table-body-users');
+            $tbody.empty();
 
-                    const $tr = $(`<tr></tr>`);
-                    $tr.append(`<td>
-                        <div class="user-info" style="display:flex;align-items:center;gap:10px;">
-                            <div class="avatar" style="width:36px;height:36px;background:${roleMeta.color};color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:14px;">${avatarChar}</div>
-                            <div style="display:flex;flex-direction:column;">
-                                <strong>${u.ho_ten || 'Chưa có tên'}</strong>
-                                <small style="color:#888;font-size:12px;">${u.email || ''}</small>
-                            </div>
-                        </div>
-                    </td>`);
-                    $tr.append(`<td><span style="background:${roleMeta.color};color:white;padding:3px 8px;border-radius:4px;font-size:11px;font-weight:bold;">${roleMeta.label.toUpperCase()}</span></td>`);
-                    $tr.append(`<td><span class="badge ${statusMeta.className}">${statusMeta.text}</span></td>`);
-                    
-                    const createdAt = u.ngay_tao ? (window.formatToTZ ? window.formatToTZ(u.ngay_tao, { dateOnly: true }) : (u.ngay_tao.split ? u.ngay_tao.split('T')[0] : u.ngay_tao)) : '...';
-                    $tr.append(`<td>${createdAt}</td>`);
-                    $tr.append(`<td><button class="btn-action btn-view-user" data-id="${id}">Chi tiết</button></td>`);
-
-                    $tb.append($tr);
-                });
+            if (!pagination.data.length) {
+                $tbody.append('<tr><td colspan="5" class="text-center" style="padding:20px;">Không có dữ liệu người dùng</td></tr>');
+                return;
             }
+
+            pagination.data.forEach(function(user) {
+                const id = user.nguoi_dung_id || user.id || '';
+                const avatarChar = user.ho_ten ? user.ho_ten.charAt(0).toUpperCase() : '?';
+                const roleMeta = getRoleMeta(user.vai_tro);
+                const statusMeta = getStatusMeta(user);
+
+                $tbody.append(`
+                    <tr>
+                        <td>
+                            <div class="user-info" style="display:flex;align-items:center;gap:10px;">
+                                <div class="avatar" style="width:36px;height:36px;background:${roleMeta.color};color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:14px;">${avatarChar}</div>
+                                <div style="display:flex;flex-direction:column;">
+                                    <strong>${user.ho_ten || 'Chưa có tên'}</strong>
+                                    <small style="color:#888;font-size:12px;">${user.email || ''}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td><span style="background:${roleMeta.color};color:white;padding:3px 8px;border-radius:4px;font-size:11px;font-weight:bold;">${roleMeta.label.toUpperCase()}</span></td>
+                        <td><span class="badge ${statusMeta.className}">${statusMeta.text}</span></td>
+                        <td>${user.ngay_tao ? String(user.ngay_tao).split('T')[0] : '...'}</td>
+                        <td><button class="btn-action btn-view-user" data-id="${id}">Chi tiết</button></td>
+                    </tr>
+                `);
+            });
 
             if (typeof window.renderPagination === 'function') {
                 window.renderPagination({
                     key: 'users',
                     anchor: '#table-body-users',
-                    currentPage: pagination.currentPage,
-                    pageSize: pagination.pageSize,
-                    totalItems: pagination.total,
-                    onPageChange: function (nextPage, nextLimit) {
+                    currentPage: page,
+                    pageSize: limit,
+                    totalItems: users.length,
+                    onPageChange: function(nextPage, nextLimit) {
                         window.loadUsers(nextPage, nextLimit);
                     }
                 });
             }
-        } catch (e) {
-            if (window.showApiError) window.showApiError(e);
+        } catch (err) {
+            window.showApiError(err);
         }
     };
 
@@ -302,33 +286,14 @@
 
             $modal.fadeIn(150);
         } catch (err) {
-            if(window.showApiError) window.showApiError(err);
+            window.showApiError(err);
         }
     };
 
-    // Lắng nghe sự kiện Tìm kiếm và Lọc
-    (function () {
-        let userTimer;
-        $(document).off('input', '#search-user').on('input', '#search-user', function () {
-            clearTimeout(userTimer);
-            userTimer = setTimeout(function () {
-                const pageSize = window.getPaginationPageSize ? window.getPaginationPageSize('users', 10) : 10;
-                window.loadUsers(1, pageSize);
-            }, 300);
-        });
-
-        $(document).off('change', '#filter-role, #filter-status').on('change', '#filter-role, #filter-status', function () {
-            const pageSize = window.getPaginationPageSize ? window.getPaginationPageSize('users', 10) : 10;
-            window.loadUsers(1, pageSize);
-        });
-    })();
-
-    // Mở Modal xem chi tiết
     $(document).off('click', '.btn-view-user').on('click', '.btn-view-user', function() {
         window.loadUserDetailModal($(this).data('id'));
     });
 
-    // Lắng nghe sự kiện Khóa/Đình chỉ (Giữ nguyên prompt/confirm gốc)
     $(document).off('click', '.user-action-btn').on('click', '.user-action-btn', async function() {
         const id = $(this).data('id');
         const action = $(this).data('action');
@@ -382,8 +347,7 @@
             window.loadUsers(paging.page, paging.limit);
         } catch (err) {
             $button.prop('disabled', false);
-            if(window.showApiError) window.showApiError(err); else alert(err);
+            window.showApiError(err);
         }
     });
-
 })(window, jQuery);

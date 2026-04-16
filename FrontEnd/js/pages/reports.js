@@ -137,10 +137,6 @@
         }
     };
 
-
-    // ============================================================
-    // 2. TẢI CHI TIẾT MỘT BÁO CÁO (MODAL)
-    // ============================================================
     window.loadReportDetail = async function(id) {
         try {
             const res = await window.apiRequest('GET', '/bao-cao/' + id);
@@ -253,7 +249,6 @@
 
     $(document).off('click', '.btn-approve').on('click', '.btn-approve', function() {
         const id = $(this).data('id');
-        console.log('[reports] btn-approve clicked, id=', id);
         $('#confirmApproveModal').data('reportId', id);
         $('#confirm-approve-text').text('Bạn có chắc chắn muốn duyệt báo cáo #' + id + '?');
         $('#confirmApproveModal').fadeIn(150);
@@ -263,7 +258,6 @@
         const id = $('#confirmApproveModal').data('reportId');
         if (!id) return;
         try {
-            console.log('[reports] confirm approve, id=', id);
             await window.apiRequest('PUT', `/admin/bao-cao/${id}/duyet`);
             $('#confirmApproveModal').fadeOut(150);
             if (window.refreshSidebarCounts) window.refreshSidebarCounts();
@@ -275,7 +269,6 @@
 
     $(document).off('click', '.btn-reject').on('click', '.btn-reject', function() {
         const id = $(this).data('id');
-        console.log('[reports] btn-reject clicked, id=', id);
         $('#rejectModal').data('reportId', id);
         $('#reject-reason').val('');
         $('#confirm-reject-btn').prop('disabled', true);
@@ -354,64 +347,4 @@
         }
         $('#imageViewerModal').fadeIn(150);
     });
-
-    // --- FILTER HANDLERS FOR REPORT PAGES ---
-    (function () {
-        let reportTimer;
-
-        // Search in Chờ duyệt (title / category / date)
-        $(document).on('input', '#search-report', function () {
-            clearTimeout(reportTimer);
-            reportTimer = setTimeout(function () {
-                const keyword = ($('#search-report').val() || '').trim();
-                const category = ($('#filter-category').val && $('#filter-category').val()) || '';
-                const date = ($('#filter-date').val && $('#filter-date').val()) || '';
-                const key = 'reports-cho_duyet';
-                const pageSize = window.getPaginationPageSize ? window.getPaginationPageSize(key, 5) : 5;
-                window.loadListByStatus('cho_duyet', '#table-body-cho-duyet', 1, pageSize, { keyword: keyword, category: category, date: date });
-            }, 300);
-        });
-
-        $(document).on('change', '#filter-category, #filter-date', function () { $('#search-report').trigger('input'); });
-
-        // Filters for Từ chối (date and reason)
-        $(document).on('change', '#filter-reject-date, #filter-reason', function () {
-            const key = 'reports-tu_choi';
-            const pageSize = window.getPaginationPageSize ? window.getPaginationPageSize(key, 5) : 5;
-            window.loadListByStatus('tu_choi', '#table-body-tu-choi', 1, pageSize, {
-                date: ($('#filter-reject-date').val && $('#filter-reject-date').val()) || '',
-                reason: ($('#filter-reason').val && $('#filter-reason').val()) || ''
-            });
-        });
-
-        // Search & date filter for Đã duyệt (title/code search and date)
-        let approvedTimer;
-
-        $(document).on('input', '#search-approved', function () {
-            clearTimeout(approvedTimer);
-            approvedTimer = setTimeout(function () {
-                const keyword = ($('#search-approved').val() || '').trim();
-                const date = ($('#filter-approved-date').val && $('#filter-approved-date').val()) || '';
-                const key = 'reports-da_duyet';
-                const pageSize = window.getPaginationPageSize ? window.getPaginationPageSize(key, 5) : 5;
-                window.loadListByStatus('da_duyet', '#table-body-da-duyet', 1, pageSize, { keyword: keyword, date: date });
-            }, 300);
-        });
-
-        $(document).on('change', '#filter-approved-date', function () {
-            const keyword = ($('#search-approved').val() || '').trim();
-            const key = 'reports-da_duyet';
-            const pageSize = window.getPaginationPageSize ? window.getPaginationPageSize(key, 5) : 5;
-            window.loadListByStatus('da_duyet', '#table-body-da-duyet', 1, pageSize, { keyword: keyword, date: ($('#filter-approved-date').val && $('#filter-approved-date').val()) || '' });
-        });
-
-        // Month filter for Đã xử lý
-        $(document).on('change', '#filter-month', function () {
-            const key = 'reports-da_xu_ly';
-            const pageSize = window.getPaginationPageSize ? window.getPaginationPageSize(key, 5) : 5;
-            window.loadListByStatus('da_xu_ly', '#table-body-da-xu-ly', 1, pageSize, { month: $('#filter-month').val() || '' });
-        });
-
-    })();
-
 })(window, jQuery);

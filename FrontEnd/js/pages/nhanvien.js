@@ -1,7 +1,10 @@
 // FILE: js/pages/nhanvien.js
-(function (window, $) {
+(function(window, $){
     'use strict';
 
+    // ============================================================
+    // 1. TẢI DANH SÁCH NHÂN VIÊN
+    // ============================================================
     window.loadNhanVien = async function(page = 1, limit = 10) {
         try {
             const res = await window.apiRequest('GET', '/admin/nguoi-dung');
@@ -9,7 +12,7 @@
             const pagination = typeof window.paginateArray === 'function'
                 ? window.paginateArray([], page, limit)
                 : { data: [], total: 0, currentPage: page, pageSize: limit };
-
+            
             // Lọc chỉ lấy nhân viên
             const staff = users.filter(u => (u.vai_tro === 'nhan_vien' || u.vai_tro === 'nhân_vien'));
 
@@ -27,33 +30,21 @@
             $('#stat-available').text(staff.filter(s => !s.dang_hoat_dong && !s.bi_dinh_chi).length || 0);
             $('#stat-busy').text(staff.filter(s => s.dang_hoat_dong && !s.bi_dinh_chi).length || 0);
 
-            const $tb = $('#table-body-nhan-vien');
+            const $tb = $('#table-body-nhan-vien'); 
             $tb.empty();
-
+            
             if (!staff.length) {
-                $tb.append('<tr><td colspan="5" class="text-center">Không có nhân viên nào</td></tr>');
-                if (typeof window.renderPagination === 'function') {
-                    window.renderPagination({
-                        key: 'staff',
-                        anchor: '#table-body-nhan-vien',
-                        currentPage: 1,
-                        pageSize: pagination.pageSize,
-                        totalItems: 0,
-                        onPageChange: function (nextPage, nextLimit) {
-                            window.loadNhanVien(nextPage, nextLimit);
-                        }
-                    });
-                }
+                $tb.append('<tr><td colspan="5" class="text-center" style="padding: 20px;">Không có dữ liệu nhân viên</td></tr>');
                 return;
             }
 
             visibleStaff.forEach(function(s) {
                 const id = s.nguoi_dung_id || s.id || '';
                 const avatarChar = s.ho_ten ? s.ho_ten.charAt(0).toUpperCase() : '?';
-
+                
                 let statusText = 'Sẵn sàng';
                 let statusColor = 'green';
-
+                
                 if (s.bi_dinh_chi) {
                     statusText = 'Bị đình chỉ';
                     statusColor = 'red';
@@ -63,7 +54,7 @@
                 }
 
                 const $tr = $('<tr/>');
-
+                
                 $tr.append($('<td/>').html(`
                     <div class="user-info" style="display: flex; align-items: center; gap: 10px;">
                         <div class="avatar" style="width:36px;height:36px;background:#198754;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:14px;">${avatarChar}</div>
@@ -73,13 +64,13 @@
                         </div>
                     </div>
                 `));
-
+                
                 $tr.append($('<td/>').text(s.email || 'Không có email'));
-
+                
                 // Tạm thời hiển thị 0 ở bảng ngoài, sẽ đếm chính xác khi vào chi tiết
                 $tr.append($('<td/>').text(s.so_cong_viec || s.viec_dang_lam || '0'));
                 $tr.append($('<td/>').html(`<span class="badge ${statusColor}">${statusText}</span>`));
-
+                
                 $tr.append($('<td/>').html(`
                     <button class="btn-action btn-view-staff" data-id="${id}">Chi tiết</button>
                 `));
@@ -89,14 +80,9 @@
 
             if (typeof window.renderPagination === 'function') {
                 window.renderPagination({
-                    key: 'staff',
-                    anchor: '#table-body-nhan-vien',
-                    currentPage: pagination.currentPage,
-                    pageSize: pagination.pageSize,
-                    totalItems: pagination.total,
-                    onPageChange: function (nextPage, nextLimit) {
-                        window.loadNhanVien(nextPage, nextLimit);
-                    }
+                    key: 'staff', anchor: '#table-body-nhan-vien',
+                    currentPage: pagination.currentPage, pageSize: pagination.pageSize,
+                    totalItems: pagination.total, onPageChange: (p, l) => window.loadNhanVien(p, l)
                 });
             }
         } catch (err) { window.showApiError(err); }
@@ -160,7 +146,7 @@
         $('#sd-avatar').text(avatarChar);
         $('#sd-name').text(s.ho_ten || 'Chưa cập nhật');
         $('#sd-email').text(s.email || 'Không có email');
-
+        
         const dateStr = s.ngay_tao ? (window.formatToTZ ? window.formatToTZ(s.ngay_tao, {dateOnly:true}) : s.ngay_tao.split('T')[0]) : 'Chưa rõ';
         $('#sd-date').text(dateStr);
 
@@ -171,7 +157,7 @@
 
         $('#sd-tasks-active').text('Đang tải...');
         $('#sd-logs').html('<div style="text-align:center; color:#888; padding:10px;">Đang lấy dữ liệu...</div>');
-
+        
         // Nút hành động
         const $actions = $('#sd-actions').empty();
         if (!s.bi_dinh_chi) {
@@ -188,8 +174,8 @@
             // Sử dụng API Dashboard (lấy tất cả báo cáo) để lọc ra việc của nhân viên này
             let dashRes = await window.apiRequest('GET', `/admin_get/dashboard?page=1&limit=500`);
             if (dashRes && dashRes.list && Array.isArray(dashRes.list.data)) {
-                tasks = dashRes.list.data.filter(r =>
-                    (r.nhan_vien_id && String(r.nhan_vien_id) === String(id)) ||
+                tasks = dashRes.list.data.filter(r => 
+                    (r.nhan_vien_id && String(r.nhan_vien_id) === String(id)) || 
                     (r.nhan_vien_phu_trach && r.nhan_vien_phu_trach === s.ho_ten) ||
                     (r.nhan_vien && r.nhan_vien === s.ho_ten)
                 );
@@ -209,7 +195,7 @@
                 const d = t.ngay_trang_thai || t.ngay_tao || '';
                 const dateFmt = d ? d.split('T')[0] : '';
                 const statusStr = (t.trang_thai || '').replace(/_/g, ' ').toUpperCase();
-
+                
                 let stColor = '#555';
                 if(t.trang_thai === 'dang_xu_ly') stColor = '#fd7e14';
                 if(t.trang_thai === 'da_xu_ly') stColor = '#198754';
@@ -245,24 +231,24 @@
         const id = $(this).data('id');
         const reason = prompt('Nhập lý do đình chỉ nhân viên này:');
         if (!reason) return;
-
+        
         try {
             await window.apiRequest('PUT', `/admin/nguoi-dung/${id}/dinh-chi`, { ly_do: reason });
             alert('Đã đình chỉ nhân viên thành công.');
             $('#staffDetailModal').fadeOut(100);
-            window.loadNhanVien();
+            window.loadNhanVien(); 
         } catch (e) { window.showApiError(e); }
     });
 
     $(document).on('click', '.btn-unsuspend', async function() {
         const id = $(this).data('id');
         if (!confirm('Bạn có chắc chắn muốn gỡ đình chỉ cho nhân viên này?')) return;
-
+        
         try {
             await window.apiRequest('PUT', `/admin/nguoi-dung/${id}/dinh-chi`);
             alert('Đã gỡ đình chỉ thành công.');
             $('#staffDetailModal').fadeOut(100);
-            window.loadNhanVien();
+            window.loadNhanVien(); 
         } catch (e) { window.showApiError(e); }
     });
 
