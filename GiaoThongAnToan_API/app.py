@@ -20,7 +20,12 @@ from routes.upload import upload_bp
 from routes.report import bao_cao_bp
 
 app = Flask(__name__)
-# ... phần code bên dưới của bạn giữ nguyên ...
+
+
+# 2. CẤU HÌNH CORS (Thêm đúng đoạn này vào sau khi khởi tạo app)
+# origins: "http://127.0.0.1:5500" là địa chỉ trình duyệt của bạn
+# supports_credentials=True: Cần thiết để gửi kèm Token/Cookie
+CORS(app, supports_credentials=True)
 
 app.register_blueprint(auth_bp, url_prefix='/auth')
 app.register_blueprint(qmk_bp, url_prefix='/auth')
