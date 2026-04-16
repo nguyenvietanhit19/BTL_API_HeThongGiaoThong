@@ -8,6 +8,12 @@ body { display: flex; height: 100vh; background-color: #f8f9fc; color: #333; ove
 /* Khu vực nội dung chính */
 .main-content { flex: 1; padding: 24px 32px; margin-top: 60px; overflow-y: auto; background-color: #fafafa; }
 
+/* Page transition helpers (AJAX navigation) */
+.main-content.transitioning { transition: opacity 240ms ease, transform 240ms ease; opacity: 0; transform: translateY(8px); }
+.progress-bar { position: fixed; top: 0; left: 0; height: 3px; background: linear-gradient(90deg, #8b7ed6, #55a630); width: 0; z-index: 99999; transition: width 200ms linear, opacity 300ms ease; }
+.progress-bar.active { width: 60%; opacity: 1; }
+.progress-bar.done { width: 100%; opacity: 0; transition: width 200ms linear, opacity 250ms ease 180ms; }
+
 /* =========================================
    TOPBAR
    ========================================= */

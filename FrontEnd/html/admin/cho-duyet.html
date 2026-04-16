@@ -6,7 +6,6 @@
     <title>Chờ duyệt - Giao Thông Cộng Đồng</title>
     <link rel="stylesheet" href="/FrontEnd/css/common.css">
     <link rel="stylesheet" href="/FrontEnd/css/admin/admin.css"> 
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 </head>
 <body>
     <div id="topbar-container"></div>
@@ -42,6 +41,40 @@
         </div>
     </div>
 
-    <script src="/FrontEnd/js/layout.js"></script>
+    <!-- Modals: Approve confirm and Reject with reason -->
+    <div id="confirmApproveModal" class="modal" style="display:none;position:fixed;inset:0;z-index:1200;">
+        <div class="modal-overlay" style="position:absolute;inset:0;background:rgba(0,0,0,0.4);"></div>
+        <div class="modal-content" style="position:relative;max-width:520px;margin:80px auto;background:#fff;border-radius:8px;padding:18px;z-index:1201;">
+            <h3 style="margin-top:0;">Xác nhận duyệt báo cáo</h3>
+            <p id="confirm-approve-text">Bạn có chắc chắn muốn duyệt báo cáo này?</p>
+            <div class="modal-actions" style="text-align:right;margin-top:12px;">
+                <button id="cancel-approve-btn" class="btn-action">Hủy</button>
+                <button id="confirm-approve-btn" class="btn-action primary">Duyệt</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="rejectModal" class="modal" style="display:none;position:fixed;inset:0;z-index:1200;">
+        <div class="modal-overlay" style="position:absolute;inset:0;background:rgba(0,0,0,0.4);"></div>
+        <div class="modal-content" style="position:relative;max-width:640px;margin:60px auto;background:#fff;border-radius:8px;padding:18px;z-index:1201;">
+            <h3 style="margin-top:0;">Xác nhận từ chối</h3>
+            <p>Vui lòng nhập lý do từ chối (bắt buộc):</p>
+            <textarea id="reject-reason" maxlength="500" rows="4" style="width:100%;box-sizing:border-box;padding:8px;border:1px solid #ddd;border-radius:4px"></textarea>
+            <div class="modal-actions" style="text-align:right;margin-top:12px;">
+                <button id="cancel-reject-btn" class="btn-action">Hủy</button>
+                <button id="confirm-reject-btn" class="btn-action danger" disabled>Từ chối</button>
+            </div>
+        </div>
+    </div>
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="/FrontEnd/js/api.js"></script>
+<script src="/FrontEnd/js/pages/tongquan.js"></script>
+<script src="/FrontEnd/js/pages/reports.js"></script>
+<script src="/FrontEnd/js/pages/assignment.js"></script>
+<script src="/FrontEnd/js/pages/users.js"></script>
+<script src="/FrontEnd/js/pages/nhanvien.js"></script>
+<script src="/FrontEnd/js/pages/profile.js"></script>
+<script src="/FrontEnd/js/layout.js"></script>
 </body>
 </html>

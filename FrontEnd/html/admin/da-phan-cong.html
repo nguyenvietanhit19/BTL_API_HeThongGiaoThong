@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đang xử lý - Giao Thông Cộng Đồng</title>
+    <title>Đã phân công - Giao Thông Cộng Đồng</title>
     <link rel="stylesheet" href="/FrontEnd/css/common.css">
     <link rel="stylesheet" href="/FrontEnd/css/admin/admin.css">
 </head>
@@ -13,13 +13,11 @@
 
     <div class="main-content">
         <div class="page-header">
-            <h1 id="topbar-title" style="display: none;">GiaoThôngAn - Đang xử lý</h1>
-            <h2>Tiến độ khắc phục sự cố</h2>
+            <h1 id="topbar-title" style="display: none;">GiaoThôngAn - Đã phân công</h1>
+            <h2>Công việc đã giao</h2>
             <div class="filters">
-                <input type="text" id="search-progress" placeholder="Tìm kiếm...">
-                <select id="filter-staff">
-                    <option value="">Tất cả nhân viên</option>
-                    </select>
+                <input type="text" id="search-assigned" placeholder="Tìm nhân viên hoặc sự cố...">
+                <button class="btn-action btn-view">Lịch trình hôm nay</button>
             </div>
         </div>
 
@@ -29,12 +27,12 @@
                     <tr>
                         <th>SỰ CỐ</th>
                         <th>NHÂN VIÊN PHỤ TRÁCH</th>
-                        <th>NGÀY GIAO VIỆC</th>
+                        <th>THỜI GIAN GIAO</th>
                         <th>TRẠNG THÁI</th>
                         <th>HÀNH ĐỘNG</th>
                     </tr>
                 </thead>
-                <tbody id="table-body-dang-xu-ly">
+                <tbody id="table-body-da-phan-cong">
                     </tbody>
             </table>
         </div>

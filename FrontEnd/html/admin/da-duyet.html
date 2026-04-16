@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đang xử lý - Giao Thông Cộng Đồng</title>
+    <title>Đã duyệt - Giao Thông Cộng Đồng</title>
     <link rel="stylesheet" href="/FrontEnd/css/common.css">
     <link rel="stylesheet" href="/FrontEnd/css/admin/admin.css">
 </head>
@@ -13,13 +13,15 @@
 
     <div class="main-content">
         <div class="page-header">
-            <h1 id="topbar-title" style="display: none;">GiaoThôngAn - Đang xử lý</h1>
-            <h2>Tiến độ khắc phục sự cố</h2>
+            <h1 id="topbar-title" style="display: none;">GiaoThôngAn - Báo cáo đã duyệt</h1>
+            <h2>Danh sách báo cáo đã duyệt</h2>
             <div class="filters">
-                <input type="text" id="search-progress" placeholder="Tìm kiếm...">
-                <select id="filter-staff">
-                    <option value="">Tất cả nhân viên</option>
-                    </select>
+                <input type="text" id="search-approved" placeholder="Tìm theo mã hoặc tiêu đề...">
+                <select id="filter-priority">
+                    <option value="">Mọi mức độ ưu tiên</option>
+                    <option value="cao">Ưu tiên cao</option>
+                    <option value="trung-binh">Trung bình</option>
+                </select>
             </div>
         </div>
 
@@ -27,18 +29,19 @@
             <table>
                 <thead>
                     <tr>
+                        <th>MÃ BC</th>
                         <th>SỰ CỐ</th>
-                        <th>NHÂN VIÊN PHỤ TRÁCH</th>
-                        <th>NGÀY GIAO VIỆC</th>
-                        <th>TRẠNG THÁI</th>
+                        <th>ĐỊA CHỈ</th>
+                        <th>NGÀY DUYỆT</th>
                         <th>HÀNH ĐỘNG</th>
                     </tr>
                 </thead>
-                <tbody id="table-body-dang-xu-ly">
+                <tbody id="table-body-da-duyet">
                     </tbody>
             </table>
         </div>
     </div>
+
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="/FrontEnd/js/api.js"></script>
 <script src="/FrontEnd/js/pages/tongquan.js"></script>

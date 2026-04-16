@@ -167,3 +167,229 @@ table tbody tr:hover {
     outline: none;
     background: #fcfcfc;
 }
+
+/* =========================================================
+   MERGED PER-PAGE CSS (tong-quan.css, thong-tin-tai-khoan.css,
+   cho-nghiem-thu.css, quan-ly-user.css, phan-cong.css)
+   Appended so pages can reference only admin.css
+   ========================================================= */
+
+/* --- tong-quan.css --- */
+.table-section {
+    margin-top: 32px;
+}
+
+.table-section h3 {
+    margin-bottom: 16px;
+    font-size: 16px;
+    color: #2b3674;
+    font-weight: 600;
+}
+
+/* --- thong-tin-tai-khoan.css --- */
+.profile-grid {
+    display: grid;
+    grid-template-columns: 350px 1fr;
+    gap: 24px;
+    align-items: start;
+}
+
+.profile-card {
+    background: #fff;
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+    border: 1px solid #e0e5f2;
+}
+
+.profile-summary {
+    text-align: center;
+}
+
+.avatar-wrapper {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 20px;
+}
+
+.avatar-wrapper img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid #f4f7fe;
+}
+
+.upload-badge {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    background: #4318ff;
+    color: #fff;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border: 3px solid #fff;
+    font-size: 12px;
+}
+
+.profile-summary h3 {
+    color: #2b3674;
+    font-size: 20px;
+    margin-bottom: 8px;
+}
+
+.join-date {
+    margin-top: 20px;
+    font-size: 13px;
+    color: #a3aed1;
+}
+
+.tab-header {
+    display: flex;
+    gap: 24px;
+    border-bottom: 1px solid #f4f7fe;
+    margin-bottom: 30px;
+}
+
+.tab-btn {
+    background: none;
+    border: none;
+    padding: 12px 0;
+    font-size: 15px;
+    font-weight: 600;
+    color: #a3aed1;
+    cursor: pointer;
+    position: relative;
+    transition: 0.2s;
+}
+
+.tab-btn.active {
+    color: #4318ff;
+}
+
+.tab-btn.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: #4318ff;
+}
+
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+.form-group { margin-bottom: 20px; }
+.form-group label { display: block; font-size: 14px; font-weight: 600; color: #2b3674; margin-bottom: 8px; }
+.form-group input { width: 100%; padding: 12px 16px; border: 1px solid #e0e5f2; border-radius: 12px; font-size: 14px; outline: none; transition: 0.2s; }
+.form-group input:focus { border-color: #4318ff; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.form-actions { margin-top: 30px; padding-top: 20px; border-top: 1px solid #f4f7fe; }
+.form-group small { color: #a3aed1; display: block; margin-top: 5px; }
+
+@media (max-width: 992px) {
+    .profile-grid { grid-template-columns: 1fr; }
+}
+
+/* --- cho-nghiem-thu.css --- */
+.breadcrumb { font-size: 13px; color: #a3aed1; margin-bottom: 12px; font-weight: 500; }
+.report-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; }
+.alert-warning { background-color: #fff8e1; border: 1px solid #ffe082; padding: 16px 20px; border-radius: 12px; color: #ffb300; font-size: 14px; margin-bottom: 24px; font-weight: 500; }
+.info-panels { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px; }
+.panel { border: 1px solid #e0e5f2; border-radius: 16px; padding: 20px; background: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.02); }
+.image-section, .content-section { border: 1px solid #e0e5f2; border-radius: 16px; padding: 24px; margin-bottom: 24px; background: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.02); }
+.image-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.img-placeholder { border-radius: 12px; height: 180px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px dashed #a3aed1; background: #f4f7fe; color: #a3aed1; }
+.timeline { display: flex; flex-direction: column; }
+.timeline-item { display: flex; gap: 12px; padding: 16px 0; border-bottom: 1px solid #f4f7fe; }
+.timeline-item:last-child { border-bottom: none; }
+.timeline-dot { width: 10px; height: 10px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; background-color: #4318ff; }
+.btn-back { background: none; border: none; color: #4318ff; font-size: 14px; font-weight: 600; cursor: pointer; padding: 0; margin-bottom: 20px; display: inline-flex; align-items: center; transition: 0.2s; }
+.btn-back:hover { color: #3311cc; text-decoration: underline; }
+
+/* --- quan-ly-user.css --- */
+/* Cột Người dùng (Avatar + Info) */
+.user-info { display: flex; align-items: center; gap: 12px; }
+.avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; }
+.avatar.na { background-color: #f4f2ff; color: #4318ff; }
+.avatar.tb { background-color: #eaf4fc; color: #3965ff; }
+.avatar.lc { background-color: #eaf6ed; color: #05cd99; }
+.avatar.ph { background-color: #fdf3e8; color: #ff9800; }
+.name-details strong { display: block; font-size: 14px; color: #2b3674; margin-bottom: 2px; }
+.name-details span { font-size: 12px; color: #a3aed1; }
+.role { padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; display: inline-block; }
+.role.admin { background-color: #f4f2ff; color: #4318ff; }
+.role.user { background-color: #eaf4fc; color: #3965ff; }
+.actions { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
+.user-detail-panel { background-color: #fff; border: 1px solid #e0e5f2; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.02); margin-top: 16px; display: none; overflow: hidden; }
+.panel-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; border-bottom: 1px solid #f4f7fe; }
+.panel-header h3 { font-size: 16px; color: #2b3674; font-weight: 600; margin: 0; }
+.close-btn { background: #f4f7fe; border: none; border-radius: 6px; width: 28px; height: 28px; font-size: 18px; cursor: pointer; color: #a3aed1; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+.close-btn:hover { background: #e0e5f2; color: #2b3674; }
+.panel-body { display: flex; gap: 40px; padding: 24px; }
+.info-column, .log-column { flex: 1; }
+.info-column h4, .log-column h4 { font-size: 12px; color: #a3aed1; font-weight: 600; margin-bottom: 16px; letter-spacing: 0.5px; text-transform: uppercase; }
+.info-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f4f7fe; font-size: 14px; }
+.info-row:last-child { border-bottom: none; }
+.info-label { color: #a3aed1; }
+.info-value { color: #2b3674; font-weight: 600; text-align: right; }
+.log-item { background-color: #f4f7fe; padding: 12px 16px; border-radius: 8px; margin-bottom: 8px; font-size: 13px; border-left: 3px solid #4318ff; }
+.log-item strong { display: block; color: #2b3674; font-weight: 600; margin-bottom: 4px; }
+.log-item span { color: #a3aed1; }
+.panel-footer { padding: 16px 24px; border-top: 1px solid #f4f7fe; display: flex; gap: 12px; background-color: #fafbfc; }
+.user-row { cursor: pointer; transition: 0.2s; }
+.user-row:hover { background-color: #f9f9fc; }
+#userDetailPanel { display: none; margin-top: 16px; }
+.table-container.panel-open table tbody tr { opacity: 0.4; }
+.table-container.panel-open table tbody tr.active-row { opacity: 1; background-color: #f4f2ff; }
+
+/* --- phan-cong.css --- */
+.assign-select { padding: 6px; border-radius: 4px; border: 1px solid #ccc; }
+.btn-assign { background: #6b46c1; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; }
+
+/* Modal utilities */
+.modal { display: none; }
+.modal-overlay { cursor: pointer; }
+.modal-content h3 { color: #2b3674; }
+.modal-actions .btn-action { margin-left: 8px; }
+.btn-action.primary { background: #4318ff; color: #fff; }
+.btn-action.primary:hover { background: #3311cc; }
+.btn-action.danger { background: #ee5d50; color: #fff; }
+.btn-action.danger:hover { background: #d94a3e; }
+
+/* Image gallery (thumbnails) */
+.img-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 12px;
+    align-items: stretch;
+}
+.report-thumb {
+    overflow: hidden;
+    border-radius: 8px;
+    background: #f6f8fb;
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+.report-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* Image viewer modal basic styles */
+#imageViewerModal .iv-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.85); }
+#imageViewerModal .iv-content { position: relative; max-width: 90vw; max-height: 90vh; margin: 40px auto; display: flex; align-items: center; justify-content: center; }
+#imageViewerModal img { max-width: 100%; max-height: 80vh; border-radius: 8px; display: block; }
+#imageViewerModal .iv-close { position: absolute; right: 12px; top: 8px; border: none; background: none; color: #fff; font-size: 28px; cursor: pointer; }

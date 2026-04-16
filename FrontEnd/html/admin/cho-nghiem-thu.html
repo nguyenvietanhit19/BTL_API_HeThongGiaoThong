@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>GiaoThôngAn - Chờ nghiệm thu</title>
     <link rel="stylesheet" href="/FrontEnd/css/common.css">
-    <link rel="stylesheet" href="/FrontEnd/css/admin/cho-nghiem-thu.css">
+    <link rel="stylesheet" href="/FrontEnd/css/admin/admin.css">
 </head>
 <body>
     <div id="topbar-container"></div>
@@ -19,18 +19,24 @@
                 <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 8px; border: 1px solid #eaeaea;">
                     <thead>
                         <tr style="background: #fcfcfc; text-align: left; border-bottom: 1px solid #f0f0f0;">
-                            <th style="padding: 16px; font-size: 12px; color: #777;">MÃ BC</th>
-                            <th style="padding: 16px; font-size: 12px; color: #777;">SỰ CỐ</th>
-                            <th style="padding: 16px; font-size: 12px; color: #777;">NHÂN VIÊN XỬ LÝ</th>
-                            <th style="padding: 16px; font-size: 12px; color: #777;">THỜI GIAN HOÀN THÀNH</th>
+                                <th style="padding: 16px; font-size: 12px; color: #777;">MÃ BC</th>
+                                <th style="padding: 16px; font-size: 12px; color: #777;">SỰ CỐ</th>
+                                <th style="padding: 16px; font-size: 12px; color: #777;">NHÂN VIÊN XỬ LÝ</th>
+                                <th style="padding: 16px; font-size: 12px; color: #777;">THỜI GIAN HOÀN THÀNH</th>
+                                <th style="padding: 16px; font-size: 12px; color: #777;">HÀNH ĐỘNG</th>
                         </tr>
                     </thead>
                     <tbody id="table-body-nghiem-thu">
                         <tr class="report-row" style="cursor: pointer; border-bottom: 1px solid #f0f0f0; transition: 0.2s;">
-                            <td style="padding: 16px; font-weight: 600;">#5</td>
-                            <td style="padding: 16px;">Ổ gà Nguyễn Trãi</td>
-                            <td style="padding: 16px;">Trần Văn An</td>
-                            <td style="padding: 16px;">14:30 hôm nay</td>
+                            <td style="padding: 16px; font-weight: 600;"></td>
+                            <td style="padding: 16px;"></td>
+                            <td style="padding: 16px;"></td>
+                            <td style="padding: 16px;"></td>
+                            <td style="padding: 16px;">
+                                <button class="btn-action btn-accept" data-id="5">Duyệt</button> 
+                                <button class="btn-action btn-reject-nt" data-id="5">Không duyệt</button>
+                                <button class="btn-action btn-view" data-id="5">Xem</button>
+                            </td>
                         </tr>
                     </tbody>
                 </table>
@@ -77,20 +83,16 @@
                 <div class="section-header"><h3>LỊCH SỬ XỬ LÝ</h3></div>
                 <div class="timeline" id="bc-timeline"></div>
             </div>
-
-            <div class="content-section">
-                <h3 class="decision-title">Quyết định nghiệm thu</h3>
-                <div class="decision-actions">
-                    <button class="btn-decision" id="btn-nghiem-thu">Nghiệm thu — Đạt ✓</button>
-                    <button class="btn-decision" id="btn-tu-choi">Từ chối nghiệm thu ✕</button>
-                </div>
-                <div class="decision-warning" id="bc-ghi-chu-quyet-dinh"></div>
-            </div>
         </div>
     </div>
-
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script src="/FrontEnd/js/layout.js"></script>
-    <script src="/FrontEnd/js/nghiem-thu.js"></script>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="/FrontEnd/js/api.js"></script>
+<script src="/FrontEnd/js/pages/tongquan.js"></script>
+<script src="/FrontEnd/js/pages/reports.js"></script>
+<script src="/FrontEnd/js/pages/assignment.js"></script>
+<script src="/FrontEnd/js/pages/users.js"></script>
+<script src="/FrontEnd/js/pages/nhanvien.js"></script>
+<script src="/FrontEnd/js/pages/profile.js"></script>
+<script src="/FrontEnd/js/layout.js"></script>
 </body>
 </html>

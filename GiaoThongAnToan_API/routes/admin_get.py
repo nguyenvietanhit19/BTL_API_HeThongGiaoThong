@@ -21,6 +21,8 @@ def dashboard():
                 SUM(CASE WHEN trang_thai = 'cho_duyet' THEN 1 ELSE 0 END) AS cho_duyet,
                 SUM(CASE WHEN trang_thai = 'da_duyet' THEN 1 ELSE 0 END) AS da_duyet,
                 SUM(CASE WHEN trang_thai = 'da_phan_cong' THEN 1 ELSE 0 END) AS da_phan_cong,
+                -- derived: approved but not yet assigned to any staff
+                SUM(CASE WHEN trang_thai = 'da_duyet' AND nhan_vien_id IS NULL THEN 1 ELSE 0 END) AS cho_phan_cong,
                 SUM(CASE WHEN trang_thai = 'dang_xu_ly' THEN 1 ELSE 0 END) AS dang_xu_ly,
                 SUM(CASE WHEN trang_thai = 'cho_nghiem_thu' THEN 1 ELSE 0 END) AS cho_nghiem_thu,
                 SUM(CASE WHEN trang_thai = 'da_xu_ly' THEN 1 ELSE 0 END) AS da_xu_ly,
@@ -35,10 +37,11 @@ def dashboard():
             "cho_duyet": row[1] or 0,
             "da_duyet": row[2] or 0,
             "da_phan_cong": row[3] or 0,
-            "dang_xu_ly": row[4] or 0,
-            "cho_nghiem_thu": row[5] or 0,
-            "da_xu_ly": row[6] or 0,
-            "tu_choi": row[7] or 0
+            "cho_phan_cong": row[4] or 0,
+            "dang_xu_ly": row[5] or 0,
+            "cho_nghiem_thu": row[6] or 0,
+            "da_xu_ly": row[7] or 0,
+            "tu_choi": row[8] or 0
         }
 
         # ========================
@@ -66,6 +69,8 @@ def dashboard():
         query = """
             FROM bao_cao bc
             LEFT JOIN loai_su_co l ON bc.loai_su_co_id = l.loai_su_co_id
+            LEFT JOIN nguoi_dung nd ON bc.nguoi_dung_id = nd.nguoi_dung_id
+            LEFT JOIN nguoi_dung nv ON bc.nhan_vien_id = nv.nguoi_dung_id
             WHERE 1=1
         """
 
@@ -88,8 +93,16 @@ def dashboard():
             SELECT 
                 bc.bao_cao_id,
                 bc.tieu_de,
+                bc.dia_chi,
+                l.ten AS loai,
+                nd.ho_ten AS nguoi_bao_cao,
+                bc.ngay_tao,
                 bc.trang_thai,
-                l.ten AS loai
+                nv.ho_ten AS nhan_vien_phu_trach,
+                -- last time this report entered its current status
+                (SELECT MAX(ls.ngay_doi) FROM lich_su_trang_thai ls WHERE ls.bao_cao_id = bc.bao_cao_id AND ls.trang_thai_moi = bc.trang_thai) AS ngay_trang_thai,
+                -- last note associated with this status change (if any)
+                (SELECT TOP 1 ls2.ghi_chu FROM lich_su_trang_thai ls2 WHERE ls2.bao_cao_id = bc.bao_cao_id AND ls2.trang_thai_moi = bc.trang_thai ORDER BY ls2.ngay_doi DESC) AS ghi_chu_trang_thai
             {query}
             ORDER BY bc.bao_cao_id DESC
             OFFSET ? ROWS FETCH NEXT ? ROWS ONLY

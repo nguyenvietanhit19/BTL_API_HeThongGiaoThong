@@ -140,7 +140,18 @@ def get_chi_tiet(bao_cao_id):
         cursor = conn.cursor()
 
         # ✅ Fix: dùng bao_cao_id
-        cursor.execute("SELECT * FROM v_bao_cao_day_du WHERE bao_cao_id = ?", (bao_cao_id,))
+        # Lấy thông tin báo cáo kèm tên nhân viên phụ trách và loại sự cố
+        cursor.execute("""
+            SELECT 
+                v.*, 
+                nv.ho_ten AS nhan_vien_phu_trach,
+                lsc.ten AS loai_su_co
+            FROM v_bao_cao_day_du v
+            JOIN bao_cao bc ON v.bao_cao_id = bc.bao_cao_id
+            LEFT JOIN nguoi_dung nv ON bc.nhan_vien_id = nv.nguoi_dung_id
+            LEFT JOIN loai_su_co lsc ON bc.loai_su_co_id = lsc.loai_su_co_id
+            WHERE v.bao_cao_id = ?
+        """, (bao_cao_id,))
         thong_tin = dict_fetchone(cursor)
 
         if not thong_tin:
