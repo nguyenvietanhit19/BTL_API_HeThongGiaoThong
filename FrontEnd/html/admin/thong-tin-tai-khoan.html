@@ -4,11 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Thông tin cá nhân - Giao Thông Cộng Đồng</title>
-    <link rel="stylesheet" href="/FrontEnd/css/admin/admin.css">
-    <link rel="stylesheet" href="/FrontEnd/css/admin/thong-tin-tai-khoan.css">
     <link rel="stylesheet" href="/FrontEnd/css/common.css">
+    <link rel="stylesheet" href="/FrontEnd/css/admin/admin.css">
     <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 </head>
 <body>
     <div id="topbar-container"></div>
@@ -24,15 +22,15 @@
         <div class="profile-grid">
             <div class="profile-card profile-summary">
                 <div class="avatar-wrapper">
-                    <img src="/FE/img/default-avatar.png" alt="Avatar" id="profile-avatar">
+                    <img src="/FrontEnd/img/default-avatar.png" alt="Avatar" id="profile-avatar">
                     <label for="upload-avatar" class="upload-badge">
                         <i class="fas fa-camera"></i>
                     </label>
                     <input type="file" id="upload-avatar" hidden accept="image/*">
                 </div>
-                <h3 id="display-name">Nguyễn Việt Anh</h3>
-                <p class="user-role badge badge-assigned">Quản trị viên</p>
-                <div class="join-date">Thành viên từ: 15/04/2024</div>
+                <h3 id="display-name">...</h3>
+                <p class="user-role badge">...</p>
+                <div class="join-date">Thành viên từ: ...</div>
             </div>
 
             <div class="profile-card profile-details">
@@ -46,16 +44,16 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label>Họ và tên</label>
-                                <input type="text" value="Nguyễn Việt Anh" placeholder="Nhập họ tên">
+                                <input type="text" id="input-ho-ten" placeholder="Nhập họ tên">
                             </div>
                             <div class="form-group">
                                 <label>Số điện thoại</label>
-                                <input type="text" value="0987654321" placeholder="Nhập số điện thoại">
+                                <input type="text" id="input-sdt" placeholder="Nhập số điện thoại">
                             </div>
                         </div>
                         <div class="form-group">
                             <label>Địa chỉ Email</label>
-                            <input type="email" value="vietanh.it@gmail.com" readonly style="background: #f4f7fe;">
+                            <input type="email" id="input-email" readonly style="background: #f4f7fe;">
                             <small>Liên hệ quản trị viên để thay đổi email</small>
                         </div>
                         <div class="form-actions">
@@ -87,7 +85,14 @@
         </div>
     </div>
 
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="/FrontEnd/js/api.js"></script>
+    <script src="/FrontEnd/js/pages/tongquan.js"></script>
+    <script src="/FrontEnd/js/pages/reports.js"></script>
+    <script src="/FrontEnd/js/pages/assignment.js"></script>
+    <script src="/FrontEnd/js/pages/users.js"></script>
+    <script src="/FrontEnd/js/pages/nhanvien.js"></script>
+    <script src="/FrontEnd/js/pages/profile.js"></script>
     <script src="/FrontEnd/js/layout.js"></script>
-    <script src="/FrontEnd/js/tttk.js"></script>
 </body>
 </html>

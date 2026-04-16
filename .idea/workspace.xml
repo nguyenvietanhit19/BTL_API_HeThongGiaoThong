@@ -1,11 +1,36 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="AutoImportSettings">
-    <option name="autoReloadType" value="ALL" />
-  </component>
   <component name="ChangeListManager">
-    <list default="true" id="0aac1c3c-da6b-48b0-9f88-ec804c463573" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/GiaoThongAnToan_API/.env.example" beforeDir="false" afterPath="$PROJECT_DIR$/GiaoThongAnToan_API/.env.example" afterDir="false" />
+    <list default="true" id="101c231f-c529-4b3c-af09-70cb2f14e099" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/BTL_API_HeThongGiaoThong.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/BTL_API_HeThongGiaoThong.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BTL_API_HeThongGiaoThong/FrontEnd/css/admin/admin.css" beforeDir="false" afterPath="$PROJECT_DIR$/BTL_API_HeThongGiaoThong/FrontEnd/css/admin/admin.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BTL_API_HeThongGiaoThong/FrontEnd/css/admin/quan-ly-user.css" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/BTL_API_HeThongGiaoThong/FrontEnd/css/common.css" beforeDir="false" afterPath="$PROJECT_DIR$/BTL_API_HeThongGiaoThong/FrontEnd/css/common.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BTL_API_HeThongGiaoThong/FrontEnd/html/admin/cho-duyet.html" beforeDir="false" afterPath="$PROJECT_DIR$/BTL_API_HeThongGiaoThong/FrontEnd/html/admin/cho-duyet.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BTL_API_HeThongGiaoThong/FrontEnd/html/admin/cho-nghiem-thu.html" beforeDir="false" afterPath="$PROJECT_DIR$/BTL_API_HeThongGiaoThong/FrontEnd/html/admin/cho-nghiem-thu.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BTL_API_HeThongGiaoThong/FrontEnd/html/admin/da-xu-ly.html" beforeDir="false" afterPath="$PROJECT_DIR$/BTL_API_HeThongGiaoThong/FrontEnd/html/admin/da-xu-ly.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BTL_API_HeThongGiaoThong/FrontEnd/html/admin/dang-xu-ly.html" beforeDir="false" afterPath="$PROJECT_DIR$/BTL_API_HeThongGiaoThong/FrontEnd/html/admin/dang-xu-ly.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BTL_API_HeThongGiaoThong/FrontEnd/html/admin/nhan-vien.html" beforeDir="false" afterPath="$PROJECT_DIR$/BTL_API_HeThongGiaoThong/FrontEnd/html/admin/nhan-vien.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BTL_API_HeThongGiaoThong/FrontEnd/html/admin/phan-cong.html" beforeDir="false" afterPath="$PROJECT_DIR$/BTL_API_HeThongGiaoThong/FrontEnd/html/admin/phan-cong.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BTL_API_HeThongGiaoThong/FrontEnd/html/admin/quan-ly-user.html" beforeDir="false" afterPath="$PROJECT_DIR$/BTL_API_HeThongGiaoThong/FrontEnd/html/admin/quan-ly-user.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BTL_API_HeThongGiaoThong/FrontEnd/html/admin/sidebar.html" beforeDir="false" afterPath="$PROJECT_DIR$/BTL_API_HeThongGiaoThong/FrontEnd/html/admin/sidebar.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BTL_API_HeThongGiaoThong/FrontEnd/html/admin/thong-tin-tai-khoan.html" beforeDir="false" afterPath="$PROJECT_DIR$/BTL_API_HeThongGiaoThong/FrontEnd/html/admin/thong-tin-tai-khoan.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BTL_API_HeThongGiaoThong/FrontEnd/html/admin/tong-quan.html" beforeDir="false" afterPath="$PROJECT_DIR$/BTL_API_HeThongGiaoThong/FrontEnd/html/admin/tong-quan.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BTL_API_HeThongGiaoThong/FrontEnd/js/layout.js" beforeDir="false" afterPath="$PROJECT_DIR$/BTL_API_HeThongGiaoThong/FrontEnd/js/layout.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BTL_API_HeThongGiaoThong/FrontEnd/js/nghiemthu.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/BTL_API_HeThongGiaoThong/FrontEnd/js/tttk.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/BTL_API_HeThongGiaoThong/GiaoThongAnToan_API/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/BTL_API_HeThongGiaoThong/GiaoThongAnToan_API/app.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BTL_API_HeThongGiaoThong/GiaoThongAnToan_API/routes/admin_get.py" beforeDir="false" afterPath="$PROJECT_DIR$/BTL_API_HeThongGiaoThong/GiaoThongAnToan_API/routes/admin_get.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FrontEnd/css/common.css" beforeDir="false" afterPath="$PROJECT_DIR$/FrontEnd/css/common.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FrontEnd/html/admin/cho-duyet.html" beforeDir="false" afterPath="$PROJECT_DIR$/FrontEnd/html/admin/cho-duyet.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FrontEnd/html/admin/sidebar.html" beforeDir="false" afterPath="$PROJECT_DIR$/FrontEnd/html/admin/sidebar.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FrontEnd/js/layout.js" beforeDir="false" afterPath="$PROJECT_DIR$/FrontEnd/js/layout.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/GiaoThongAnToan_API/.env.py" beforeDir="false" afterPath="$PROJECT_DIR$/GiaoThongAnToan_API/.env.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/GiaoThongAnToan_API/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/GiaoThongAnToan_API/app.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/GiaoThongAnToan_API/routes/admin.py" beforeDir="false" afterPath="$PROJECT_DIR$/GiaoThongAnToan_API/routes/admin.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -13,58 +38,54 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="Git.Settings">
-    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/BTL_API_HeThongGiaoThong" />
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 8,
-  "fromUser": false
-}]]></component>
-  <component name="ProjectId" id="3CKlULikkcadYPmKlPmkc7CPsXN" />
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;gSownn&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/nguyenvietanhit19/BTL_API_HeThongGiaoThong.git&quot;,
+    &quot;accountId&quot;: &quot;b9d86e19-9a3c-4551-a0fe-b81579e1128d&quot;
+  }
+}</component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 8
+}</component>
+  <component name="ProjectId" id="3CQMbJvuucJ1hSPWVEdmS8nQojJ" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
-    "codeWithMe.voiceChat.enabledByDefault": "false",
-    "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
-    "git-widget-placeholder": "Nghia/feature",
-    "ignore.virus.scanning.warn.message": "true",
-    "junie.onboarding.icon.badge.shown": "true",
-    "last_opened_file_path": "G:/code-tren-lop/API/BTL2/BTL_API_HeThongGiaoThong",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "to.speed.mode.migration.done": "true",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;Python.app.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;TVT2&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/nguye/Downloads/BTL_API_HeThongGiaoThong&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;
   }
-}]]></component>
+}</component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-python-sdk-b63d5a1f7c97-b61e75351b1f-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-261.22158.340" />
+        <option value="bundled-python-sdk-b3ae9b5d7125-f0eec537fc84-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-252.23892.439" />
       </set>
     </attachedChunks>
   </component>
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
-      <changelist id="0aac1c3c-da6b-48b0-9f88-ec804c463573" name="Changes" comment="" />
-      <created>1776142157775</created>
+      <changelist id="101c231f-c529-4b3c-af09-70cb2f14e099" name="Changes" comment="" />
+      <created>1776313410219</created>
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
-      <updated>1776142157775</updated>
-      <workItem from="1776142158775" duration="488000" />
+      <updated>1776313410219</updated>
     </task>
     <servers />
-  </component>
-  <component name="TypeScriptGeneratedFilesManager">
-    <option name="version" value="3" />
   </component>
 </project>

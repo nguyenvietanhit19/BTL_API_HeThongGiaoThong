@@ -1,0 +1,123 @@
+// FILE: js/pages/users.js
+(function(window, $) {
+    'use strict';
+
+    window.loadUsers = async function(page = 1, limit = 10) {
+        try {
+            const res = await window.apiRequest('GET', '/admin/nguoi-dung');
+            const users = res.danh_sach || res.data || res || [];
+            const pagination = typeof window.paginateArray === 'function'
+                ? window.paginateArray(users, page, limit)
+                : { data: users, total: users.length, currentPage: page, pageSize: limit };
+            const visibleUsers = pagination.data || [];
+            
+            const $tb = $('#table-body-users'); 
+            $tb.empty();
+
+            // Cập nhật các chỉ số thống kê ở các card phía trên
+            try {
+                const total = (users && users.length) ? users.length : 0;
+                let adminCount = 0, userCount = 0, activeCount = 0, lockedCount = 0;
+                (users || []).forEach(function(u) {
+                    const role = (u.vai_tro || '').toString().toLowerCase();
+                    if (role === 'admin') adminCount++;
+                    if (role === 'user') userCount++;
+                    if (u.dang_hoat_dong === 1 || u.dang_hoat_dong === true || String(u.dang_hoat_dong) === '1') activeCount++;
+                    if (u.bi_dinh_chi === 1 || u.bi_dinh_chi === true || String(u.bi_dinh_chi) === '1') lockedCount++;
+                });
+                $('#stat-admin').text(adminCount);
+                $('#stat-user').text(userCount);
+                $('#stat-active').text(activeCount);
+                $('#stat-locked').text(lockedCount);
+            } catch(e) { console.warn('Không thể cập nhật thống kê người dùng', e); }
+            
+            if(!users.length) {
+                $tb.append('<tr><td colspan="5" class="text-center">Không có dữ liệu người dùng</td></tr>');
+                if (typeof window.renderPagination === 'function') {
+                    window.renderPagination({
+                        key: 'users',
+                        anchor: '#table-body-users',
+                        currentPage: 1,
+                        pageSize: pagination.pageSize,
+                        totalItems: 0,
+                        onPageChange: function(nextPage, nextLimit) {
+                            window.loadUsers(nextPage, nextLimit);
+                        }
+                    });
+                }
+                return;
+            }
+
+            visibleUsers.forEach(function(u) {
+                const id = u.nguoi_dung_id || u.id;
+                const statusText = u.bi_dinh_chi ? 'Đã khóa' : (u.dang_hoat_dong ? 'Hoạt động' : 'Offline');
+                const statusColor = u.bi_dinh_chi ? 'red' : (u.dang_hoat_dong ? 'green' : 'gray');
+                const avatarChar = u.ho_ten ? u.ho_ten.charAt(0).toUpperCase() : '?';
+
+                const $tr = $(`<tr class="user-row" data-id="${id}"></tr>`);
+                $tr.append(`<td><div class="user-info"><div class="avatar">${avatarChar}</div><div class="name-details"><strong>${u.ho_ten||''}</strong><span>${u.email||''}</span></div></div></td>`);
+                $tr.append(`<td>${u.vai_tro||'user'}</td>`);
+                $tr.append(`<td><span class="badge ${statusColor}">${statusText}</span></td>`);
+                $tr.append(`<td>${u.ngay_tao ? u.ngay_tao.split('T')[0] : ''}</td>`);
+                $tr.append(`<td><button class="btn-action btn-view-user" data-id="${id}">Chi tiết</button></td>`);
+                $tb.append($tr);
+            });
+            if (typeof window.renderPagination === 'function') {
+                window.renderPagination({
+                    key: 'users',
+                    anchor: '#table-body-users',
+                    currentPage: pagination.currentPage,
+                    pageSize: pagination.pageSize,
+                    totalItems: pagination.total,
+                    onPageChange: function(nextPage, nextLimit) {
+                        window.loadUsers(nextPage, nextLimit);
+                    }
+                });
+            }
+        } catch(e) { window.showApiError(e); }
+    };
+
+    window.viewUserDetail = async function(id) {
+        try {
+            const res = await window.apiRequest('GET', `/admin/nguoi-dung/${id}`);
+            const u = res.nguoi_dung || res.data || res;
+            
+            $('#detailNameHeader').text(u.ho_ten || 'Chi tiết tài khoản');
+            $('#valName').text(u.ho_ten || '');
+            $('#valEmail').text(u.email || '');
+            $('#valRole').text(u.vai_tro || '');
+            $('#valStatus').text(u.bi_dinh_chi ? 'Đã khoá' : 'Hoạt động');
+            $('#valDate').text(u.ngay_tao ? u.ngay_tao.split('T')[0] : '');
+            
+            $('#valReportCount').text((res.bao_cao && res.bao_cao.length) || 0);
+            
+            const $logList = $('#user-log-list');
+            $logList.empty();
+            if (res.bao_cao && res.bao_cao.length > 0) {
+                res.bao_cao.slice(0, 10).forEach(function(bc) {
+                    $logList.append(`<div class="log-item"><strong>${bc.tieu_de||'Báo cáo'}</strong><span>${bc.ngay_tao ? bc.ngay_tao.split('T')[0] : ''}</span></div>`);
+                });
+            } else {
+                $logList.append('<div class="log-item"><span>Chưa có hoạt động nào</span></div>');
+            }
+            
+            $('#userDetailPanel').slideDown(200);
+        } catch(e) { window.showApiError(e); }
+    };
+
+    $(document).on('click', '.btn-view-user', function() {
+        const $row = $(this).closest('tr');
+        $('.user-row').removeClass('active-row');
+        $row.addClass('active-row');
+        $('#mainTableContainer').addClass('panel-open');
+        window.viewUserDetail($(this).data('id'));
+    });
+
+    $(document).on('click', '#closePanelBtn', function() {
+        $('#userDetailPanel').slideUp(200, function() {
+            $('#mainTableContainer').removeClass('panel-open');
+            $('.user-row').removeClass('active-row');
+        });
+    });
+
+})(window, jQuery);

@@ -1,13 +1,14 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chờ duyệt - Giao Thông Cộng Đồng</title>
     <link rel="stylesheet" href="/FrontEnd/css/common.css">
-    <link rel="stylesheet" href="/FrontEnd/css/admin/admin.css"> 
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <link rel="stylesheet" href="/FrontEnd/css/admin/admin.css">
 </head>
+
 <body>
     <div id="topbar-container"></div>
     <div id="sidebar-container"></div>
@@ -20,7 +21,7 @@
                 <input type="text" id="search-report" placeholder="Tìm theo tiêu đề, địa chỉ...">
                 <select id="filter-category">
                     <option value="">Tất cả loại sự cố</option>
-                    </select>
+                </select>
                 <input type="date" id="filter-date">
             </div>
         </div>
@@ -37,11 +38,21 @@
                     </tr>
                 </thead>
                 <tbody id="table-body-cho-duyet">
-                    </tbody>
+                </tbody>
             </table>
         </div>
     </div>
 
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="/FrontEnd/js/api.js"></script>
+    <script src="/FrontEnd/js/pagination.js"></script>
+    <script src="/FrontEnd/js/pages/tongquan.js"></script>
+    <script src="/FrontEnd/js/pages/reports.js"></script>
+    <script src="/FrontEnd/js/pages/assignment.js"></script>
+    <script src="/FrontEnd/js/pages/users.js"></script>
+    <script src="/FrontEnd/js/pages/nhanvien.js"></script>
+    <script src="/FrontEnd/js/pages/profile.js"></script>
     <script src="/FrontEnd/js/layout.js"></script>
 </body>
+
 </html>

@@ -48,3 +48,10 @@
 .log-item span { color: #a3aed1; }
 
 .panel-footer { padding: 16px 24px; border-top: 1px solid #f4f7fe; display: flex; gap: 12px; background-color: #fafbfc; }
+
+/* Page-specific helpers moved from inline styles in quan-ly-user.html */
+.user-row { cursor: pointer; transition: 0.2s; }
+.user-row:hover { background-color: #f9f9fc; }
+#userDetailPanel { display: none; margin-top: 16px; }
+.table-container.panel-open table tbody tr { opacity: 0.4; }
+.table-container.panel-open table tbody tr.active-row { opacity: 1; background-color: #f4f2ff; }
