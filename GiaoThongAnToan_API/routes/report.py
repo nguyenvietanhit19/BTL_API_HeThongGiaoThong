@@ -80,7 +80,7 @@ def get_danh_sach_bao_cao():
             if vi_do is not None and kinh_do is not None:
                 kc = tinh_khoang_cach_haversine(vi_do, kinh_do, lat_bc, lon_bc)
                 if kc <= ban_kinh:
-                    row['khoang_cach_m'] = round(kc * 1000, 0)
+                    row['khoang_cach_m'] = round(kc * 10000, 0)
                     danh_sach.append(row)
             else:
                 row['khoang_cach_m'] = None

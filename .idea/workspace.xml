@@ -8,6 +8,7 @@
       <change afterPath="$PROJECT_DIR$/FrontEnd/css/nhanVien.css" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/FrontEnd/html/NhanVien/nhanVien.html" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/FrontEnd/js/nhanVien.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FrontEnd/html/dang_nhap/dang_nhap.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -51,6 +52,10 @@
     "junie.onboarding.icon.badge.shown": "true",
     "last_opened_file_path": "G:/code-tren-lop/API/BTL2/BTL_API_HeThongGiaoThong",
     "list.type.of.created.stylesheet": "CSS",
+    "git-widget-placeholder": "vanh-feature3",
+    "ignore.virus.scanning.warn.message": "true",
+    "junie.onboarding.icon.badge.shown": "true",
+    "last_opened_file_path": "D:/kì 2 năm 3/API/BTL/BTL_API_HeThongGiaoThong",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -63,7 +68,7 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-python-sdk-b63d5a1f7c97-b61e75351b1f-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-261.22158.340" />
+        <option value="bundled-python-sdk-7e47963ff851-f0eec537fc84-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-252.23892.515" />
       </set>
     </attachedChunks>
   </component>

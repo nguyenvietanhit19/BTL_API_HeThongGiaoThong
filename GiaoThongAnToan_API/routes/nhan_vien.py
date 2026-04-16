@@ -66,6 +66,17 @@ def nhan_viec(id):
         conn = get_db()
         cursor = conn.cursor()
 
+        # Kiểm tra nhân viên có đang làm việc khác không
+        cursor.execute("""
+            SELECT COUNT(*) FROM bao_cao
+            WHERE nhan_vien_id = ?
+            AND trang_thai IN ('dang_xu_ly', 'cho_nghiem_thu')
+        """, (request.nguoi_dung_id,))
+        so_viec_dang_lam = cursor.fetchone()[0]
+
+        if so_viec_dang_lam > 0:
+            return jsonify({'loi': 'Bạn đang có việc chưa hoàn thành, không thể nhận thêm việc mới'}), 400
+
         cursor.execute(
             "SELECT trang_thai, nhan_vien_id FROM bao_cao WHERE bao_cao_id = ?", (id,)
         )
