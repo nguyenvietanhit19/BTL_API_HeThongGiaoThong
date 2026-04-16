@@ -39,7 +39,11 @@
 
                 const $sel = $(`<select class="assign-select" data-id="${id}"></select>`);
                 $sel.append('<option value="">Chọn nhân viên</option>');
-                staff.forEach(s => $sel.append(`<option value="${s.nguoi_dung_id || s.id}">${s.ho_ten}</option>`));
+                staff.forEach(s => {
+                    const uid = s.nguoi_dung_id || s.id || '';
+                    const label = (s.ho_ten ? s.ho_ten : 'Không tên') + (uid ? (' - Mã NV ' + uid) : '');
+                    $sel.append(`<option value="${uid}">${label}</option>`);
+                });
                 $tr.append($('<td/>').append($sel));
 
                 $tr.append($('<td/>').html(`<button class="btn-action btn-assign-now" data-id="${id}">Giao việc</button>`));

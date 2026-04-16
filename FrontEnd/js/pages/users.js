@@ -58,11 +58,6 @@
                 $tr.append(`<td><div class="user-info"><div class="avatar">${avatarChar}</div><div class="name-details"><strong>${u.ho_ten||''}</strong><span>${u.email||''}</span></div></div></td>`);
                 $tr.append(`<td>${u.vai_tro||'user'}</td>`);
                 $tr.append(`<td><span class="badge ${statusColor}">${statusText}</span></td>`);
-                $tr.append(`<td>${u.ngay_tao ? u.ngay_tao.split('T')[0] : ''}</td>`);
-                $tr.append(`<td><button class="btn-action btn-view-user" data-id="${id}">Chi tiết</button></td>`);
-                $tb.append($tr);
-            });
-            if (typeof window.renderPagination === 'function') {
                 window.renderPagination({
                     key: 'users',
                     anchor: '#table-body-users',
@@ -87,7 +82,7 @@
             $('#valEmail').text(u.email || '');
             $('#valRole').text(u.vai_tro || '');
             $('#valStatus').text(u.bi_dinh_chi ? 'Đã khoá' : 'Hoạt động');
-            $('#valDate').text(u.ngay_tao ? u.ngay_tao.split('T')[0] : '');
+            $('#valDate').text(u.ngay_tao ? (window.formatToTZ ? window.formatToTZ(u.ngay_tao, {dateOnly:true}) : (u.ngay_tao.split ? u.ngay_tao.split('T')[0] : u.ngay_tao)) : '');
             
             $('#valReportCount').text((res.bao_cao && res.bao_cao.length) || 0);
             
@@ -95,7 +90,7 @@
             $logList.empty();
             if (res.bao_cao && res.bao_cao.length > 0) {
                 res.bao_cao.slice(0, 10).forEach(function(bc) {
-                    $logList.append(`<div class="log-item"><strong>${bc.tieu_de||'Báo cáo'}</strong><span>${bc.ngay_tao ? bc.ngay_tao.split('T')[0] : ''}</span></div>`);
+                    $logList.append(`<div class="log-item"><strong>${bc.tieu_de||'Báo cáo'}</strong><span>${bc.ngay_tao ? (window.formatToTZ ? window.formatToTZ(bc.ngay_tao, {dateOnly:true}) : (bc.ngay_tao.split ? bc.ngay_tao.split('T')[0] : bc.ngay_tao)) : ''}</span></div>`);
                 });
             } else {
                 $logList.append('<div class="log-item"><span>Chưa có hoạt động nào</span></div>');

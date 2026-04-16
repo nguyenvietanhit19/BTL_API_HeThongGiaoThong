@@ -11,8 +11,8 @@
             // 1. Cập nhật thẻ Profile Summary (Bên trái)
             $('#display-name').text(u.ho_ten || 'Người dùng ẩn danh');
             
-            // Format ngày tạo
-            const joinDate = u.ngay_tao ? new Date(u.ngay_tao).toLocaleDateString('vi-VN') : 'Chưa cập nhật';
+            // Format ngày tạo (hiển thị theo GMT+7 nếu helper có sẵn)
+            const joinDate = u.ngay_tao ? (window.formatToTZ ? window.formatToTZ(u.ngay_tao, {dateOnly:true}) : new Date(u.ngay_tao).toLocaleDateString('vi-VN')) : 'Chưa cập nhật';
             $('.join-date').text('Thành viên từ: ' + joinDate);
             
             // Phân loại vài trò (Role mapping)

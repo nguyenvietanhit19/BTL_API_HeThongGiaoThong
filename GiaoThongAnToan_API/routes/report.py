@@ -80,7 +80,7 @@ def get_danh_sach_bao_cao():
             if vi_do is not None and kinh_do is not None:
                 kc = tinh_khoang_cach_haversine(vi_do, kinh_do, lat_bc, lon_bc)
                 if kc <= ban_kinh:
-                    row['khoang_cach_m'] = round(kc * 1000, 0)
+                    row['khoang_cach_m'] = round(kc * 10000, 0)
                     danh_sach.append(row)
             else:
                 row['khoang_cach_m'] = None
@@ -140,7 +140,18 @@ def get_chi_tiet(bao_cao_id):
         cursor = conn.cursor()
 
         # ✅ Fix: dùng bao_cao_id
-        cursor.execute("SELECT * FROM v_bao_cao_day_du WHERE bao_cao_id = ?", (bao_cao_id,))
+        # Lấy thông tin báo cáo kèm tên nhân viên phụ trách và loại sự cố
+        cursor.execute("""
+            SELECT 
+                v.*, 
+                nv.ho_ten AS nhan_vien_phu_trach,
+                lsc.ten AS loai_su_co
+            FROM v_bao_cao_day_du v
+            JOIN bao_cao bc ON v.bao_cao_id = bc.bao_cao_id
+            LEFT JOIN nguoi_dung nv ON bc.nhan_vien_id = nv.nguoi_dung_id
+            LEFT JOIN loai_su_co lsc ON bc.loai_su_co_id = lsc.loai_su_co_id
+            WHERE v.bao_cao_id = ?
+        """, (bao_cao_id,))
         thong_tin = dict_fetchone(cursor)
 
         if not thong_tin:

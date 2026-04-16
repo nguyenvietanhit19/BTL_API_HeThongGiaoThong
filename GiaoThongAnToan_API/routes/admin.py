@@ -102,8 +102,22 @@ def duyet_bao_cao(id):
 @admin_bp.route('/bao-cao/<int:id>/tu-choi', methods=['PUT'])
 @can_access(['admin'])
 def tu_choi_bao_cao(id):
+    data = request.json or {}
+    ghi_chu = data.get('ghi_chu', '')
 
     admin_id = request.nguoi_dung_id
+
+    # basic validation
+    if not isinstance(ghi_chu, str):
+        return jsonify({"error": "ghi_chu phải là chuỗi"}), 400
+
+    ghi_chu = ghi_chu.strip()
+
+    if not ghi_chu:
+        return jsonify({"error": "Thiếu lý do từ chối (ghi_chu)"}), 400
+
+    if len(ghi_chu) > 500:
+        return jsonify({"error": "Lý do quá dài (tối đa 500 ký tự)"}), 400
 
     conn = get_db()
     cursor = conn.cursor()
@@ -131,10 +145,10 @@ def tu_choi_bao_cao(id):
         cursor.execute(
             """
             INSERT INTO lich_su_trang_thai
-            (bao_cao_id, nguoi_doi_id, trang_thai_cu, trang_thai_moi)
-            VALUES (?, ?, 'cho_duyet', 'tu_choi')
+            (bao_cao_id, nguoi_doi_id, trang_thai_cu, trang_thai_moi, ghi_chu)
+            VALUES (?, ?, 'cho_duyet', 'tu_choi', ?)
             """,
-            (id, admin_id)
+            (id, admin_id, ghi_chu)
         )
 
         conn.commit()
