@@ -5,6 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="0aac1c3c-da6b-48b0-9f88-ec804c463573" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/FrontEnd/css/nhanVien.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FrontEnd/html/NhanVien/nhanVien.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FrontEnd/js/nhanVien.js" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/FrontEnd/html/dang_nhap/dang_nhap.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
@@ -12,6 +15,15 @@
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="HTML File" />
+        <option value="JavaScript File" />
+        <option value="CSS File" />
+      </list>
+    </option>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -27,6 +39,7 @@
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
+    "DefaultHtmlFileTemplate": "HTML File",
     "ModuleVcsDetector.initialDetectionPerformed": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
@@ -34,6 +47,11 @@
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
     "codeWithMe.voiceChat.enabledByDefault": "false",
     "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
+    "git-widget-placeholder": "nghia3/feature",
+    "ignore.virus.scanning.warn.message": "true",
+    "junie.onboarding.icon.badge.shown": "true",
+    "last_opened_file_path": "G:/code-tren-lop/API/BTL2/BTL_API_HeThongGiaoThong",
+    "list.type.of.created.stylesheet": "CSS",
     "git-widget-placeholder": "vanh-feature3",
     "ignore.virus.scanning.warn.message": "true",
     "junie.onboarding.icon.badge.shown": "true",
@@ -62,6 +80,7 @@
       <option name="presentableId" value="Default" />
       <updated>1776142157775</updated>
       <workItem from="1776142158775" duration="488000" />
+      <workItem from="1776230270486" duration="2289000" />
     </task>
     <servers />
   </component>
