@@ -13,43 +13,55 @@
             .shared-pagination {
                 display: flex;
                 align-items: center;
-                justify-content: space-between;
-                gap: 12px;
+                justify-content: center;
+                gap: 16px;
                 flex-wrap: wrap;
-                margin-top: 16px;
-                padding: 14px 0 4px;
-            }
-            .shared-pagination-info {
-                color: #667085;
-                font-size: 14px;
+                margin-top: auto;
+                padding-top: 16px;
+                padding-bottom: 4px;
+                border-top: 1px solid #eef2f7;
+                min-height: 58px;
             }
             .shared-pagination-controls {
                 display: flex;
                 align-items: center;
-                gap: 8px;
-                flex-wrap: wrap;
+                justify-content: center;
+                gap: 10px;
+                flex-wrap: nowrap;
+                width: 100%;
             }
             .shared-pagination-pages {
                 display: flex;
                 align-items: center;
+                justify-content: center;
                 gap: 6px;
-                flex-wrap: wrap;
+                flex-wrap: nowrap;
+                min-width: 320px;
+                min-height: 36px;
+                font-variant-numeric: tabular-nums;
             }
             .shared-pagination button,
             .shared-pagination select {
                 border: 1px solid #d0d5dd;
                 background: #fff;
                 color: #344054;
-                border-radius: 8px;
-                min-width: 38px;
-                height: 38px;
-                padding: 0 12px;
+                border-radius: 10px;
+                width: 38px;
+                height: 36px;
+                padding: 0;
                 cursor: pointer;
+                transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+                flex: 0 0 auto;
+            }
+            .shared-pagination button:hover,
+            .shared-pagination select:hover {
+                border-color: #98a2b3;
+                background: #f8fafc;
             }
             .shared-pagination button.active {
-                background: #101828;
+                background: #2b3674;
                 color: #fff;
-                border-color: #101828;
+                border-color: #2b3674;
             }
             .shared-pagination button:disabled {
                 opacity: 0.45;
@@ -65,7 +77,35 @@
                 align-items: center;
                 gap: 8px;
                 color: #667085;
-                font-size: 14px;
+                font-size: 13px;
+                white-space: nowrap;
+            }
+            .shared-pagination .pagination-prev,
+            .shared-pagination .pagination-next {
+                width: 78px;
+                font-weight: 600;
+            }
+            .shared-pagination-ellipsis {
+                width: 20px;
+                flex: 0 0 20px;
+            }
+            @media (max-width: 768px) {
+                .shared-pagination {
+                    align-items: stretch;
+                    justify-content: center;
+                }
+                .shared-pagination-controls {
+                    width: 100%;
+                    gap: 8px;
+                }
+                .shared-pagination-controls {
+                    justify-content: center;
+                }
+                .shared-pagination-pages {
+                    min-width: 0;
+                    max-width: 100%;
+                    overflow: hidden;
+                }
             }
         `;
         document.head.appendChild(style);
@@ -93,7 +133,7 @@
 
         const $tableContainer = $anchor.closest('.table-container');
         if ($tableContainer.length) {
-            $tableContainer.after($root);
+            $tableContainer.append($root);
         } else {
             $anchor.after($root);
         }
@@ -208,32 +248,13 @@
             return;
         }
 
-        const startItem = ((currentPage - 1) * pageSize) + 1;
-        const endItem = Math.min(currentPage * pageSize, totalItems);
-
         $root.show().html(`
-            <div class="shared-pagination-info"></div>
             <div class="shared-pagination-controls">
-                <div class="shared-pagination-size">
-                    <span>So dong</span>
-                    <select class="pagination-size">
-                        <option value="5">5</option>
-                        <option value="6">6</option>
-                        <option value="10">10</option>
-                        <option value="20">20</option>
-                        <option value="50">50</option>
-                    </select>
-                </div>
-                <button type="button" class="pagination-prev">Truoc</button>
+                <button type="button" class="pagination-prev">Trước</button>
                 <div class="shared-pagination-pages"></div>
                 <button type="button" class="pagination-next">Sau</button>
             </div>
         `);
-
-        $root.find('.shared-pagination-info').text(
-            'Hien thi ' + startItem + '-' + endItem + ' / ' + totalItems + ' ban ghi'
-        );
-        $root.find('.pagination-size').val(String(pageSize));
         $root.find('.pagination-prev').prop('disabled', currentPage <= 1);
         $root.find('.pagination-next').prop('disabled', currentPage >= totalPages);
 
@@ -268,13 +289,4 @@
         state.onPageChange(state.currentPage + 1, state.pageSize);
     });
 
-    $(document).on('change', '.shared-pagination .pagination-size', function () {
-        const $root = $(this).closest('.shared-pagination');
-        const key = $root.data('pagination-key');
-        const state = states[key];
-        const nextPageSize = parseInt($(this).val(), 10) || DEFAULT_PAGE_SIZE;
-
-        if (!state || !state.onPageChange) return;
-        state.onPageChange(1, nextPageSize);
-    });
 })(window, jQuery);

@@ -5,9 +5,9 @@
     // ============================================================
     // 1. TẢI DANH SÁCH THEO TRẠNG THÁI
     // ============================================================
-    window.loadListByStatus = async function(status, containerSelector) {
+    window.loadListByStatus = async function(status, containerSelector, page = 1, limit = 5) {
         try {
-            const res = await window.apiRequest('GET', `/admin_get/dashboard?trang_thai=${encodeURIComponent(status)}&page=1&limit=100`);
+            const res = await window.apiRequest('GET', `/admin_get/dashboard?trang_thai=${encodeURIComponent(status)}&page=${page}&limit=${limit}`);
             const data = (res.list && res.list.data) ? res.list.data : [];
             
             // Helper định dạng ngày tháng
@@ -25,6 +25,18 @@
             
             if (!data.length) { 
                 $tb.append('<tr><td colspan="6" class="text-center" style="padding: 20px;">Không có dữ liệu báo cáo</td></tr>'); 
+                if (typeof window.renderPagination === 'function') {
+                    window.renderPagination({
+                        key: 'reports-' + status,
+                        anchor: containerSelector,
+                        currentPage: 1,
+                        pageSize: limit,
+                        totalItems: 0,
+                        onPageChange: function(nextPage, nextLimit) {
+                            window.loadListByStatus(status, containerSelector, nextPage, nextLimit);
+                        }
+                    });
+                }
                 return; 
             }
 
@@ -75,6 +87,18 @@
 
                 $tb.append($tr);
             });
+            if (typeof window.renderPagination === 'function') {
+                window.renderPagination({
+                    key: 'reports-' + status,
+                    anchor: containerSelector,
+                    currentPage: page,
+                    pageSize: limit,
+                    totalItems: (res.list && res.list.total) || 0,
+                    onPageChange: function(nextPage, nextLimit) {
+                        window.loadListByStatus(status, containerSelector, nextPage, nextLimit);
+                    }
+                });
+            }
         } catch(e) { window.showApiError(e); }
     };
 

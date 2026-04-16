@@ -86,6 +86,8 @@
    4. BẢNG DỮ LIỆU (TABLE)
    ========================================================= */
 .table-container {
+    display: flex;
+    flex-direction: column;
     flex: 1;
     min-height: 0;
     background: #fff;
@@ -93,6 +95,10 @@
     padding: 20px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.02);
     overflow: hidden;
+}
+
+.table-container > table {
+    flex: 1 1 auto;
 }
 
 table {
@@ -120,6 +126,60 @@ table td {
 
 table tbody tr:hover {
     background-color: #fcfcfc;
+}
+
+.dashboard-table {
+    table-layout: fixed;
+}
+
+.dashboard-table th:nth-child(1),
+.dashboard-table td:nth-child(1) {
+    width: 42%;
+}
+
+.dashboard-table th:nth-child(2),
+.dashboard-table td:nth-child(2) {
+    width: 20%;
+}
+
+.dashboard-table th:nth-child(3),
+.dashboard-table td:nth-child(3) {
+    width: 20%;
+}
+
+.dashboard-table th:nth-child(4),
+.dashboard-table td:nth-child(4) {
+    width: 18%;
+}
+
+.dashboard-table td {
+    height: 64px;
+}
+
+.dashboard-table td:first-child strong,
+.dashboard-table td:nth-child(2) {
+    display: inline-block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+.dashboard-table .btn-action {
+    min-width: 72px;
+}
+
+.dashboard-row-placeholder:hover {
+    background-color: transparent;
+}
+
+.dashboard-row-placeholder td {
+    color: transparent;
+}
+
+.dashboard-row-placeholder td > * {
+    visibility: hidden;
 }
 
 /* =========================================================
@@ -188,15 +248,144 @@ table tbody tr:hover {
     min-height: 0;
     display: flex;
     flex-direction: column;
-    margin-top: 32px;
+    margin-top: 0;
 }
 
-.table-section h3 {
+.main-content > .stats-container {
+    margin-bottom: 0;
+}
+
+.dashboard-page {
+    gap: 18px;
+}
+
+.dashboard-header {
     flex-shrink: 0;
-    margin-bottom: 16px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.dashboard-header h2 {
+    margin: 0 0 6px;
+    font-size: 28px;
+    color: #2b3674;
+}
+
+.dashboard-header p {
+    margin: 0;
+    color: #7a86a8;
+    font-size: 14px;
+}
+
+.dashboard-header-note {
+    flex-shrink: 0;
+    padding: 10px 14px;
+    border-radius: 999px;
+    background: #ffffff;
+    border: 1px solid #e5ebf8;
+    color: #7a86a8;
+    font-size: 13px;
+}
+
+.dashboard-stats {
+    margin-bottom: 0;
+}
+
+.dashboard-body {
+    flex: 1;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
+    gap: 18px;
+    align-items: stretch;
+}
+
+.dashboard-panel {
+    min-height: 0;
+}
+
+.section-head {
+    flex-shrink: 0;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.section-head h3 {
+    margin: 0;
     font-size: 16px;
     color: #2b3674;
     font-weight: 600;
+}
+
+.section-head span {
+    color: #7a86a8;
+    font-size: 13px;
+    white-space: nowrap;
+}
+
+.category-section {
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    border-radius: 16px;
+    padding: 18px;
+    border: 1px solid #e9edf7;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+}
+
+.category-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+    min-height: 0;
+}
+
+.category-card {
+    background: linear-gradient(180deg, #f9fbff 0%, #ffffff 100%);
+    border-radius: 14px;
+    padding: 14px 16px;
+    border: 1px solid #e9edf7;
+    min-height: 78px;
+}
+
+.category-card strong {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 14px;
+    color: #2b3674;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.category-card span {
+    font-size: 13px;
+    color: #7a86a8;
+}
+
+.category-card.empty {
+    opacity: 0.8;
+}
+
+.table-section.dashboard-panel {
+    background: #fff;
+    border-radius: 16px;
+    padding: 18px;
+    border: 1px solid #e9edf7;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+}
+
+.table-section.dashboard-panel .table-container {
+    padding: 0;
+    border-radius: 0;
+    border: none;
+    box-shadow: none;
+    background: transparent;
 }
 
 /* --- thong-tin-tai-khoan.css --- */
@@ -365,7 +554,29 @@ table tbody tr:hover {
 
 .shared-pagination {
     flex-shrink: 0;
-    margin-top: 12px;
+    margin-top: auto;
+}
+
+@media (max-width: 1100px) {
+    .dashboard-body {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboard-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .dashboard-header-note {
+        width: fit-content;
+    }
+
+    .section-head {
+        flex-direction: column;
+        align-items: flex-start;
+    }
 }
 
 /* --- phan-cong.css --- */

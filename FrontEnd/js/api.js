@@ -1,24 +1,24 @@
 // FILE: js/api.js
-(function(window, $) {
+(function (window, $) {
     'use strict';
 
     // ==========================================
     // 🛠 KHU VỰC CẤU HÌNH DEV
     // ==========================================
-    const API_BASE = 'http://127.0.0.1:5000'; 
-    const HARDCODED_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuZ3VvaV9kdW5nX2lkIjoyLCJ2YWlfdHJvIjoibmhhbl92aWVuIiwiZXhwIjoxNzc2OTI3MTc0fQ.KBZMalsEOvOJ7dKVegskSyqVhPQkYQeX5xdO11wqCHI'; 
+    const API_BASE = 'http://127.0.0.1:5000';
+    const HARDCODED_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuZ3VvaV9kdW5nX2lkIjoxLCJ2YWlfdHJvIjoiYWRtaW4iLCJleHAiOjE3NzY5MzIzNzR9.p0YjpGzjA7LRcClazUYYHc9x38sQE2tMZagRmOL_j6E';
     // ==========================================
 
-    window.getToken = function() { 
-        if (HARDCODED_TOKEN && HARDCODED_TOKEN !== 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuZ3VvaV9kdW5nX2lkIjoyLCJ2YWlfdHJvIjoibmhhbl92aWVuIiwiZXhwIjoxNzc2OTI3MTc0fQ.KBZMalsEOvOJ7dKVegskSyqVhPQkYQeX5xdO11wqCHI') {
+    window.getToken = function () {
+        if (HARDCODED_TOKEN && HARDCODED_TOKEN !== 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuZ3VvaV9kdW5nX2lkIjoxLCJ2YWlfdHJvIjoiYWRtaW4iLCJleHAiOjE3NzY5MjQ1NTR9.UA5ckwxC6VTH6ylUmP5NAfpUE5hCMSflqrGU59SuB8s') {
             return HARDCODED_TOKEN;
         }
-        return localStorage.getItem('token'); 
+        return localStorage.getItem('token');
     };
-    
-    window.setToken = function(t) { 
-        if (t) localStorage.setItem('token', t); 
-        else localStorage.removeItem('token'); 
+
+    window.setToken = function (t) {
+        if (t) localStorage.setItem('token', t);
+        else localStorage.removeItem('token');
     };
 
     // Preferred timezone offset in hours for displaying timestamps (Asia/Bangkok = GMT+7)
@@ -26,7 +26,7 @@
 
     // Format timestamp strings/numbers/Date to timezone-aware display (uses GMT offset)
     // Options: { tzOffsetHours: number, dateOnly: boolean }
-    window.formatTimestampToTZ = function(s, options) {
+    window.formatTimestampToTZ = function (s, options) {
         options = options || {};
         var tzOffsetHours = (options.tzOffsetHours !== undefined) ? options.tzOffsetHours : window.PREFERRED_TZ_OFFSET;
         var dateOnly = options.dateOnly;
@@ -59,15 +59,15 @@
         // Use UTC getters to avoid host-local timezone effects
         var Y2 = dt.getUTCFullYear(), M2 = dt.getUTCMonth() + 1, D2 = dt.getUTCDate();
         var H2 = dt.getUTCHours(), Min2 = dt.getUTCMinutes();
-        var pad = function(n){ return n < 10 ? '0' + n : n; };
+        var pad = function (n) { return n < 10 ? '0' + n : n; };
         var datePart = Y2 + '-' + pad(M2) + '-' + pad(D2);
         if (dateOnly) return datePart;
         return datePart + ' ' + pad(H2) + ':' + pad(Min2);
     };
 
-    window.formatToTZ = function(s, opts){ return window.formatTimestampToTZ(s, opts); };
+    window.formatToTZ = function (s, opts) { return window.formatTimestampToTZ(s, opts); };
 
-    window.apiRequest = async function(method, path, data=null, isForm=false) {
+    window.apiRequest = async function (method, path, data = null, isForm = false) {
         const headers = {};
         if (!isForm && (method === 'POST' || method === 'PUT')) {
             headers['Content-Type'] = 'application/json';
@@ -83,19 +83,19 @@
         const res = await fetch(url, opts);
         const text = await res.text();
         let json = null;
-        try { json = text ? JSON.parse(text) : null; } catch(e) { json = text; }
-        
+        try { json = text ? JSON.parse(text) : null; } catch (e) { json = text; }
+
         if (!res.ok) throw json || { error: 'HTTP ' + res.status };
         return json;
     };
 
-    window.showApiError = function(err) {
+    window.showApiError = function (err) {
         console.error('Chi tiết lỗi API:', err);
         const msg = (err && (err.loi || err.error || err.thong_bao)) || 'Lỗi kết nối máy chủ';
         alert(msg);
     };
 
-    window.renderReportRows = function($tbody, items, actionsHtmlFn) {
+    window.renderReportRows = function ($tbody, items, actionsHtmlFn) {
         $tbody.empty();
         if (!items || !items.length) {
             $tbody.append('<tr><td colspan="4" class="text-center" style="padding: 20px;">Không có dữ liệu</td></tr>');
@@ -112,7 +112,7 @@
             'da_xu_ly': { text: 'Đã xử lý', color: 'green' }
         };
 
-        items.forEach(function(item) {
+        items.forEach(function (item) {
             const title = item.tieu_de || item.ten || 'Không có tiêu đề';
             const loai = item.loai_su_co || item.loai || 'Chưa phân loại';
             const rawStatus = item.trang_thai || item.trang_thai_hien_tai || '';
@@ -122,9 +122,9 @@
             $tr.append($('<td/>').html('<strong>' + $('<div/>').text(title).html() + '</strong>'));
             $tr.append($('<td/>').text(loai));
             if (rawStatus) {
-                 $tr.append($('<td/>').html(`<span class="badge ${statusObj.color}">${statusObj.text}</span>`));
+                $tr.append($('<td/>').html(`<span class="badge ${statusObj.color}">${statusObj.text}</span>`));
             } else {
-                 $tr.append($('<td/>').text('-'));
+                $tr.append($('<td/>').text('-'));
             }
             const $actionTd = $('<td/>');
             if (typeof actionsHtmlFn === 'function') {
