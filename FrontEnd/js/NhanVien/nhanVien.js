@@ -18,7 +18,7 @@ $(document).ready(function () {
     fetchTasks();
 
     // ===== HIỂN THỊ TÊN =====
-    const name = localStorage.getItem("user_name");
+    const name = localStorage.getItem("ho_ten");
     if (name) $('#user-name').text(name);
 
     // ===== USER DROPDOWN (FIX CLICK + MOBILE) =====
@@ -96,7 +96,7 @@ $(document).ready(function () {
     // ===== LOGOUT =====
     $('#logout-btn').click(function () {
         localStorage.removeItem("token");
-        window.location.href = "/FrontEnd/html/login.html";
+        window.location.href = "/FrontEnd/html/dang_nhap/dang_nhap.html";
     });
 });
 
@@ -170,11 +170,10 @@ function renderTasks(tasks) {
                 <div class="task-meta">Loại: ${task.loai_su_co}</div>
 
                 <div class="btn-row" style="margin-top:10px;">
-                    ${
-                        task.trang_thai === 'dang_xu_ly'
-                        ? `<button class="btn btn-primary" onclick="openHoanThanh(${task.bao_cao_id})">Báo hoàn thành</button>`
-                        : `<span class="tag">Chờ nghiệm thu</span>`
-                    }
+                    ${task.trang_thai === 'dang_xu_ly'
+                ? `<button class="btn btn-primary" onclick="openHoanThanh(${task.bao_cao_id})">Báo hoàn thành</button>`
+                : `<span class="tag">Chờ nghiệm thu</span>`
+            }
                 </div>
             </div>
         `);

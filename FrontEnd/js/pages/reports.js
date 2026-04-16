@@ -1,15 +1,19 @@
 // FILE: js/pages/reports.js
-(function(window, $) {
+(function (window, $) {
     'use strict';
 
     // ============================================================
     // 1. TẢI DANH SÁCH THEO TRẠNG THÁI
     // ============================================================
-    window.loadListByStatus = async function(status, containerSelector) {
+    window.loadListByStatus = async function (status, containerSelector, page = 1, pageSize = 5, filters = {}) {
         try {
-            const res = await window.apiRequest('GET', `/admin_get/dashboard?trang_thai=${encodeURIComponent(status)}&page=1&limit=100`);
-            const data = (res.list && res.list.data) ? res.list.data : [];
-            
+            const keywordParam = filters.keyword || '';
+            let url = `/admin_get/dashboard?trang_thai=${encodeURIComponent(status)}&page=${page}&limit=${pageSize}`;
+            if (keywordParam) url += `&keyword=${encodeURIComponent(keywordParam)}`;
+            const res = await window.apiRequest('GET', url);
+            let data = (res.list && res.list.data) ? res.list.data : [];
+            let total = (res.list && (typeof res.list.total === 'number')) ? res.list.total : 0;
+
             // Helper định dạng ngày tháng
             function fmtDate(s) {
                 if (window.formatToTZ) return window.formatToTZ(s);
@@ -17,24 +21,113 @@
                 const d = new Date(s);
                 if (isNaN(d.getTime())) return s.toString();
                 const pad = n => n < 10 ? '0' + n : n;
-                return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+                return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
             }
 
             const $tb = $(containerSelector);
             $tb.empty();
-            
-            if (!data.length) { 
-                $tb.append('<tr><td colspan="6" class="text-center" style="padding: 20px;">Không có dữ liệu báo cáo</td></tr>'); 
-                return; 
+
+            // If any client-side filters are provided (month, reason, category, date, priority, staff),
+            // fetch the full result set for this status and apply filters locally so pagination reflects filtered count.
+            const needClientFilter = filters && (filters.month || filters.reason || filters.category || filters.date || filters.priority || filters.staff);
+            if (needClientFilter && total > 0) {
+                // fetch all rows for this status (use total as limit)
+                const allUrl = `/admin_get/dashboard?trang_thai=${encodeURIComponent(status)}&page=1&limit=${Math.max(total, 1)}` + (keywordParam ? `&keyword=${encodeURIComponent(keywordParam)}` : '');
+                const allRes = await window.apiRequest('GET', allUrl);
+                let allData = (allRes.list && allRes.list.data) ? allRes.list.data : [];
+
+                // month filter: input type=month 'YYYY-MM' -> compare to ngay_trang_thai or ngay_tao
+                if (filters.month) {
+                    allData = allData.filter(item => {
+                        const dt = (item.ngay_trang_thai || item.ngay_tao || '').toString();
+                        const m = dt.match(/(\d{4}-\d{2})/);
+                        if (m) return m[1] === filters.month;
+                        const d = new Date(dt);
+                        if (isNaN(d.getTime())) return false;
+                        const ym = d.getFullYear() + '-' + (('0' + (d.getMonth() + 1)).slice(-2));
+                        return ym === filters.month;
+                    });
+                }
+
+                // exact date filter: compare yyyy-mm-dd (robust extraction to avoid timezone shifts)
+                if (filters.date) {
+                    allData = allData.filter(item => {
+                        const dt = (item.ngay_trang_thai || item.ngay_tao || '').toString();
+                        const m = dt.match(/(\d{4}-\d{2}-\d{2})/);
+                        if (m) return m[1] === filters.date;
+                        const d = new Date(dt);
+                        if (isNaN(d.getTime())) return false;
+                        const ymd = d.getFullYear() + '-' + (('0' + (d.getMonth() + 1)).slice(-2)) + '-' + (('0' + d.getDate()).slice(-2));
+                        return ymd === filters.date;
+                    });
+                }
+
+                // category filter: match against returned 'loai' field
+                if (filters.category) {
+                    allData = allData.filter(item => ((item.loai || '') + '') === (filters.category + ''));
+                }
+
+                // reason filter: try simple substring matching against ghi_chu_trang_thai
+                if (filters.reason) {
+                    const reasonMap = {
+                        'spam': ['spam', 'ảnh', 'anh', 'ảnh giả'],
+                        'outside': ['ngoài', 'phạm vi', 'outside'],
+                        'duplicate': ['trùng', 'trùng lặp', 'duplicate'],
+                        'insufficient': ['thiếu', 'thiếu thông tin', 'không đủ'],
+                        'invalid_photo': ['ảnh không liên quan', 'không liên quan', 'ảnh sai'],
+                        'unclear': ['không rõ', 'không xác định', 'mơ hồ'],
+                        'other': ['khác', 'other']
+                    };
+                    const candidates = reasonMap[filters.reason] || [filters.reason];
+                    allData = allData.filter(item => {
+                        const note = (item.ghi_chu_trang_thai || '').toString().toLowerCase();
+                        return candidates.some(c => note.indexOf(c.toLowerCase()) !== -1);
+                    });
+                }
+
+                // priority / staff simple matches
+                if (filters.priority) {
+                    allData = allData.filter(item => ((item.ghi_chu_trang_thai || '') + '').toLowerCase().indexOf((filters.priority + '').toLowerCase()) !== -1);
+                }
+                if (filters.staff) {
+                    allData = allData.filter(item => ((item.nhan_vien_phu_trach || item.nhan_vien || '') + '').toLowerCase().indexOf((filters.staff + '').toLowerCase()) !== -1);
+                }
+                // title / id keyword filter (for client-side filtering when date or other filters are used)
+                if (filters.keyword) {
+                    const kw = (filters.keyword || '').toString().toLowerCase();
+                    allData = allData.filter(item => {
+                        const title = (item.tieu_de || '').toString().toLowerCase();
+                        const idStr = ((item.bao_cao_id || item.id || '') + '').toString().toLowerCase();
+                        return title.indexOf(kw) !== -1 || idStr.indexOf(kw) !== -1;
+                    });
+                }
+
+                total = allData.length;
+                data = allData.slice((page - 1) * pageSize, page * pageSize);
             }
 
-            data.forEach(function(item) {
+            if (!data.length) {
+                $tb.append('<tr><td colspan="5" class="text-center" style="padding: 20px;">Không có dữ liệu báo cáo</td></tr>');
+                if (typeof window.renderPagination === 'function') {
+                    window.renderPagination({
+                        key: 'reports-' + status,
+                        totalItems: total,
+                        pageSize: pageSize,
+                        currentPage: page,
+                        anchor: containerSelector,
+                        onPageChange: function (p, size) { window.loadListByStatus(status, containerSelector, p, size, filters); }
+                    });
+                }
+                return;
+            }
+
+            data.forEach(function (item) {
                 const id = item.bao_cao_id || item.id || '';
                 const $tr = $('<tr/>');
 
                 // Render dữ liệu tùy theo trạng thái của bảng
                 if (status === 'cho_duyet') {
-                    const titleHtml = `<div class="report-summary"><strong>${(item.tieu_de||'')}</strong><div class="muted" style="font-size:12px;color:#666;">${(item.dia_chi||'')}</div></div>`;
+                    const titleHtml = `<div class="report-summary"><strong>${(item.tieu_de || '')}</strong><div class="muted" style="font-size:12px;color:#666;">${(item.dia_chi || '')}</div></div>`;
                     $tr.append($('<td/>').html(titleHtml));
                     $tr.append($('<td/>').text(item.loai || ''));
                     $tr.append($('<td/>').text(item.nguoi_bao_cao || item.ho_ten || ''));
@@ -44,7 +137,7 @@
                         <button class="btn-action btn-reject" data-id="${id}">Từ chối</button>
                         <button class="btn-action btn-view" data-id="${id}">Xem</button>
                     `));
-                } 
+                }
                 else if (status === 'cho_nghiem_thu') {
                     $tr.append($('<td/>').html(`<strong>#${id}</strong>`));
                     $tr.append($('<td/>').text(item.tieu_de || ''));
@@ -55,34 +148,55 @@
                         <button class="btn-action btn-reject-nt" data-id="${id}">Không duyệt</button>
                         <button class="btn-action btn-view" data-id="${id}">Xem</button>
                     `));
-                } 
+                }
                 else {
                     // Dùng chung cho Đã duyệt, Từ chối, Đang xử lý, Đã xử lý
-                    const titleHtml = `<div class="report-summary"><strong>${(item.tieu_de||'')}</strong><div class="muted" style="font-size:12px;color:#666;">${(item.dia_chi||'')}</div></div>`;
-                    $tr.append($('<td/>').html(titleHtml));
-                    
-                    if (status === 'tu_choi') {
-                        $tr.append($('<td/>').text(item.loai || ''));
-                        $tr.append($('<td/>').text(item.ghi_chu_trang_thai || ''));
-                    } else {
-                        $tr.append($('<td/>').text(item.nhan_vien_phu_trach || item.nhan_vien || 'Chưa có'));
-                    }
+                    const titleHtml = `<div class="report-summary"><strong>${(item.tieu_de || '')}</strong><div class="muted" style="font-size:12px;color:#666;">${(item.dia_chi || '')}</div></div>`;
 
-                    $tr.append($('<td/>').text(fmtDate(item.ngay_trang_thai || item.ngay_tao)));
-                    $tr.append($('<td/>').text((item.trang_thai || '').replace(/_/g, ' ')));
-                    $tr.append($('<td/>').html(`<button class="btn-action btn-view" data-id="${id}">Xem</button>`));
+                    // Sắp xếp cột cho từng trạng thái. Với 'tu_choi' cần theo header: Sự cố & Địa chỉ | SỰ CỐ | LÝ DO TỪ CHỐI | NGÀY TỪ CHỐI | HÀNH ĐỘNG
+                    if (status === 'tu_choi') {
+                        // 1) Sự cố & Địa chỉ
+                        $tr.append($('<td/>').html(titleHtml));
+                        // 2) SỰ CỐ (loại)
+                        $tr.append($('<td/>').text(item.loai || ''));
+                        // 3) LÝ DO TỪ CHỐI
+                        $tr.append($('<td/>').text(item.ghi_chu_trang_thai || '-'));
+                        // 4) NGÀY TỪ CHỐI
+                        $tr.append($('<td/>').text(fmtDate(item.ngay_trang_thai || item.ngay_tao)));
+                        // 5) HÀNH ĐỘNG
+                        $tr.append($('<td/>').html(`<button class="btn-action btn-view" data-id="${id}">Xem</button>`));
+                    } else {
+                        // Các trạng thái khác: Sự cố & Địa chỉ | Nhân viên | NGÀY | TRẠNG THÁI | HÀNH ĐỘNG
+                        $tr.append($('<td/>').html(titleHtml));
+                        $tr.append($('<td/>').text(item.nhan_vien_phu_trach || item.nhan_vien || 'Chưa có'));
+                        $tr.append($('<td/>').text(fmtDate(item.ngay_trang_thai || item.ngay_tao)));
+                        $tr.append($('<td/>').text((item.trang_thai || '').replace(/_/g, ' ')));
+                        $tr.append($('<td/>').html(`<button class="btn-action btn-view" data-id="${id}">Xem</button>`));
+                    }
                 }
 
                 $tb.append($tr);
             });
-        } catch(e) { window.showApiError(e); }
+
+            // Render pagination controls for this list
+            if (typeof window.renderPagination === 'function') {
+                window.renderPagination({
+                    key: 'reports-' + status,
+                    totalItems: total,
+                    pageSize: pageSize,
+                    currentPage: page,
+                    anchor: containerSelector,
+                    onPageChange: function (p, size) { window.loadListByStatus(status, containerSelector, p, size, filters); }
+                });
+            }
+        } catch (e) { window.showApiError(e); }
     };
 
 
     // ============================================================
     // 2. TẢI CHI TIẾT MỘT BÁO CÁO (MODAL)
     // ============================================================
-    window.loadReportDetail = async function(id) {
+    window.loadReportDetail = async function (id) {
         try {
             const res = await window.apiRequest('GET', '/bao-cao/' + id);
             const info = res.data ? (res.data.thong_tin || res.data) : res;
@@ -131,7 +245,7 @@
                 </div>`;
                 $(document.body).append(modalHtml);
 
-                $('#reportDetailModal .rd-close, #reportDetailModal .rd-overlay').on('click', function() {
+                $('#reportDetailModal .rd-close, #reportDetailModal .rd-overlay').on('click', function () {
                     $('#reportDetailModal').fadeOut(150);
                 });
             }
@@ -145,7 +259,7 @@
             $m.find('#rd-nguoi-gui').text(info.ho_ten || info.nguoi_bao_cao || 'N/A');
             $m.find('#rd-nhan-vien').text(info.nhan_vien_phu_trach || 'Chưa có nhân viên');
             $m.find('#rd-mo-ta').text(info.mo_ta || 'Không có mô tả chi tiết');
-            
+
             const st = (info.trang_thai || 'cho_duyet');
             $m.find('#rd-trang-thai').text(st.replace(/_/g, ' ').toUpperCase()).attr('class', 'badge ' + st);
 
@@ -153,7 +267,7 @@
             const $gridGoc = $m.find('#rd-grid-anh-goc').empty();
             const $gridXuLy = $m.find('#rd-grid-anh-xuly').empty();
             const images = res.data ? (res.data.hinh_anh || []) : (res.hinh_anh || []);
-            
+
             if (images.length === 0) {
                 $gridGoc.append('<small style="color:#999">Không có ảnh</small>');
                 $gridXuLy.append('<small style="color:#999">Chưa có ảnh đối chứng</small>');
@@ -165,7 +279,7 @@
                             <img src="${src}" data-src="${src}" class="report-thumb-img" 
                                  style="width:100px; height:100px; object-fit:cover; border-radius:6px; cursor:pointer; border:1px solid #eee;">
                         </div>`;
-                    
+
                     if (img.loai_anh === 'bao_cao') {
                         $gridGoc.append(imgHtml);
                     } else if (img.loai_anh === 'sau_sua_chua') {
@@ -189,9 +303,9 @@
 
             $m.fadeIn(150);
 
-        } catch (e) { 
-            console.error(e); 
-            alert('Lỗi khi tải thông tin chi tiết báo cáo'); 
+        } catch (e) {
+            console.error(e);
+            alert('Lỗi khi tải thông tin chi tiết báo cáo');
         }
     };
 
@@ -201,88 +315,108 @@
     // ============================================================
 
     // Mở Modal Xem Chi Tiết
-    $(document).on('click', '.btn-view', function() {
+    $(document).on('click', '.btn-view', function () {
         window.loadReportDetail($(this).data('id'));
     });
 
     // --- CHỜ DUYỆT ---
-    $(document).on('click', '.btn-approve', function() {
+    $(document).on('click', '.btn-approve', function () {
         const id = $(this).data('id');
+        console.log('[reports] btn-approve clicked, id=', id);
         $('#confirmApproveModal').data('reportId', id);
         $('#confirm-approve-text').text('Bạn có chắc chắn muốn duyệt báo cáo #' + id + '?');
         $('#confirmApproveModal').fadeIn(150);
     });
 
-    $(document).on('click', '#confirm-approve-btn', async function() {
+    $(document).on('click', '#confirm-approve-btn', async function () {
         const id = $('#confirmApproveModal').data('reportId');
         if (!id) return;
         try {
+            console.log('[reports] confirm approve, id=', id);
             await window.apiRequest('PUT', `/admin/bao-cao/${id}/duyet`);
             $('#confirmApproveModal').fadeOut(150);
             if (window.refreshSidebarCounts) window.refreshSidebarCounts();
-            window.loadListByStatus('cho_duyet', '#table-body-cho-duyet');
+            alert('Duyệt báo cáo thành công');
+            // Reload current pagination page for cho_duyet
+            const key = 'reports-cho_duyet';
+            const currentPage = window.getPaginationPage ? window.getPaginationPage(key, 1) : 1;
+            const pageSize = window.getPaginationPageSize ? window.getPaginationPageSize(key, 5) : 5;
+            window.loadListByStatus('cho_duyet', '#table-body-cho-duyet', currentPage, pageSize);
         } catch (e) { window.showApiError(e); }
     });
 
-    $(document).on('click', '.btn-reject', function() {
+    $(document).on('click', '.btn-reject', function () {
         const id = $(this).data('id');
+        console.log('[reports] btn-reject clicked, id=', id);
         $('#rejectModal').data('reportId', id);
         $('#reject-reason').val('');
         $('#confirm-reject-btn').prop('disabled', true);
         $('#rejectModal').fadeIn(150);
     });
 
-    $(document).on('input', '#reject-reason', function() {
+    $(document).on('input', '#reject-reason', function () {
         const v = $(this).val().trim();
         $('#confirm-reject-btn').prop('disabled', v.length < 3);
     });
 
-    $(document).on('click', '#confirm-reject-btn', async function() {
+    $(document).on('click', '#confirm-reject-btn', async function () {
         const id = $('#rejectModal').data('reportId');
         const ghi_chu = $('#reject-reason').val().trim();
         if (!id || !ghi_chu) return;
         try {
+            console.log('[reports] confirm reject, id=', id, 'reason=', ghi_chu);
             await window.apiRequest('PUT', `/admin/bao-cao/${id}/tu-choi`, { ghi_chu: ghi_chu });
             $('#rejectModal').fadeOut(150);
             if (window.refreshSidebarCounts) window.refreshSidebarCounts();
-            window.loadListByStatus('cho_duyet', '#table-body-cho-duyet');
+            alert('Từ chối báo cáo thành công');
+            // Reload current pagination page for cho_duyet
+            const key = 'reports-cho_duyet';
+            const currentPage = window.getPaginationPage ? window.getPaginationPage(key, 1) : 1;
+            const pageSize = window.getPaginationPageSize ? window.getPaginationPageSize(key, 5) : 5;
+            window.loadListByStatus('cho_duyet', '#table-body-cho-duyet', currentPage, pageSize);
         } catch (e) { window.showApiError(e); }
     });
 
 
     // --- CHỜ NGHIỆM THU ---
-    $(document).on('click', '.btn-accept', async function() {
+    $(document).on('click', '.btn-accept', async function () {
         const id = $(this).data('id');
         if (!confirm('Nghiệm thu thành công? Báo cáo sẽ được đóng.')) return;
         try {
             await window.apiRequest('PUT', `/admin/bao-cao/${id}/nghiem-thu`, { ket_qua: 'dat' });
             if (window.refreshSidebarCounts) window.refreshSidebarCounts();
-            window.loadListByStatus('cho_nghiem_thu', '#table-body-nghiem-thu');
-        } catch(e) { window.showApiError(e); }
+            const key = 'reports-cho_nghiem_thu';
+            const currentPage = window.getPaginationPage ? window.getPaginationPage(key, 1) : 1;
+            const pageSize = window.getPaginationPageSize ? window.getPaginationPageSize(key, 5) : 5;
+            window.loadListByStatus('cho_nghiem_thu', '#table-body-nghiem-thu', currentPage, pageSize);
+        } catch (e) { window.showApiError(e); }
     });
 
-    $(document).on('click', '.btn-reject-nt', async function() {
+    $(document).on('click', '.btn-reject-nt', async function () {
         const id = $(this).data('id');
         if (!confirm('Nghiệm thu KHÔNG ĐẠT? Nhân viên sẽ phải làm lại.')) return;
         try {
             await window.apiRequest('PUT', `/admin/bao-cao/${id}/nghiem-thu`, { ket_qua: 'khong_dat' });
             if (window.refreshSidebarCounts) window.refreshSidebarCounts();
-            window.loadListByStatus('cho_nghiem_thu', '#table-body-nghiem-thu');
-        } catch(e) { window.showApiError(e); }
+            const key = 'reports-cho_nghiem_thu';
+            const currentPage = window.getPaginationPage ? window.getPaginationPage(key, 1) : 1;
+            const pageSize = window.getPaginationPageSize ? window.getPaginationPageSize(key, 5) : 5;
+            window.loadListByStatus('cho_nghiem_thu', '#table-body-nghiem-thu', currentPage, pageSize);
+        } catch (e) { window.showApiError(e); }
     });
 
 
     // --- ĐÓNG CÁC MODAL XÁC NHẬN ---
-    $(document).on('click', '#cancel-approve-btn, #confirmApproveModal .modal-overlay', function() {
+    $(document).on('click', '#cancel-approve-btn, #confirmApproveModal .modal-overlay', function () {
         $('#confirmApproveModal').fadeOut(150);
     });
-    $(document).on('click', '#cancel-reject-btn, #rejectModal .modal-overlay', function() {
+    $(document).on('click', '#cancel-reject-btn, #rejectModal .modal-overlay', function () {
         $('#rejectModal').fadeOut(150);
     });
 
 
     // --- TRÌNH XEM ẢNH PHÓNG TO (LIGHTBOX) ---
-    $(document).on('click', '.report-thumb-img', function(e) {
+    $(document).on('click', '.report-thumb-img', function (e) {
         e.preventDefault();
         const src = $(this).data('src') || $(this).attr('src');
         if (!src) return;
@@ -296,13 +430,72 @@
                 </div>
             </div>`;
             $(document.body).append(viewerHtml);
-            $('#imageViewerModal .iv-overlay, #imageViewerModal .iv-close').on('click', function(){ 
-                $('#imageViewerModal').fadeOut(150); 
+            $('#imageViewerModal .iv-overlay, #imageViewerModal .iv-close').on('click', function () {
+                $('#imageViewerModal').fadeOut(150);
             });
         } else {
             $('#iv-image').attr('src', src);
         }
         $('#imageViewerModal').fadeIn(150);
     });
+
+    // --- FILTER HANDLERS FOR REPORT PAGES ---
+    (function () {
+        let reportTimer;
+
+        // Search in Chờ duyệt (title / category / date)
+        $(document).on('input', '#search-report', function () {
+            clearTimeout(reportTimer);
+            reportTimer = setTimeout(function () {
+                const keyword = ($('#search-report').val() || '').trim();
+                const category = ($('#filter-category').val && $('#filter-category').val()) || '';
+                const date = ($('#filter-date').val && $('#filter-date').val()) || '';
+                const key = 'reports-cho_duyet';
+                const pageSize = window.getPaginationPageSize ? window.getPaginationPageSize(key, 5) : 5;
+                window.loadListByStatus('cho_duyet', '#table-body-cho-duyet', 1, pageSize, { keyword: keyword, category: category, date: date });
+            }, 300);
+        });
+
+        $(document).on('change', '#filter-category, #filter-date', function () { $('#search-report').trigger('input'); });
+
+        // Filters for Từ chối (date and reason)
+        $(document).on('change', '#filter-reject-date, #filter-reason', function () {
+            const key = 'reports-tu_choi';
+            const pageSize = window.getPaginationPageSize ? window.getPaginationPageSize(key, 5) : 5;
+            window.loadListByStatus('tu_choi', '#table-body-tu-choi', 1, pageSize, {
+                date: ($('#filter-reject-date').val && $('#filter-reject-date').val()) || '',
+                reason: ($('#filter-reason').val && $('#filter-reason').val()) || ''
+            });
+        });
+
+        // Search & date filter for Đã duyệt (title/code search and date)
+        let approvedTimer;
+
+        $(document).on('input', '#search-approved', function () {
+            clearTimeout(approvedTimer);
+            approvedTimer = setTimeout(function () {
+                const keyword = ($('#search-approved').val() || '').trim();
+                const date = ($('#filter-approved-date').val && $('#filter-approved-date').val()) || '';
+                const key = 'reports-da_duyet';
+                const pageSize = window.getPaginationPageSize ? window.getPaginationPageSize(key, 5) : 5;
+                window.loadListByStatus('da_duyet', '#table-body-da-duyet', 1, pageSize, { keyword: keyword, date: date });
+            }, 300);
+        });
+
+        $(document).on('change', '#filter-approved-date', function () {
+            const keyword = ($('#search-approved').val() || '').trim();
+            const key = 'reports-da_duyet';
+            const pageSize = window.getPaginationPageSize ? window.getPaginationPageSize(key, 5) : 5;
+            window.loadListByStatus('da_duyet', '#table-body-da-duyet', 1, pageSize, { keyword: keyword, date: ($('#filter-approved-date').val && $('#filter-approved-date').val()) || '' });
+        });
+
+        // Month filter for Đã xử lý
+        $(document).on('change', '#filter-month', function () {
+            const key = 'reports-da_xu_ly';
+            const pageSize = window.getPaginationPageSize ? window.getPaginationPageSize(key, 5) : 5;
+            window.loadListByStatus('da_xu_ly', '#table-body-da-xu-ly', 1, pageSize, { month: $('#filter-month').val() || '' });
+        });
+
+    })();
 
 })(window, jQuery);

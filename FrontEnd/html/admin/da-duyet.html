@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
     <link rel="stylesheet" href="/FrontEnd/css/common.css">
     <link rel="stylesheet" href="/FrontEnd/css/admin/admin.css">
 </head>
+
 <body>
     <div id="topbar-container"></div>
     <div id="sidebar-container"></div>
@@ -17,11 +19,7 @@
             <h2>Danh sách báo cáo đã duyệt</h2>
             <div class="filters">
                 <input type="text" id="search-approved" placeholder="Tìm theo mã hoặc tiêu đề...">
-                <select id="filter-priority">
-                    <option value="">Mọi mức độ ưu tiên</option>
-                    <option value="cao">Ưu tiên cao</option>
-                    <option value="trung-binh">Trung bình</option>
-                </select>
+                <input type="date" id="filter-approved-date" style="margin-left:8px;">
             </div>
         </div>
 
@@ -29,28 +27,29 @@
             <table>
                 <thead>
                     <tr>
-                        <th>MÃ BC</th>
+                        <th>Sự cố & Địa chỉ</th>
                         <th>SỰ CỐ</th>
-                        <th>ĐỊA CHỈ</th>
-                        <th>NGÀY DUYỆT</th>
+                        <th>Ngày duyệt</th>
+                        <th>tình trạng</th>
                         <th>HÀNH ĐỘNG</th>
                     </tr>
                 </thead>
                 <tbody id="table-body-da-duyet">
-                    </tbody>
+                </tbody>
             </table>
         </div>
     </div>
 
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<script src="/FrontEnd/js/api.js"></script>
-<script src="/FrontEnd/js/pagination.js"></script>
-<script src="/FrontEnd/js/pages/tongquan.js"></script>
-<script src="/FrontEnd/js/pages/reports.js"></script>
-<script src="/FrontEnd/js/pages/assignment.js"></script>
-<script src="/FrontEnd/js/pages/users.js"></script>
-<script src="/FrontEnd/js/pages/nhanvien.js"></script>
-<script src="/FrontEnd/js/pages/profile.js"></script>
-<script src="/FrontEnd/js/layout.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="/FrontEnd/js/api.js"></script>
+    <script src="/FrontEnd/js/pagination.js"></script>
+    <script src="/FrontEnd/js/pages/tongquan.js"></script>
+    <script src="/FrontEnd/js/pages/reports.js"></script>
+    <script src="/FrontEnd/js/pages/assignment.js"></script>
+    <script src="/FrontEnd/js/pages/users.js"></script>
+    <script src="/FrontEnd/js/pages/nhanvien.js"></script>
+    <script src="/FrontEnd/js/pages/profile.js"></script>
+    <script src="/FrontEnd/js/layout.js"></script>
 </body>
+
 </html>

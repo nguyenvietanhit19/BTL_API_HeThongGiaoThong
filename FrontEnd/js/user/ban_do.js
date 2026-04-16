@@ -3,16 +3,16 @@
    Mapbox GL JS v3.20.0 + Standard Style
    ============================================= */
 
-const MAPBOX_TOKEN = 'my_token';
+const MAPBOX_TOKEN = 'my_mapbox_token_here'; // ← thay bằng token của bạn từ Mapbox
 mapboxgl.accessToken = MAPBOX_TOKEN;
 
 // ===== STATE =====
-let mapBanDo     = null;
+let mapBanDo = null;
 let mapChonViTri = null;
-let dsMarker     = [];
-let viTriChon    = null;
-let markerChon   = null;
-let dsCache      = [];
+let dsMarker = [];
+let viTriChon = null;
+let markerChon = null;
+let dsCache = [];
 let hoveredMarker = null;
 
 // ===== INIT =====
@@ -68,7 +68,7 @@ function renderMarkers(ds) {
     ds.forEach((item, idx) => {
         if (!item.vi_do || !item.kinh_do) return;
 
-        const mau    = mauTheoLoai(item.loai_su_co || item.ten || '');
+        const mau = mauTheoLoai(item.loai_su_co || item.ten || '');
         const daXong = item.trang_thai === 'da_xu_ly';
         const mauPin = daXong ? '#888780' : mau;
 
@@ -87,12 +87,12 @@ function renderMarkers(ds) {
         `;
 
         el.addEventListener('mouseenter', () => {
-            el.style.transform    = 'rotate(-45deg) scale(1.25)';
-            el.style.boxShadow    = '0 4px 16px rgba(0,0,0,0.35)';
+            el.style.transform = 'rotate(-45deg) scale(1.25)';
+            el.style.boxShadow = '0 4px 16px rgba(0,0,0,0.35)';
         });
         el.addEventListener('mouseleave', () => {
-            el.style.transform    = 'rotate(-45deg) scale(1)';
-            el.style.boxShadow    = '0 2px 10px rgba(0,0,0,0.28)';
+            el.style.transform = 'rotate(-45deg) scale(1)';
+            el.style.boxShadow = '0 2px 10px rgba(0,0,0,0.28)';
         });
         el.addEventListener('click', () => chonItemSidebar(idx));
 
@@ -141,7 +141,7 @@ function renderSidebar(ds, coViTri) {
         // Hiện khoảng cách nếu có
         const kc = item.khoang_cach_m != null
             ? (item.khoang_cach_m >= 1000
-                ? `${(item.khoang_cach_m/1000).toFixed(1)}km`
+                ? `${(item.khoang_cach_m / 1000).toFixed(1)}km`
                 : `${item.khoang_cach_m}m`)
             : '';
 
@@ -183,7 +183,7 @@ function chonItemSidebar(idx) {
 
 function capNhatStats(ds) {
     $('#stat-cho').text(ds.filter(i => i.trang_thai === 'cho_duyet').length);
-    $('#stat-xu-ly').text(ds.filter(i => ['da_phan_cong','dang_xu_ly','cho_nghiem_thu'].includes(i.trang_thai)).length);
+    $('#stat-xu-ly').text(ds.filter(i => ['da_phan_cong', 'dang_xu_ly', 'cho_nghiem_thu'].includes(i.trang_thai)).length);
     $('#stat-xong').text(ds.filter(i => i.trang_thai === 'da_xu_ly').length);
 }
 
@@ -217,8 +217,8 @@ function goiApiDanhSach(lat, lng, banKinh, loaiId, token) {
     // Build query params
     let params = {};
     if (lat !== null) {
-        params.vi_do    = lat;
-        params.kinh_do  = lng;
+        params.vi_do = lat;
+        params.kinh_do = lng;
         params.ban_kinh = banKinh;
     }
     if (loaiId) params.loai_su_co_id = loaiId;
@@ -379,7 +379,7 @@ function geocodeNguoc(lat, lng) {
                 $('#bc-dia-chi').val(data.features[0].place_name);
             }
         })
-        .catch(() => {});
+        .catch(() => { });
 }
 
 // =============================================
@@ -387,12 +387,12 @@ function geocodeNguoc(lat, lng) {
 // =============================================
 function guiBaoCao() {
     const token = localStorage.getItem('token');
-    if (!token)      { hienAlert('alert-bc', 'error', 'Vui lòng đăng nhập để gửi báo cáo'); return; }
-    if (!viTriChon)  { hienAlert('alert-bc', 'error', 'Vui lòng nhấn vào bản đồ để chọn vị trí'); return; }
+    if (!token) { hienAlert('alert-bc', 'error', 'Vui lòng đăng nhập để gửi báo cáo'); return; }
+    if (!viTriChon) { hienAlert('alert-bc', 'error', 'Vui lòng nhấn vào bản đồ để chọn vị trí'); return; }
 
-    const loai   = $('#bc-loai').val();
+    const loai = $('#bc-loai').val();
     const diaChi = $('#bc-dia-chi').val().trim();
-    if (!loai)   { hienAlert('alert-bc', 'error', 'Vui lòng chọn loại sự cố'); return; }
+    if (!loai) { hienAlert('alert-bc', 'error', 'Vui lòng chọn loại sự cố'); return; }
     if (!diaChi) { hienAlert('alert-bc', 'error', 'Vui lòng nhập địa chỉ'); return; }
 
     $('#btn-gui').prop('disabled', true).html('<span class="spinner"></span>Đang gửi...');
@@ -403,11 +403,11 @@ function guiBaoCao() {
         headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
         data: JSON.stringify({
             loai_su_co_id: parseInt(loai),
-            tieu_de:  $('#bc-loai option:selected').text(),
-            dia_chi:  diaChi,
-            mo_ta:    $('#bc-mo-ta').val().trim(),
-            vi_do:    viTriChon.lat,
-            kinh_do:  viTriChon.lng
+            tieu_de: $('#bc-loai option:selected').text(),
+            dia_chi: diaChi,
+            mo_ta: $('#bc-mo-ta').val().trim(),
+            vi_do: viTriChon.lat,
+            kinh_do: viTriChon.lng
         }),
         success: () => {
             hienAlert('alert-bc', 'success', '✅ Báo cáo đã gửi thành công!');
@@ -429,7 +429,7 @@ function resetFormBaoCao() {
     $('#map-hint').removeClass('hidden');
     markerChon?.remove();
     markerChon = null;
-    viTriChon  = null;
+    viTriChon = null;
 }
 
 function xemAnh(input) {
@@ -508,20 +508,20 @@ const STEPS = [
 ];
 
 const STATUS_INFO = {
-    cho_duyet:      { idx:0,  color:'#EF9F27', badge:'badge-cho-duyet',  label:'Chờ duyệt'      },
-    da_duyet:       { idx:1,  color:'#378ADD', badge:'badge-da-duyet',   label:'Đã duyệt'       },
-    da_phan_cong:   { idx:2,  color:'#7F77DD', badge:'badge-dang-xu-ly', label:'Đã phân công'   },
-    dang_xu_ly:     { idx:3,  color:'#1D9E75', badge:'badge-dang-xu-ly', label:'Đang xử lý'     },
-    cho_nghiem_thu: { idx:4,  color:'#BA7517', badge:'badge-dang-xu-ly', label:'Chờ nghiệm thu' },
-    da_xu_ly:       { idx:5,  color:'#639922', badge:'badge-da-xu-ly',   label:'Đã xử lý'       },
-    tu_choi:        { idx:-1, color:'#E24B4A', badge:'badge-tu-choi',    label:'Từ chối'        },
+    cho_duyet: { idx: 0, color: '#EF9F27', badge: 'badge-cho-duyet', label: 'Chờ duyệt' },
+    da_duyet: { idx: 1, color: '#378ADD', badge: 'badge-da-duyet', label: 'Đã duyệt' },
+    da_phan_cong: { idx: 2, color: '#7F77DD', badge: 'badge-dang-xu-ly', label: 'Đã phân công' },
+    dang_xu_ly: { idx: 3, color: '#1D9E75', badge: 'badge-dang-xu-ly', label: 'Đang xử lý' },
+    cho_nghiem_thu: { idx: 4, color: '#BA7517', badge: 'badge-dang-xu-ly', label: 'Chờ nghiệm thu' },
+    da_xu_ly: { idx: 5, color: '#639922', badge: 'badge-da-xu-ly', label: 'Đã xử lý' },
+    tu_choi: { idx: -1, color: '#E24B4A', badge: 'badge-tu-choi', label: 'Từ chối' },
 };
 
 function renderBaoCaoCard(item) {
-    const tt   = item.trang_thai || 'cho_duyet';
+    const tt = item.trang_thai || 'cho_duyet';
     const info = STATUS_INFO[tt] || STATUS_INFO['cho_duyet'];
     const meta = [escHtml(item.dia_chi || ''), item.ngay_tao ? tinhThoiGian(item.ngay_tao) : '']
-                    .filter(Boolean).join(' · ');
+        .filter(Boolean).join(' · ');
     return `
     <div class="bao-cao-card">
         <div class="card-header">
@@ -538,24 +538,24 @@ function renderStepper(info) {
     const { idx: activeIdx, color } = info;
     return `<div class="stepper">
         ${STEPS.map((st, i) => {
-            const done    = i <= activeIdx;
-            const current = i === activeIdx;
-            const dotStyle = done
-                ? `background:${color};border-color:${color};${current ? `box-shadow:0 0 0 3px ${color}33;` : ''}`
-                : `background:var(--xam-nhat);border-color:var(--border);`;
-            const txt = done && !current ? st.label+' ✓' : current ? st.label+'...' : st.label;
-            return `
+        const done = i <= activeIdx;
+        const current = i === activeIdx;
+        const dotStyle = done
+            ? `background:${color};border-color:${color};${current ? `box-shadow:0 0 0 3px ${color}33;` : ''}`
+            : `background:var(--xam-nhat);border-color:var(--border);`;
+        const txt = done && !current ? st.label + ' ✓' : current ? st.label + '...' : st.label;
+        return `
             <div class="stepper-item">
                 <div class="stepper-row">
-                    <div class="stepper-line" style="background:${i===0?'transparent':i<=activeIdx?color:'var(--border)'};"></div>
+                    <div class="stepper-line" style="background:${i === 0 ? 'transparent' : i <= activeIdx ? color : 'var(--border)'};"></div>
                     <div class="stepper-dot" style="${dotStyle}">
                         ${done && !current ? `<svg width="8" height="8" viewBox="0 0 8 8"><polyline points="1,4 3,6 7,2" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>` : ''}
                     </div>
-                    <div class="stepper-line" style="background:${i===STEPS.length-1?'transparent':i<activeIdx?color:'var(--border)'};"></div>
+                    <div class="stepper-line" style="background:${i === STEPS.length - 1 ? 'transparent' : i < activeIdx ? color : 'var(--border)'};"></div>
                 </div>
-                <div class="stepper-label" style="color:${done?color:'rgba(44,44,42,.35)'};font-weight:${done?600:400};">${txt}</div>
+                <div class="stepper-label" style="color:${done ? color : 'rgba(44,44,42,.35)'};font-weight:${done ? 600 : 400};">${txt}</div>
             </div>`;
-        }).join('')}
+    }).join('')}
     </div>`;
 }
 
@@ -620,18 +620,18 @@ function doiTrang(trang) {
 // =============================================
 function getDemoData() {
     return [
-        { tieu_de:'Ổ gà lớn',           dia_chi:'Nguyễn Trãi, Q.Thanh Xuân',    trang_thai:'da_duyet',    ten_nguoi_gui:'Nguyễn Văn A', ngay_tao:new Date(Date.now()-7200000).toISOString(),    vi_do:21.0200, kinh_do:105.8200, loai_su_co:'Ổ gà',     loai_su_co_id:1 },
-        { tieu_de:'Ngập nước sau mưa',   dia_chi:'Hoàng Quốc Việt, Q.Cầu Giấy', trang_thai:'dang_xu_ly',  ten_nguoi_gui:'Trần Thị B',   ngay_tao:new Date(Date.now()-18000000).toISOString(),   vi_do:21.0380, kinh_do:105.7950, loai_su_co:'Ngập nước', loai_su_co_id:2 },
-        { tieu_de:'Đèn tín hiệu hỏng',   dia_chi:'Lê Văn Lương, Q.Đống Đa',     trang_thai:'cho_duyet',   ten_nguoi_gui:'Lê Minh C',    ngay_tao:new Date(Date.now()-86400000).toISOString(),   vi_do:21.0150, kinh_do:105.8350, loai_su_co:'Đèn hỏng', loai_su_co_id:3 },
-        { tieu_de:'Tai nạn giao thông',   dia_chi:'Giải Phóng, Q.Hai Bà Trưng',  trang_thai:'da_xu_ly',    ten_nguoi_gui:'Phạm Thu D',   ngay_tao:new Date(Date.now()-172800000).toISOString(),  vi_do:21.0050, kinh_do:105.8450, loai_su_co:'Tai nạn',  loai_su_co_id:4 },
-        { tieu_de:'Vật cản lòng đường',   dia_chi:'Kim Mã, Q.Ba Đình',           trang_thai:'da_phan_cong',ten_nguoi_gui:'Hoàng Văn E',  ngay_tao:new Date(Date.now()-3600000).toISOString(),    vi_do:21.0320, kinh_do:105.8100, loai_su_co:'Vật cản',  loai_su_co_id:5 },
+        { tieu_de: 'Ổ gà lớn', dia_chi: 'Nguyễn Trãi, Q.Thanh Xuân', trang_thai: 'da_duyet', ten_nguoi_gui: 'Nguyễn Văn A', ngay_tao: new Date(Date.now() - 7200000).toISOString(), vi_do: 21.0200, kinh_do: 105.8200, loai_su_co: 'Ổ gà', loai_su_co_id: 1 },
+        { tieu_de: 'Ngập nước sau mưa', dia_chi: 'Hoàng Quốc Việt, Q.Cầu Giấy', trang_thai: 'dang_xu_ly', ten_nguoi_gui: 'Trần Thị B', ngay_tao: new Date(Date.now() - 18000000).toISOString(), vi_do: 21.0380, kinh_do: 105.7950, loai_su_co: 'Ngập nước', loai_su_co_id: 2 },
+        { tieu_de: 'Đèn tín hiệu hỏng', dia_chi: 'Lê Văn Lương, Q.Đống Đa', trang_thai: 'cho_duyet', ten_nguoi_gui: 'Lê Minh C', ngay_tao: new Date(Date.now() - 86400000).toISOString(), vi_do: 21.0150, kinh_do: 105.8350, loai_su_co: 'Đèn hỏng', loai_su_co_id: 3 },
+        { tieu_de: 'Tai nạn giao thông', dia_chi: 'Giải Phóng, Q.Hai Bà Trưng', trang_thai: 'da_xu_ly', ten_nguoi_gui: 'Phạm Thu D', ngay_tao: new Date(Date.now() - 172800000).toISOString(), vi_do: 21.0050, kinh_do: 105.8450, loai_su_co: 'Tai nạn', loai_su_co_id: 4 },
+        { tieu_de: 'Vật cản lòng đường', dia_chi: 'Kim Mã, Q.Ba Đình', trang_thai: 'da_phan_cong', ten_nguoi_gui: 'Hoàng Văn E', ngay_tao: new Date(Date.now() - 3600000).toISOString(), vi_do: 21.0320, kinh_do: 105.8100, loai_su_co: 'Vật cản', loai_su_co_id: 5 },
     ];
 }
 
 function getDemoCuaToi() {
     return [
-        { tieu_de:'Ổ gà lớn',            dia_chi:'Nguyễn Trãi, Q.Thanh Xuân',   trang_thai:'dang_xu_ly', ngay_tao:new Date(Date.now()-7200000).toISOString()   },
-        { tieu_de:'Đèn tín hiệu hỏng',   dia_chi:'Lê Văn Lương, Q.Đống Đa',     trang_thai:'cho_duyet',  ngay_tao:new Date(Date.now()-86400000).toISOString()  },
-        { tieu_de:'Ngập nước',            dia_chi:'Hoàng Quốc Việt, Q.Cầu Giấy', trang_thai:'da_xu_ly',   ngay_tao:new Date(Date.now()-432000000).toISOString() },
+        { tieu_de: 'Ổ gà lớn', dia_chi: 'Nguyễn Trãi, Q.Thanh Xuân', trang_thai: 'dang_xu_ly', ngay_tao: new Date(Date.now() - 7200000).toISOString() },
+        { tieu_de: 'Đèn tín hiệu hỏng', dia_chi: 'Lê Văn Lương, Q.Đống Đa', trang_thai: 'cho_duyet', ngay_tao: new Date(Date.now() - 86400000).toISOString() },
+        { tieu_de: 'Ngập nước', dia_chi: 'Hoàng Quốc Việt, Q.Cầu Giấy', trang_thai: 'da_xu_ly', ngay_tao: new Date(Date.now() - 432000000).toISOString() },
     ];
 }

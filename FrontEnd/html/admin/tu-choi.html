@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
     <link rel="stylesheet" href="/FrontEnd/css/common.css">
     <link rel="stylesheet" href="/FrontEnd/css/admin/admin.css">
 </head>
+
 <body>
     <div id="topbar-container"></div>
     <div id="sidebar-container"></div>
@@ -16,11 +18,16 @@
             <h1 id="topbar-title" style="display: none;">GiaoThôngAn - Đã từ chối</h1>
             <h2>Báo cáo không được phê duyệt</h2>
             <div class="filters">
-                <input type="month" id="filter-reject-month">
-                <select id="filter-reason">
+                <input type="date" id="filter-reject-date">
+                <select id="filter-reason" style="margin-left:8px;">
                     <option value="">Mọi lý do</option>
                     <option value="spam">Spam/Ảnh giả</option>
+                    <option value="duplicate">Trùng lặp</option>
+                    <option value="insufficient">Thiếu thông tin</option>
+                    <option value="invalid_photo">Ảnh không liên quan</option>
+                    <option value="unclear">Thông tin không rõ</option>
                     <option value="outside">Ngoài phạm vi xử lý</option>
+                    <option value="other">Khác</option>
                 </select>
             </div>
         </div>
@@ -29,7 +36,7 @@
             <table>
                 <thead>
                     <tr>
-                        <th>MÃ BC</th>
+                        <th>Sự cố & Địa chỉ</th>
                         <th>SỰ CỐ</th>
                         <th>LÝ DO TỪ CHỐI</th>
                         <th>NGÀY TỪ CHỐI</th>
@@ -37,19 +44,20 @@
                     </tr>
                 </thead>
                 <tbody id="table-body-tu-choi">
-                    </tbody>
+                </tbody>
             </table>
         </div>
     </div>
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<script src="/FrontEnd/js/api.js"></script>
-<script src="/FrontEnd/js/pagination.js"></script>
-<script src="/FrontEnd/js/pages/tongquan.js"></script>
-<script src="/FrontEnd/js/pages/reports.js"></script>
-<script src="/FrontEnd/js/pages/assignment.js"></script>
-<script src="/FrontEnd/js/pages/users.js"></script>
-<script src="/FrontEnd/js/pages/nhanvien.js"></script>
-<script src="/FrontEnd/js/pages/profile.js"></script>
-<script src="/FrontEnd/js/layout.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="/FrontEnd/js/api.js"></script>
+    <script src="/FrontEnd/js/pagination.js"></script>
+    <script src="/FrontEnd/js/pages/tongquan.js"></script>
+    <script src="/FrontEnd/js/pages/reports.js"></script>
+    <script src="/FrontEnd/js/pages/assignment.js"></script>
+    <script src="/FrontEnd/js/pages/users.js"></script>
+    <script src="/FrontEnd/js/pages/nhanvien.js"></script>
+    <script src="/FrontEnd/js/pages/profile.js"></script>
+    <script src="/FrontEnd/js/layout.js"></script>
 </body>
+
 </html>

@@ -1,13 +1,13 @@
 // FILE: js/layout.js
-$(document).ready(function() {
+$(document).ready(function () {
     // --- 1. LAYOUT (TOPBAR & SIDEBAR) ---
-    $('#topbar-container').load('topbar.html', function() {
-        let shortTitle = document.title.split(' - ')[0]; 
+    $('#topbar-container').load('topbar.html', function () {
+        let shortTitle = document.title.split(' - ')[0];
         $('#topbar-title').text(shortTitle);
     });
 
     // Global: refresh sidebar counters so other modules can call it after actions
-    window.refreshSidebarCounts = async function() {
+    window.refreshSidebarCounts = async function () {
         try {
             if (typeof window.apiRequest !== 'function') return;
             const res = await window.apiRequest('GET', '/admin_get/dashboard?page=1&limit=1');
@@ -26,25 +26,25 @@ $(document).ready(function() {
         }
     };
 
-    $('#sidebar-container').load('sidebar.html', function() {
+    $('#sidebar-container').load('sidebar.html', function () {
         function setActiveMenuForPath(pathname) {
             let currentPage = pathname.split("/").pop();
             $('.sidebar .menu-item').removeClass('active');
-            $('.sidebar .menu-item').each(function() {
+            $('.sidebar .menu-item').each(function () {
                 let menuUrl = $(this).attr('data-url');
                 if (menuUrl === currentPage || (currentPage === "" && menuUrl === "tong-quan.html")) {
                     $(this).addClass('active');
                 }
             });
-        }           
+        }
         setActiveMenuForPath(window.location.pathname);
 
-        $('.sidebar .menu-item').on('click', function(e) {
+        $('.sidebar .menu-item').on('click', function (e) {
             e.preventDefault();
             const targetUrl = $(this).attr('data-url');
             if (!targetUrl) return;
             const currentPage = window.location.pathname.split('/').pop();
-            
+
             // Tối ưu: Nếu click lại trang đang đứng thì chỉ reload data, không load lại HTML
             if (targetUrl === currentPage || ('/' + targetUrl) === window.location.pathname) {
                 window.routeToPage(targetUrl);
@@ -58,22 +58,22 @@ $(document).ready(function() {
     });
 
     // --- 2. UI CHUNG & ĐĂNG XUẤT ---
-    $(document).on('click', '#admin-menu-btn', function(e) {
+    $(document).on('click', '#admin-menu-btn', function (e) {
         e.stopPropagation();
         $('#admin-dropdown').toggleClass('show');
     });
 
-    $(document).on('click', function(e) {
+    $(document).on('click', function (e) {
         if (!$(e.target).closest('.admin-dropdown-container').length) {
             $('#admin-dropdown').removeClass('show');
         }
     });
 
-    $(document).on('click', '#logout-btn', function(e) {
+    $(document).on('click', '#logout-btn', function (e) {
         e.preventDefault();
         if (confirm("Bạn có chắc chắn muốn đăng xuất không?")) {
             window.setToken(null);
-            window.location.href = "/login.html";
+            window.location.href = "html/dang_nhap/dang_nhap.html";
         }
     });
 
@@ -82,7 +82,7 @@ $(document).ready(function() {
         $('body').append('<div id="pjax-progress" class="progress-bar" aria-hidden="true"></div>');
     }
 
-    $(document).on('click', 'a', function(e) {
+    $(document).on('click', 'a', function (e) {
         const href = $(this).attr('href');
         if (!href || $(this).is('[data-no-ajax]') || $(this).attr('target') === '_blank' || $(this).is('#logout-btn')) return;
         if (href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:') || href.startsWith('javascript:')) return;
@@ -92,21 +92,21 @@ $(document).ready(function() {
         window.ajaxNavigate(url.href);
     });
 
-    window.addEventListener('popstate', function(e) {
+    window.addEventListener('popstate', function (e) {
         const url = (e.state && e.state.url) ? e.state.url : window.location.href;
         window.ajaxNavigate(url, false);
     });
 
     history.replaceState({ url: window.location.href }, document.title, window.location.href);
 
-    window.ajaxNavigate = function(href, pushState = true) {
+    window.ajaxNavigate = function (href, pushState = true) {
         if (window.__ajaxNavigating) return;
         window.__ajaxNavigating = true;
         const $container = $('.main-content');
         $('#pjax-progress').removeClass('done').css('width', '6%').addClass('active');
         $container.addClass('transitioning');
 
-        setTimeout(function() {
+        setTimeout(function () {
             fetch(href, { credentials: 'same-origin' })
                 .then(res => { if (!res.ok) throw new Error('Network error'); return res.text(); })
                 .then(html => {
@@ -114,10 +114,10 @@ $(document).ready(function() {
                     const newMain = $(doc).find('.main-content').first();
                     if (newMain.length === 0) { window.location.href = href; return; }
 
-                    $container.stop(true, true).animate({ opacity: 0 }, 160, function() {
+                    $container.stop(true, true).animate({ opacity: 0 }, 160, function () {
                         $container.html(newMain.html());
                         $container.animate({ opacity: 1 }, 240);
-                        
+
                         const newPathname = new URL(href, window.location.href).pathname;
                         if (typeof window.routeToPage === 'function') {
                             window.routeToPage(newPathname);
@@ -130,7 +130,7 @@ $(document).ready(function() {
 
                     const newPathname = new URL(href, window.location.href).pathname;
                     $('.sidebar .menu-item').removeClass('active');
-                    $('.sidebar .menu-item').each(function() {
+                    $('.sidebar .menu-item').each(function () {
                         if ($(this).attr('data-url') === newPathname.split('/').pop()) $(this).addClass('active');
                     });
 
@@ -144,7 +144,7 @@ $(document).ready(function() {
                         return false;
                     }
 
-                    $(doc).find('script').each(function() {
+                    $(doc).find('script').each(function () {
                         const src = $(this).attr('src');
                         if (src) {
                             if (/jquery/i.test(src) || /layout\.js$/i.test(src) || /api\.js$/i.test(src) || /kit\.fontawesome/i.test(src)) return;
@@ -162,7 +162,7 @@ $(document).ready(function() {
 
                     if (pushState) history.pushState({ url: href }, newTitle, href);
                 })
-                .catch(err => { window.location.href = href; }) 
+                .catch(err => { window.location.href = href; })
                 .finally(() => {
                     $('#pjax-progress').addClass('done');
                     setTimeout(() => { $('#pjax-progress').removeClass('active').css('width', '0'); }, 300);
@@ -173,11 +173,11 @@ $(document).ready(function() {
     }
 
     // --- 4. BỘ ĐỊNH TUYẾN CHÍNH (TỔNG ĐÀI) ---
-    window.routeToPage = function(pathname) {
+    window.routeToPage = function (pathname) {
         const page = pathname.split('/').pop();
         switch (page) {
             case 'tong-quan.html':
-            case '': 
+            case '':
                 if (window.loadDashboard) window.loadDashboard(window.getPaginationPage ? window.getPaginationPage('dashboard', 1) : 1, window.getPaginationPageSize ? window.getPaginationPageSize('dashboard', 4) : 4); break;
             case 'cho-duyet.html':
                 if (window.loadListByStatus) window.loadListByStatus('cho_duyet', '#table-body-cho-duyet', window.getPaginationPage ? window.getPaginationPage('reports-cho_duyet', 1) : 1, window.getPaginationPageSize ? window.getPaginationPageSize('reports-cho_duyet', 5) : 5); break;
@@ -208,5 +208,5 @@ $(document).ready(function() {
     }
 
     // Chạy khi F5 lần đầu
-    try { window.routeToPage(window.location.pathname); } catch(e) { console.error(e); }
+    try { window.routeToPage(window.location.pathname); } catch (e) { console.error(e); }
 });

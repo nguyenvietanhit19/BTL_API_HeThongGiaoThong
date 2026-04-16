@@ -119,7 +119,13 @@
             const statusObj = statusMap[rawStatus] || { text: rawStatus, color: 'gray' };
 
             const $tr = $('<tr/>');
-            $tr.append($('<td/>').html('<strong>' + $('<div/>').text(title).html() + '</strong>'));
+
+            // Render title + address in first column (consistent with other pages)
+            const safeTitle = $('<div/>').text(title).html();
+            const safeAddr = $('<div/>').text(item.dia_chi || '').html();
+            const titleHtml = `<div class="report-summary"><strong>${safeTitle}</strong><div class="muted" style="font-size:12px;color:#666;">${safeAddr}</div></div>`;
+            $tr.append($('<td/>').html(titleHtml));
+
             $tr.append($('<td/>').text(loai));
             if (rawStatus) {
                  $tr.append($('<td/>').html(`<span class="badge ${statusObj.color}">${statusObj.text}</span>`));

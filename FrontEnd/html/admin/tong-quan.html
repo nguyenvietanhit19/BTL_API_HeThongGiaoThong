@@ -1,12 +1,34 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tổng quan - Giao Thông Cộng Đồng</title>
     <link rel="stylesheet" href="/FrontEnd/css/common.css">
     <link rel="stylesheet" href="/FrontEnd/css/admin/admin.css">
+    <style>
+        /* Loại bỏ hoàn toàn khoảng trống giữa stats và bảng trên trang Tổng quan */
+        .main-content .stats-container {
+            margin-bottom: 0 !important;
+        }
+
+        .main-content .table-section {
+            margin-top: 0 !important;
+        }
+
+        @media (max-width: 768px) {
+            .main-content .stats-container {
+                margin-bottom: 8px !important;
+            }
+
+            .main-content .table-section {
+                margin-top: 0 !important;
+            }
+        }
+    </style>
 </head>
+
 <body>
     <div id="topbar-container"></div>
     <div id="sidebar-container"></div>
@@ -18,7 +40,7 @@
                 <p>Chờ duyệt</p>
             </div>
             <div class="card orange">
-                <h2 id="stat-dang-xu-ly">...</h2>   
+                <h2 id="stat-dang-xu-ly">...</h2>
                 <p>Đang xử lý</p>
             </div>
             <div class="card green">
@@ -37,19 +59,19 @@
                 <table>
                     <thead>
                         <tr>
-                            <th>SỰ CỐ</th>
+                            <th>Sự cố & Địa chỉ</th>
                             <th>LOẠI</th>
                             <th>TRẠNG THÁI</th>
                             <th>HÀNH ĐỘNG</th>
                         </tr>
                     </thead>
-                    <tbody id="table-body-reports"> 
+                    <tbody id="table-body-reports">
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
     <script src="/FrontEnd/js/api.js"></script>
     <script src="/FrontEnd/js/pagination.js"></script>
@@ -61,4 +83,5 @@
     <script src="/FrontEnd/js/pages/profile.js"></script>
     <script src="/FrontEnd/js/layout.js"></script>
 </body>
+
 </html>
