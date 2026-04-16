@@ -66,6 +66,17 @@ def nhan_viec(id):
         conn = get_db()
         cursor = conn.cursor()
 
+        # Kiểm tra nhân viên có đang làm việc khác không
+        cursor.execute("""
+            SELECT COUNT(*) FROM bao_cao
+            WHERE nhan_vien_id = ?
+            AND trang_thai IN ('dang_xu_ly', 'cho_nghiem_thu')
+        """, (request.nguoi_dung_id,))
+        so_viec_dang_lam = cursor.fetchone()[0]
+
+        if so_viec_dang_lam > 0:
+            return jsonify({'loi': 'Bạn đang có việc chưa hoàn thành, không thể nhận thêm việc mới'}), 400
+
         cursor.execute(
             "SELECT trang_thai, nhan_vien_id FROM bao_cao WHERE bao_cao_id = ?", (id,)
         )
@@ -153,6 +164,110 @@ def hoan_thanh(id):
 
         conn.commit()
         return jsonify({'thong_bao': 'Báo hoàn thành thành công, chờ admin nghiệm thu'}), 200
+
+    except Exception as e:
+        return jsonify({'loi': str(e)}), 500
+    finally:
+        if conn:
+            conn.close()
+
+@nhan_vien_bp.route('/da-hoan-thanh', methods=['GET'])
+@can_access(['nhan_vien'])
+def da_hoan_thanh():
+    conn = None
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+
+        month = request.args.get('month')  # yyyy-mm
+
+        query = """
+            SELECT 
+                bc.bao_cao_id,
+                bc.tieu_de,
+                lsc.ten AS loai_su_co,
+                pc.ngay_xong,
+                bc.trang_thai
+            FROM phan_cong pc
+            JOIN bao_cao bc ON bc.bao_cao_id = pc.bao_cao_id
+            JOIN loai_su_co lsc ON bc.loai_su_co_id = lsc.loai_su_co_id
+            WHERE pc.nhan_vien_id = ?
+              AND pc.trang_thai = 'hoan_thanh'
+        """
+
+        params = [request.nguoi_dung_id]
+
+        if month:
+            query += " AND FORMAT(pc.ngay_xong, 'yyyy-MM') = ?"
+            params.append(month)
+
+        query += " ORDER BY pc.ngay_xong DESC"
+
+        cursor.execute(query, params)
+
+        rows = cursor.fetchall()
+        cols = [d[0] for d in cursor.description]
+        data = [dict(zip(cols, row)) for row in rows]
+
+        return jsonify(data), 200
+
+    except Exception as e:
+        return jsonify({'loi': str(e)}), 500
+    finally:
+        if conn:
+            conn.close()
+
+@nhan_vien_bp.route('/lich-su', methods=['GET'])
+@can_access(['nhan_vien'])
+def lich_su():
+    conn = None
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+
+        search = request.args.get('search', '')
+        status = request.args.get('status', '')
+        month = request.args.get('month')
+
+        query = """
+            SELECT 
+                bc.bao_cao_id,
+                bc.tieu_de,
+                lsc.ten AS loai_su_co,
+                lstt.trang_thai_moi,
+                lstt.ghi_chu,
+                lstt.ngay_doi
+            FROM lich_su_trang_thai lstt
+            JOIN bao_cao bc ON bc.bao_cao_id = lstt.bao_cao_id
+            JOIN loai_su_co lsc ON bc.loai_su_co_id = lsc.loai_su_co_id
+            WHERE lstt.nguoi_doi_id = ?
+        """
+
+        params = [request.nguoi_dung_id]
+
+        if search:
+            query += " AND bc.tieu_de LIKE ?"
+            params.append(f"%{search}%")
+
+        if status:
+            if status == 'done':
+                query += " AND lstt.trang_thai_moi = 'da_xu_ly'"
+            elif status == 'reject':
+                query += " AND lstt.trang_thai_moi = 'tu_choi'"
+
+        if month:
+            query += " AND FORMAT(lstt.ngay_doi, 'yyyy-MM') = ?"
+            params.append(month)
+
+        query += " ORDER BY lstt.ngay_doi DESC"
+
+        cursor.execute(query, params)
+
+        rows = cursor.fetchall()
+        cols = [d[0] for d in cursor.description]
+        data = [dict(zip(cols, row)) for row in rows]
+
+        return jsonify(data), 200
 
     except Exception as e:
         return jsonify({'loi': str(e)}), 500
