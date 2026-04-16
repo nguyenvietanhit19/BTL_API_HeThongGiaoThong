@@ -20,6 +20,7 @@ from routes.upload import upload_bp
 from routes.report import bao_cao_bp
 
 app = Flask(__name__)
+CORS(app)
 # ... phần code bên dưới của bạn giữ nguyên ...
 
 app.register_blueprint(auth_bp, url_prefix='/auth')

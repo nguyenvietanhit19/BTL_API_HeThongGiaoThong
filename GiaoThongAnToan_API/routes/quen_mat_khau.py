@@ -14,7 +14,7 @@ load_dotenv()
 qmk_bp = Blueprint('quen_mat_khau', __name__)
 
 
-def gui_mail(den, ma_xac_nhan):
+def gui_mail(den, ma_xac_nhan, tieu_de = 'Mã xác nhận đặt lại mật khẩu'):
     """Gửi email chứa mã xác nhận"""
     try:
         email_gui = os.getenv('MAIL_EMAIL')
@@ -23,14 +23,14 @@ def gui_mail(den, ma_xac_nhan):
         msg = MIMEMultipart()
         msg['From']    = email_gui
         msg['To']      = den
-        msg['Subject'] = 'Mã xác nhận đặt lại mật khẩu'
+        msg['Subject'] = tieu_de
 
         noi_dung = f"""
         <h2>Hệ thống Báo cáo Sự cố Giao thông</h2>
         <p>Bạn đã yêu cầu đặt lại mật khẩu.</p>
         <p>Mã xác nhận của bạn là:</p>
         <h1 style="color: #E24B4A; letter-spacing: 8px;">{ma_xac_nhan}</h1>
-        <p>Mã có hiệu lực trong <strong>10 phút</strong>.</p>
+        <p>Mã có hiệu lực trong <strong>60 giây</strong>.</p>
         <p>Nếu bạn không yêu cầu điều này, hãy bỏ qua email này.</p>
         """
 
@@ -82,7 +82,7 @@ def quen_mat_khau():
         ma = str(random.randint(100000, 999999))
 
         # Thời gian hết hạn = hiện tại + 10 phút
-        het_han = datetime.datetime.now() + datetime.timedelta(minutes=10)
+        het_han = datetime.datetime.now() + datetime.timedelta(minutes=1)
 
         # Lưu mã vào DB
         cursor.execute(
