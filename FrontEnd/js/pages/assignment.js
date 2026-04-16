@@ -2,10 +2,10 @@
 (function(window, $){
     'use strict';
 
-    window.loadPhanCong = async function() {
+    window.loadPhanCong = async function(page = 1, limit = 10) {
         try {
             // Lấy báo cáo đã duyệt cần phân công
-            const res = await window.apiRequest('GET', '/admin_get/dashboard?trang_thai=da_duyet&limit=100');
+            const res = await window.apiRequest('GET', `/admin_get/dashboard?trang_thai=da_duyet&page=${page}&limit=${limit}`);
             const reports = (res.list && res.list.data) ? res.list.data : [];
 
             // Lấy danh sách nhân viên
@@ -16,6 +16,18 @@
             const $tb = $('#table-body-phan-cong'); $tb.empty();
             if (!reports.length) {
                 $tb.append('<tr><td colspan="4" class="text-center">Không có báo cáo nào chờ phân công</td></tr>');
+                if (typeof window.renderPagination === 'function') {
+                    window.renderPagination({
+                        key: 'assignment',
+                        anchor: '#table-body-phan-cong',
+                        currentPage: 1,
+                        pageSize: limit,
+                        totalItems: 0,
+                        onPageChange: function(nextPage, nextLimit) {
+                            window.loadPhanCong(nextPage, nextLimit);
+                        }
+                    });
+                }
                 return;
             }
 
@@ -37,6 +49,18 @@
                 $tr.append($('<td/>').html(`<button class="btn-action btn-assign-now" data-id="${id}">Giao việc</button>`));
                 $tb.append($tr);
             });
+            if (typeof window.renderPagination === 'function') {
+                window.renderPagination({
+                    key: 'assignment',
+                    anchor: '#table-body-phan-cong',
+                    currentPage: page,
+                    pageSize: limit,
+                    totalItems: (res.list && res.list.total) || 0,
+                    onPageChange: function(nextPage, nextLimit) {
+                        window.loadPhanCong(nextPage, nextLimit);
+                    }
+                });
+            }
         } catch (err) { window.showApiError(err); }
     };
 

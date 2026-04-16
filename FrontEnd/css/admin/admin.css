@@ -2,12 +2,17 @@
    1. BỐ CỤC CHUNG VÀ HEADER
    ========================================================= */
 .main-content {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
     padding: 24px;
     background-color: #f4f7fe;
-    min-height: 100vh;
+    min-height: 0;
+    overflow: hidden;
 }
 
 .page-header {
+    flex-shrink: 0;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -53,6 +58,7 @@
    3. KHỐI THỐNG KÊ (STATS CONTAINER - Dùng cho trang Nhân viên)
    ========================================================= */
 .stats-container {
+    flex-shrink: 0;
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 20px;
@@ -80,11 +86,13 @@
    4. BẢNG DỮ LIỆU (TABLE)
    ========================================================= */
 .table-container {
+    flex: 1;
+    min-height: 0;
     background: #fff;
     border-radius: 16px;
     padding: 20px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.02);
-    overflow-x: auto;
+    overflow: hidden;
 }
 
 table {
@@ -176,10 +184,15 @@ table tbody tr:hover {
 
 /* --- tong-quan.css --- */
 .table-section {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
     margin-top: 32px;
 }
 
 .table-section h3 {
+    flex-shrink: 0;
     margin-bottom: 16px;
     font-size: 16px;
     color: #2b3674;
@@ -350,6 +363,14 @@ table tbody tr:hover {
 .table-container.panel-open table tbody tr { opacity: 0.4; }
 .table-container.panel-open table tbody tr.active-row { opacity: 1; background-color: #f4f2ff; }
 
+.shared-pagination {
+    flex-shrink: 0;
+    margin-top: 12px;
+}
+
+/* --- phan-cong.css --- */
+.assign-select { padding: 6px; border-radius: 4px; border: 1px solid #ccc; }
+.btn-assign { background: #6b46c1; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; }
 /* --- phan-cong.css --- */
 .assign-select { padding: 6px; border-radius: 4px; border: 1px solid #ccc; }
 .btn-assign { background: #6b46c1; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; }

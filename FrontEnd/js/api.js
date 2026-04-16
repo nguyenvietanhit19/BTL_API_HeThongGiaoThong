@@ -72,7 +72,7 @@
         if (!isForm && (method === 'POST' || method === 'PUT')) {
             headers['Content-Type'] = 'application/json';
         }
-        
+
         const token = window.getToken();
         if (token) headers['Authorization'] = 'Bearer ' + token;
 

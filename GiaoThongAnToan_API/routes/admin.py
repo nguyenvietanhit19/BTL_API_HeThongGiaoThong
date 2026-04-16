@@ -16,12 +16,16 @@ def get_all_reports():
     conn = get_db()
     cursor = conn.cursor()
 
-    query = "SELECT * FROM bao_cao"
+    #Dùng View thay vì Bảng gốc
+    query = "SELECT * FROM v_bao_cao_day_du"
     params = []
 
     if trang_thai:
         query += " WHERE trang_thai = ?"
         params.append(trang_thai)
+        
+    # Thêm sắp xếp để báo cáo mới nhất luôn nằm trên cùng
+    query += " ORDER BY ngay_cap_nhat DESC"
 
     cursor.execute(query, params)
 
@@ -34,7 +38,6 @@ def get_all_reports():
     conn.close()
 
     return jsonify(reports)
-
 
 # =========================================
 # 2. DUYỆT BÁO CÁO

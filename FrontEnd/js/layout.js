@@ -178,29 +178,29 @@ $(document).ready(function() {
         switch (page) {
             case 'tong-quan.html':
             case '': 
-                if (window.loadDashboard) window.loadDashboard(); break;
+                if (window.loadDashboard) window.loadDashboard(window.getPaginationPage ? window.getPaginationPage('dashboard', 1) : 1, window.getPaginationPageSize ? window.getPaginationPageSize('dashboard', 4) : 4); break;
             case 'cho-duyet.html':
-                if (window.loadListByStatus) window.loadListByStatus('cho_duyet', '#table-body-cho-duyet'); break;
+                if (window.loadListByStatus) window.loadListByStatus('cho_duyet', '#table-body-cho-duyet', window.getPaginationPage ? window.getPaginationPage('reports-cho_duyet', 1) : 1, window.getPaginationPageSize ? window.getPaginationPageSize('reports-cho_duyet', 5) : 5); break;
             case 'da-duyet.html':
-                if (window.loadListByStatus) window.loadListByStatus('da_duyet', '#table-body-da-duyet'); break;
+                if (window.loadListByStatus) window.loadListByStatus('da_duyet', '#table-body-da-duyet', window.getPaginationPage ? window.getPaginationPage('reports-da_duyet', 1) : 1, window.getPaginationPageSize ? window.getPaginationPageSize('reports-da_duyet', 5) : 5); break;
             case 'tu-choi.html':
-                if (window.loadListByStatus) window.loadListByStatus('tu_choi', '#table-body-tu-choi'); break;
+                if (window.loadListByStatus) window.loadListByStatus('tu_choi', '#table-body-tu-choi', window.getPaginationPage ? window.getPaginationPage('reports-tu_choi', 1) : 1, window.getPaginationPageSize ? window.getPaginationPageSize('reports-tu_choi', 5) : 5); break;
             case 'dang-xu-ly.html':
-                if (window.loadListByStatus) window.loadListByStatus('dang_xu_ly', '#table-body-dang-xu-ly'); break;
+                if (window.loadListByStatus) window.loadListByStatus('dang_xu_ly', '#table-body-dang-xu-ly', window.getPaginationPage ? window.getPaginationPage('reports-dang_xu_ly', 1) : 1, window.getPaginationPageSize ? window.getPaginationPageSize('reports-dang_xu_ly', 5) : 5); break;
             case 'cho-nghiem-thu.html':
-                if (window.loadListByStatus) window.loadListByStatus('cho_nghiem_thu', '#table-body-nghiem-thu'); break;
+                if (window.loadListByStatus) window.loadListByStatus('cho_nghiem_thu', '#table-body-nghiem-thu', window.getPaginationPage ? window.getPaginationPage('reports-cho_nghiem_thu', 1) : 1, window.getPaginationPageSize ? window.getPaginationPageSize('reports-cho_nghiem_thu', 5) : 5); break;
             case 'da-xu-ly.html':
-                if (window.loadListByStatus) window.loadListByStatus('da_xu_ly', '#table-body-da-xu-ly'); break;
+                if (window.loadListByStatus) window.loadListByStatus('da_xu_ly', '#table-body-da-xu-ly', window.getPaginationPage ? window.getPaginationPage('reports-da_xu_ly', 1) : 1, window.getPaginationPageSize ? window.getPaginationPageSize('reports-da_xu_ly', 5) : 5); break;
             case 'phan-cong.html':
-                if (window.loadPhanCong) window.loadPhanCong(); break;
+                if (window.loadPhanCong) window.loadPhanCong(window.getPaginationPage ? window.getPaginationPage('assignment', 1) : 1, window.getPaginationPageSize ? window.getPaginationPageSize('assignment', 5) : 5); break;
             case 'da-phan-cong.html':
-                if (window.loadListByStatus) window.loadListByStatus('da_phan_cong', '#table-body-da-phan-cong'); break;
+                if (window.loadListByStatus) window.loadListByStatus('da_phan_cong', '#table-body-da-phan-cong', window.getPaginationPage ? window.getPaginationPage('reports-da_phan_cong', 1) : 1, window.getPaginationPageSize ? window.getPaginationPageSize('reports-da_phan_cong', 5) : 5); break;
             case 'nhan-vien.html':
-                if (window.loadNhanVien) window.loadNhanVien(); break;
+                if (window.loadNhanVien) window.loadNhanVien(window.getPaginationPage ? window.getPaginationPage('staff', 1) : 1, window.getPaginationPageSize ? window.getPaginationPageSize('staff', 5) : 5); break;
             case 'user.html':
-                if (window.loadUsers) window.loadUsers(); break;
+                if (window.loadUsers) window.loadUsers(window.getPaginationPage ? window.getPaginationPage('users', 1) : 1, window.getPaginationPageSize ? window.getPaginationPageSize('users', 5) : 5); break;
             case 'quan-ly-user.html':
-                if (window.loadUsers) window.loadUsers(); break;
+                if (window.loadUsers) window.loadUsers(window.getPaginationPage ? window.getPaginationPage('users', 1) : 1, window.getPaginationPageSize ? window.getPaginationPageSize('users', 5) : 5); break;
             case 'thong-tin-tai-khoan.html':
                 if (window.loadProfile) window.loadProfile(); break;
             default: break;

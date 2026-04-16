@@ -2,10 +2,14 @@
 (function(window, $) {
     'use strict';
 
-    window.loadUsers = async function() {
+    window.loadUsers = async function(page = 1, limit = 10) {
         try {
             const res = await window.apiRequest('GET', '/admin/nguoi-dung');
             const users = res.danh_sach || res.data || res || [];
+            const pagination = typeof window.paginateArray === 'function'
+                ? window.paginateArray(users, page, limit)
+                : { data: users, total: users.length, currentPage: page, pageSize: limit };
+            const visibleUsers = pagination.data || [];
             
             const $tb = $('#table-body-users'); 
             $tb.empty();
@@ -29,10 +33,22 @@
             
             if(!users.length) {
                 $tb.append('<tr><td colspan="5" class="text-center">Không có dữ liệu người dùng</td></tr>');
+                if (typeof window.renderPagination === 'function') {
+                    window.renderPagination({
+                        key: 'users',
+                        anchor: '#table-body-users',
+                        currentPage: 1,
+                        pageSize: pagination.pageSize,
+                        totalItems: 0,
+                        onPageChange: function(nextPage, nextLimit) {
+                            window.loadUsers(nextPage, nextLimit);
+                        }
+                    });
+                }
                 return;
             }
 
-            users.forEach(function(u) {
+            visibleUsers.forEach(function(u) {
                 const id = u.nguoi_dung_id || u.id;
                 const statusText = u.bi_dinh_chi ? 'Đã khóa' : (u.dang_hoat_dong ? 'Hoạt động' : 'Offline');
                 const statusColor = u.bi_dinh_chi ? 'red' : (u.dang_hoat_dong ? 'green' : 'gray');
@@ -42,10 +58,17 @@
                 $tr.append(`<td><div class="user-info"><div class="avatar">${avatarChar}</div><div class="name-details"><strong>${u.ho_ten||''}</strong><span>${u.email||''}</span></div></div></td>`);
                 $tr.append(`<td>${u.vai_tro||'user'}</td>`);
                 $tr.append(`<td><span class="badge ${statusColor}">${statusText}</span></td>`);
-                $tr.append(`<td>${u.ngay_tao ? (window.formatToTZ ? window.formatToTZ(u.ngay_tao, {dateOnly:true}) : (u.ngay_tao.split ? u.ngay_tao.split('T')[0] : u.ngay_tao)) : ''}</td>`);
-                $tr.append(`<td><button class="btn-action btn-view-user" data-id="${id}">Chi tiết</button></td>`);
-                $tb.append($tr);
-            });
+                window.renderPagination({
+                    key: 'users',
+                    anchor: '#table-body-users',
+                    currentPage: pagination.currentPage,
+                    pageSize: pagination.pageSize,
+                    totalItems: pagination.total,
+                    onPageChange: function(nextPage, nextLimit) {
+                        window.loadUsers(nextPage, nextLimit);
+                    }
+                });
+            }
         } catch(e) { window.showApiError(e); }
     };
 
@@ -78,7 +101,18 @@
     };
 
     $(document).on('click', '.btn-view-user', function() {
+        const $row = $(this).closest('tr');
+        $('.user-row').removeClass('active-row');
+        $row.addClass('active-row');
+        $('#mainTableContainer').addClass('panel-open');
         window.viewUserDetail($(this).data('id'));
+    });
+
+    $(document).on('click', '#closePanelBtn', function() {
+        $('#userDetailPanel').slideUp(200, function() {
+            $('#mainTableContainer').removeClass('panel-open');
+            $('.user-row').removeClass('active-row');
+        });
     });
 
 })(window, jQuery);
