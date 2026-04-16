@@ -178,7 +178,7 @@ $(document).ready(function() {
         switch (page) {
             case 'tong-quan.html':
             case '': 
-                if (window.loadDashboard) window.loadDashboard(window.getPaginationPage ? window.getPaginationPage('dashboard', 1) : 1, window.getPaginationPageSize ? window.getPaginationPageSize('dashboard', 4) : 4); break;
+                if (window.loadDashboard) window.loadDashboard(window.getPaginationPage ? window.getPaginationPage('dashboard', 1) : 1, window.getPaginationPageSize ? window.getPaginationPageSize('dashboard', 5) : 5); break;
             case 'cho-duyet.html':
                 if (window.loadListByStatus) window.loadListByStatus('cho_duyet', '#table-body-cho-duyet', window.getPaginationPage ? window.getPaginationPage('reports-cho_duyet', 1) : 1, window.getPaginationPageSize ? window.getPaginationPageSize('reports-cho_duyet', 5) : 5); break;
             case 'da-duyet.html':

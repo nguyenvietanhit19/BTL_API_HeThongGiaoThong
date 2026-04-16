@@ -11,8 +11,19 @@
     <div id="topbar-container"></div>
     <div id="sidebar-container"></div>
 
-    <div class="main-content">
-        <div class="stats-container">
+    <div class="main-content dashboard-page">
+        <div class="dashboard-header">
+            <div>
+                <h1 id="topbar-title" style="display: none;">GiaoThongAn - Tong quan</h1>
+                <h2>Tong quan he thong</h2>
+                <p>Theo doi nhanh tinh trang xu ly va nhom su co dang phat sinh.</p>
+            </div>
+            <div class="dashboard-header-note">
+                <span>Du lieu cap nhat tu dashboard admin</span>
+            </div>
+        </div>
+
+        <div class="stats-container dashboard-stats">
             <div class="card red">
                 <h2 id="stat-cho-duyet">...</h2>
                 <p>Chờ duyệt</p>
@@ -31,21 +42,39 @@
             </div>
         </div>
 
-        <div class="table-section">
-            <h3>Báo cáo cần xử lý</h3>
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>SỰ CỐ</th>
-                            <th>LOẠI</th>
-                            <th>TRẠNG THÁI</th>
-                            <th>HÀNH ĐỘNG</th>
-                        </tr>
-                    </thead>
-                    <tbody id="table-body-reports"> 
-                    </tbody>
-                </table>
+        <div class="dashboard-body">
+            <div class="category-section dashboard-panel">
+                <div class="section-head">
+                    <h3>Phan loai loi</h3>
+                    <span>Nhom su co duoc bao cao nhieu nhat</span>
+                </div>
+                <div class="category-grid" id="category-grid">
+                    <div class="category-card">
+                        <strong>Dang tai...</strong>
+                        <span>0 bao cao</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-section dashboard-panel">
+                <div class="section-head">
+                    <h3>Danh sach can xu ly</h3>
+                    <span>Danh sach uu tien hien tai</span>
+                </div>
+                <div class="table-container">
+                    <table class="dashboard-table">
+                        <thead>
+                            <tr>
+                                <th>Su co</th>
+                                <th>Loai</th>
+                                <th>Trang thai</th>
+                                <th>Hanh dong</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-body-reports"> 
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
