@@ -3,7 +3,7 @@
    Mapbox GL JS v3.20.0 + Standard Style
    ============================================= */
 
-const MAPBOX_TOKEN = 'p3';
+const MAPBOX_TOKEN = 'mytoken';
 mapboxgl.accessToken = MAPBOX_TOKEN;
 
 // ===== STATE =====
@@ -17,7 +17,8 @@ let hoveredMarker = null;
 
 // ===== INIT =====
 $(document).ready(function () {
-    requireLogin();
+    // requireLogin();
+    requireRole('user');  // ← chỉ user mới vào được
     khoiTaoNavbarUser();
     khoiTaoBanDo();
     taiDanhSach();
@@ -62,6 +63,7 @@ function khoiTaoBanDo() {
 // RENDER MARKERS
 // =============================================
 function renderMarkers(ds) {
+    // Xóa markers cũ
     dsMarker.forEach(m => m.remove());
     dsMarker = [];
 
@@ -70,52 +72,25 @@ function renderMarkers(ds) {
 
         const mau    = mauTheoLoai(item.loai_su_co || item.ten || '');
         const daXong = item.trang_thai === 'da_xu_ly';
-        const mauPin = daXong ? '#888780' : mau;
 
-        // Custom marker element
-        const el = document.createElement('div');
-        el.className = 'custom-marker';
-        el.style.cssText = `
-            width: 24px; height: 24px;
-            background: ${mauPin};
-            border-radius: 50% 50% 50% 0;
-            transform: rotate(-45deg);
-            border: 2.5px solid white;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.28);
-            cursor: pointer;
-            transition: transform 0.18s, box-shadow 0.18s;
-        `;
-
-        el.addEventListener('mouseenter', () => {
-            el.style.transform    = 'rotate(-45deg) scale(1.25)';
-            el.style.boxShadow    = '0 4px 16px rgba(0,0,0,0.35)';
-        });
-        el.addEventListener('mouseleave', () => {
-            el.style.transform    = 'rotate(-45deg) scale(1)';
-            el.style.boxShadow    = '0 2px 10px rgba(0,0,0,0.28)';
-        });
-        el.addEventListener('click', () => chonItemSidebar(idx));
-
-        // Popup
-        const popup = new mapboxgl.Popup({
-            closeButton: true,
-            closeOnClick: false,
-            maxWidth: '260px',
-            offset: [0, -8]
-        }).setHTML(`
-            <div class="popup-body">
-                <div class="popup-loai">${escHtml(item.loai_su_co || item.ten || 'Sự cố')}</div>
-                <div class="popup-title">${escHtml(item.tieu_de || '')}</div>
-                <div class="popup-dia-chi">📍 ${escHtml(item.dia_chi || '')}</div>
-                <div class="popup-meta">${tinhThoiGian(item.ngay_tao)} · ${escHtml(item.ten_nguoi_gui || '')}</div>
-                ${renderBadge(item.trang_thai)}
-            </div>
-        `);
-
-        const marker = new mapboxgl.Marker({ element: el, anchor: 'bottom' })
+        // ✅ Dùng marker mặc định Mapbox — giọt nước có sẵn
+        const marker = new mapboxgl.Marker({ color: daXong ? '#888780' : mau })
             .setLngLat([parseFloat(item.kinh_do), parseFloat(item.vi_do)])
-            .setPopup(popup)
+            .setPopup(
+                new mapboxgl.Popup({ closeButton: true, closeOnClick: false, maxWidth: '260px', offset: [0, -40] })
+                    .setHTML(`
+                        <div class="popup-body">
+                            <div class="popup-loai">${escHtml(item.loai_su_co || item.ten || '')}</div>
+                            <div class="popup-title">${escHtml(item.tieu_de || '')}</div>
+                            <div class="popup-dia-chi">📍 ${escHtml(item.dia_chi || '')}</div>
+                            <div class="popup-meta">${tinhThoiGian(item.ngay_tao)} · ${escHtml(item.ten_nguoi_gui || '')}</div>
+                            ${renderBadge(item.trang_thai)}
+                        </div>`)
+            )
             .addTo(mapBanDo);
+
+        // Click sidebar thì mở popup
+        marker.getElement().addEventListener('click', () => chonItemSidebar(idx));
 
         dsMarker.push(marker);
     });
@@ -176,9 +151,6 @@ function chonItemSidebar(idx) {
         zoom: 16,
         duration: 900
     });
-
-    // Mở popup của marker tương ứng
-    dsMarker[idx]?.togglePopup();
 }
 
 function capNhatStats(ds) {
@@ -387,39 +359,117 @@ function geocodeNguoc(lat, lng) {
 // =============================================
 function guiBaoCao() {
     const token = localStorage.getItem('token');
-    if (!token)      { hienAlert('alert-bc', 'error', 'Vui lòng đăng nhập để gửi báo cáo'); return; }
-    if (!viTriChon)  { hienAlert('alert-bc', 'error', 'Vui lòng nhấn vào bản đồ để chọn vị trí'); return; }
+    if (!token)     { hienAlert('alert-bc', 'error', 'Vui lòng đăng nhập'); return; }
+    if (!viTriChon) { hienAlert('alert-bc', 'error', 'Vui lòng chọn vị trí trên bản đồ'); return; }
 
     const loai   = $('#bc-loai').val();
     const diaChi = $('#bc-dia-chi').val().trim();
-    if (!loai)   { hienAlert('alert-bc', 'error', 'Vui lòng chọn loại sự cố'); return; }
-    if (!diaChi) { hienAlert('alert-bc', 'error', 'Vui lòng nhập địa chỉ'); return; }
+    const files  = $('#bc-anh')[0].files;
 
-    $('#btn-gui').prop('disabled', true).html('<span class="spinner"></span>Đang gửi...');
+    if (!loai)         { hienAlert('alert-bc', 'error', 'Vui lòng chọn loại sự cố'); return; }
+    if (!diaChi)       { hienAlert('alert-bc', 'error', 'Vui lòng nhập địa chỉ'); return; }
+    if (!files.length) { hienAlert('alert-bc', 'error', 'Vui lòng chọn ít nhất 1 ảnh hiện trường'); return; }
+
+    $('#btn-gui').prop('disabled', true)
+        .html('<span class="spinner"></span>Đang gửi...');
+
+    // Gộp tất cả vào 1 FormData
+    const formData = new FormData();
+    formData.append('loai_su_co_id', loai);
+    formData.append('tieu_de',       $('#bc-loai option:selected').text());
+    formData.append('dia_chi',       diaChi);
+    formData.append('mo_ta',         $('#bc-mo-ta').val().trim());
+    formData.append('vi_do',         viTriChon.lat);
+    formData.append('kinh_do',       viTriChon.lng);
+
+    // Append nhiều ảnh cùng key 'anh'
+    Array.from(files).forEach(file => formData.append('anh', file));
 
     $.ajax({
         url: `${API}/bao-cao`,
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-        data: JSON.stringify({
-            loai_su_co_id: parseInt(loai),
-            tieu_de:  $('#bc-loai option:selected').text(),
-            dia_chi:  diaChi,
-            mo_ta:    $('#bc-mo-ta').val().trim(),
-            vi_do:    viTriChon.lat,
-            kinh_do:  viTriChon.lng
-        }),
-        success: () => {
-            hienAlert('alert-bc', 'success', '✅ Báo cáo đã gửi thành công!');
+        headers: { 'Authorization': `Bearer ${token}` },
+        data: formData,
+        processData: false,
+        contentType: false,
+        timeout: 60000, // 60s cho upload nhiều ảnh
+        success: res => {
+            hienAlert('alert-bc', 'success',
+                `✅ Gửi thành công! ${res.so_anh} ảnh đã upload.`);
             resetFormBaoCao();
             taiDanhSach();
             taiBaoCaoCuaToi();
+            $('#btn-gui').prop('disabled', false).text('Gửi báo cáo');
             setTimeout(() => doiTrang('cua-toi'), 1500);
         },
-        error: xhr => hienAlert('alert-bc', 'error', xhr.responseJSON?.loi || 'Gửi thất bại, thử lại sau'),
-        complete: () => $('#btn-gui').prop('disabled', false).text('Gửi báo cáo')
+        error: xhr => {
+            const msg = xhr.responseJSON?.loi || 'Gửi thất bại, thử lại sau';
+            hienAlert('alert-bc', 'error', msg);
+            $('#btn-gui').prop('disabled', false).text('Gửi báo cáo');
+        }
     });
 }
+
+// Upload tuần tự từng ảnh, gom lỗi lại báo sau
+function uploadNhieuAnh(baoCaoId, files, token, idx, loiList) {
+    if (idx >= files.length) {
+        // Xong tất cả ảnh
+        if (loiList.length === 0) {
+            hoantTatGuiBaoCao();
+        } else if (loiList.length < files.length) {
+            // Một số ảnh bị lỗi, một số thành công
+            hienAlert('alert-bc', 'error',
+                `Báo cáo đã gửi. ${files.length - loiList.length}/${files.length} ảnh upload thành công. ` +
+                `Ảnh lỗi: ${loiList.join('; ')}`);
+            taiDanhSach();
+            taiBaoCaoCuaToi();
+            $('#btn-gui').prop('disabled', false).text('Gửi báo cáo');
+        } else {
+            // Tất cả ảnh đều lỗi
+            hienAlert('alert-bc', 'error',
+                `Báo cáo đã tạo nhưng tất cả ảnh bị từ chối: ${loiList.join('; ')}`);
+            taiDanhSach();
+            taiBaoCaoCuaToi();
+            $('#btn-gui').prop('disabled', false).text('Gửi báo cáo');
+        }
+        return;
+    }
+
+    // Cập nhật trạng thái
+    $('#btn-gui').html(`<span class="spinner"></span>Upload ảnh ${idx + 1}/${files.length}...`);
+
+    const formData = new FormData();
+    formData.append('anh', files[idx]);
+
+    $.ajax({
+        url: `${API}/bao-cao/${baoCaoId}/anh`,
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: () => {
+            // Ảnh này OK → upload ảnh tiếp theo
+            uploadNhieuAnh(baoCaoId, files, token, idx + 1, loiList);
+        },
+        error: xhr => {
+            const msg = xhr.responseJSON?.loi || `Ảnh ${idx + 1} lỗi`;
+            loiList.push(`Ảnh ${idx + 1}: ${msg}`);
+            // Vẫn tiếp tục upload ảnh còn lại
+            uploadNhieuAnh(baoCaoId, files, token, idx + 1, loiList);
+        }
+    });
+}
+
+function hoantTatGuiBaoCao() {
+    hienAlert('alert-bc', 'success', '✅ Báo cáo và ảnh đã gửi thành công!');
+    resetFormBaoCao();
+    taiDanhSach();
+    taiBaoCaoCuaToi();
+    $('#btn-gui').prop('disabled', false).text('Gửi báo cáo');
+    setTimeout(() => doiTrang('cua-toi'), 1500);
+}
+
 
 function resetFormBaoCao() {
     $('#bc-loai').val('');
@@ -433,14 +483,27 @@ function resetFormBaoCao() {
 }
 
 function xemAnh(input) {
-    if (input.files?.[0]) {
-        const r = new FileReader();
-        r.onload = e => {
-            $('#bc-preview-img').attr('src', e.target.result);
-            $('#bc-preview').show();
+    if (!input.files || !input.files.length) return;
+
+    const list = $('#bc-preview-list').empty();
+    $('#bc-preview').show();
+
+    Array.from(input.files).forEach((file, i) => {
+        const reader = new FileReader();
+        reader.onload = e => {
+            list.append(`
+                <div style="position:relative;">
+                    <img src="${e.target.result}"
+                         style="width:80px;height:80px;object-fit:cover;border-radius:8px;border:1.5px solid var(--border);">
+                    <div style="position:absolute;bottom:4px;right:4px;
+                                background:rgba(0,0,0,.5);color:white;
+                                font-size:10px;padding:1px 5px;border-radius:4px;">
+                        ${i + 1}
+                    </div>
+                </div>`);
         };
-        r.readAsDataURL(input.files[0]);
-    }
+        reader.readAsDataURL(file);
+    });
 }
 
 // =============================================

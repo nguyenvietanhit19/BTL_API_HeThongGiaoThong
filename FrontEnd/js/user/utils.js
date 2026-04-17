@@ -14,6 +14,7 @@ function getHeaders() {
     };
 }
 
+
 function requireLogin() {
     const token = localStorage.getItem('token');
     const dangODangNhap = window.location.pathname.includes('dang_nhap');
@@ -22,6 +23,27 @@ function requireLogin() {
         window.location.replace(DANG_NHAP_URL);  // ← sửa chỗ này
         return false;
     }
+    return true;
+}
+
+// ✅ Thêm hàm mới — check cả token lẫn vai trò
+function requireRole(vaiTroYeuCau) {
+    const token  = localStorage.getItem('token');
+    const vaiTro = localStorage.getItem('vai_tro');
+
+    if (!token) {
+        window.location.replace(DANG_NHAP_URL);
+        return false;
+    }
+
+    if (vaiTro !== vaiTroYeuCau) {
+        // Có token nhưng sai vai trò → redirect về trang đúng vai trò
+        if (vaiTro === 'admin')       window.location.replace('../admin/index.html');
+        else if (vaiTro === 'nhan_vien') window.location.replace('../dang_nhap/.html');
+        else                          window.location.replace('../ban_do/index.html');
+        return false;
+    }
+
     return true;
 }
 
