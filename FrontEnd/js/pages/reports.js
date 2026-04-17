@@ -1,6 +1,19 @@
 (function(window, $) {
     'use strict';
 
+    const REPORT_PAGE_CONFIG = {
+        'cho-duyet.html': { status: 'cho_duyet', container: '#table-body-cho-duyet' },
+        'da-duyet.html': { status: 'da_duyet', container: '#table-body-da-duyet' },
+        'tu-choi.html': { status: 'tu_choi', container: '#table-body-tu-choi' },
+        'dang-xu-ly.html': { status: 'dang_xu_ly', container: '#table-body-dang-xu-ly' },
+        'cho-nghiem-thu.html': { status: 'cho_nghiem_thu', container: '#table-body-nghiem-thu' },
+        'da-xu-ly.html': { status: 'da_xu_ly', container: '#table-body-da-xu-ly' },
+        'da-phan-cong.html': { status: 'da_phan_cong', container: '#table-body-da-phan-cong' }
+    };
+
+    const reportFilters = {};
+    let reportFilterTimer = null;
+
     function getTitleHtml(item) {
         return `
             <div class="report-summary" style="display:flex;flex-direction:column;">
@@ -12,6 +25,83 @@
 
     function getPaginationKey(status) {
         return 'reports-' + status;
+    }
+
+    function getCurrentPageConfig() {
+        const page = window.location.pathname.split('/').pop();
+        return REPORT_PAGE_CONFIG[page] || null;
+    }
+
+    function getFilterState(status) {
+        if (!reportFilters[status]) {
+            reportFilters[status] = {
+                keyword: '',
+                loai_su_co_id: '',
+                ngay_loc: ''
+            };
+        }
+        return reportFilters[status];
+    }
+
+    function syncFilterInputs(status) {
+        const state = getFilterState(status);
+        $('.filter-search').val(state.keyword || '');
+        $('.filter-category').val(state.loai_su_co_id || '');
+        $('.filter-date').val(state.ngay_loc || '');
+    }
+
+    async function loadLoaiSuCoOptions() {
+        const $select = $('.filter-category');
+        if (!$select.length || $select.data('loaded')) return;
+
+        try {
+            const list = await window.apiRequest('GET', '/api/Reports/loai-su-co');
+            const items = Array.isArray(list) ? list : [];
+
+            items.forEach(function(item) {
+                const id = item.id || item.loai_su_co_id || '';
+                const ten = item.ten || '';
+                if (!id || !ten) return;
+                if ($select.find(`option[value="${id}"]`).length) return;
+                $select.append(`<option value="${id}">${ten}</option>`);
+            });
+
+            $select.data('loaded', true);
+        } catch (err) {
+            console.warn('Không thể tải danh mục loại sự cố', err);
+        }
+    }
+
+    function bindFilterEvents(status, containerSelector) {
+        const state = getFilterState(status);
+        syncFilterInputs(status);
+
+        const triggerReload = function() {
+            const limit = window.getPaginationPageSize ? window.getPaginationPageSize(getPaginationKey(status), 5) : 5;
+            window.loadListByStatus(status, containerSelector, 1, limit);
+        };
+
+        $('.filter-search')
+            .off('.reportFilter')
+            .on('input.reportFilter', function() {
+                state.keyword = ($(this).val() || '').trim();
+                clearTimeout(reportFilterTimer);
+                reportFilterTimer = setTimeout(triggerReload, 300);
+            });
+
+        $('.filter-category')
+            .off('.reportFilter')
+            .on('change.reportFilter', function() {
+                state.loai_su_co_id = ($(this).val() || '').trim();
+                triggerReload();
+            });
+
+        $('.filter-date')
+            .off('.reportFilter')
+            .on('change.reportFilter', function() {
+                state.ngay_loc = ($(this).val() || '').trim();
+                triggerReload();
+            });
     }
 
     function getColumnCount(status) {
@@ -45,9 +135,43 @@
         $tbody.empty().append(`<tr><td colspan="${getColumnCount(status)}" class="text-center" style="padding:20px;">Không có dữ liệu báo cáo</td></tr>`);
     }
 
-    window.loadListByStatus = async function(status, containerSelector, page = 1, limit = 10) {
+    function escapeHtml(value) {
+        return $('<div/>').text(value || '').html();
+    }
+
+    function buildThumbHtml(src) {
+        return `
+            <div class="report-thumb">
+                <img src="${src}" data-src="${src}" class="report-thumb-img" style="width:100px;height:100px;object-fit:cover;border-radius:6px;cursor:pointer;border:1px solid #eee;">
+            </div>
+        `;
+    }
+
+    async function refreshAfterReportAction(status, containerSelector) {
+        if (window.refreshSidebarCounts) window.refreshSidebarCounts();
+        await reloadStatusList(status, containerSelector);
+    }
+
+    window.loadListByStatus = async function(status, containerSelector, page, limit) {
+        page = page || 1;
+        limit = limit || 10;
+
         try {
-            const res = await window.apiRequest('GET', `/admin_get/dashboard?trang_thai=${encodeURIComponent(status)}&page=${page}&limit=${limit}`);
+            const state = getFilterState(status);
+            loadLoaiSuCoOptions();
+            bindFilterEvents(status, containerSelector);
+
+            const query = new URLSearchParams({
+                trang_thai: status,
+                page: page,
+                limit: limit
+            });
+
+            if (state.keyword) query.set('keyword', state.keyword);
+            if (state.loai_su_co_id) query.set('loai_su_co_id', state.loai_su_co_id);
+            if (state.ngay_loc) query.set('ngay_loc', state.ngay_loc);
+
+            const res = await window.apiRequest('GET', `/admin_get/dashboard?${query.toString()}`);
             const list = res && res.list ? res.list : {};
             const data = Array.isArray(list.data) ? list.data : [];
             const total = typeof list.total === 'number' ? list.total : data.length;
@@ -85,7 +209,7 @@
                         $tr.append($('<td/>').text(nhanVien || 'Chưa rõ'));
                         $tr.append($('<td/>').text(fmtDate(item.ngay_trang_thai || item.ngay_tao)));
                         $tr.append($('<td/>').html(`
-                            <button class="btn-action btn-accept" data-id="${id}">Duyệt đạt</button>
+                            <button class="btn-action btn-approve btn-accept" data-id="${id}">Duyệt đạt</button>
                             <button class="btn-action btn-reject-nt" data-id="${id}">Không đạt</button>
                             <button class="btn-action btn-view" data-id="${id}">Xem</button>
                         `));
@@ -137,15 +261,23 @@
         }
     };
 
+    $(function() {
+        const pageConfig = getCurrentPageConfig();
+        if (!pageConfig) return;
+        loadLoaiSuCoOptions();
+        bindFilterEvents(pageConfig.status, pageConfig.container);
+    });
+
     window.loadReportDetail = async function(id) {
         try {
             const res = await window.apiRequest('GET', '/bao-cao/' + id);
             const payload = res && res.data ? res.data : {};
             const info = payload.thong_tin || res;
             if (!info) {
-                alert('Không tìm thấy báo cáo');
+                window.showToast({ type: 'error', title: 'Không tìm thấy báo cáo', message: 'Không tải được dữ liệu chi tiết của báo cáo #' + id + '.' });
                 return;
             }
+
             const tenNguoiBaoCao = info.nguoi_bao_cao || info.ten_nguoi_gui || info.ten_nguoi_dung || info.ho_ten || 'Khách / Ẩn danh';
 
             if ($('#reportDetailModal').length === 0) {
@@ -197,11 +329,12 @@
             $modal.find('#rd-tieu-de').text(info.tieu_de || 'Không có tiêu đề');
             $modal.find('#rd-dia-chi').text(info.dia_chi || 'Không rõ địa chỉ');
             $modal.find('#rd-loai').text(info.loai_su_co || info.loai || 'Chưa phân loại');
-            // ✅ Đoạn code đúng:
             $modal.find('#rd-nguoi-gui').text(tenNguoiBaoCao);
             $modal.find('#rd-nhan-vien').text(info.nhan_vien_phu_trach || 'Chưa có nhân viên');
             $modal.find('#rd-mo-ta').text(info.mo_ta || 'Không có mô tả chi tiết');
-            $modal.find('#rd-trang-thai').text((info.trang_thai || 'cho_duyet').replace(/_/g, ' ').toUpperCase()).attr('class', 'badge ' + (info.trang_thai || 'cho_duyet'));
+            $modal.find('#rd-trang-thai')
+                .text((info.trang_thai || 'cho_duyet').replace(/_/g, ' ').toUpperCase())
+                .attr('class', 'badge ' + (info.trang_thai || 'cho_duyet'));
 
             const $gridOriginal = $modal.find('#rd-grid-anh-goc').empty();
             const $gridDone = $modal.find('#rd-grid-anh-xuly').empty();
@@ -210,13 +343,8 @@
             images.forEach(function(image) {
                 const src = image.duong_dan_anh || image.duong_dan;
                 if (!src) return;
-                const html = `
-                    <div class="report-thumb">
-                        <img src="${src}" data-src="${src}" class="report-thumb-img" style="width:100px;height:100px;object-fit:cover;border-radius:6px;cursor:pointer;border:1px solid #eee;">
-                    </div>
-                `;
-                if (image.loai_anh === 'bao_cao') $gridOriginal.append(html);
-                if (image.loai_anh === 'sau_sua_chua') $gridDone.append(html);
+                if (image.loai_anh === 'bao_cao') $gridOriginal.append(buildThumbHtml(src));
+                if (image.loai_anh === 'sau_sua_chua') $gridDone.append(buildThumbHtml(src));
             });
 
             if ($gridOriginal.children().length === 0) $gridOriginal.append('<small style="color:#999">Không có ảnh</small>');
@@ -229,10 +357,10 @@
                     <div style="margin-bottom:10px;font-size:13px;padding-left:15px;border-left:2px solid #ddd;position:relative;">
                         <div style="position:absolute;left:-6px;top:4px;width:10px;height:10px;background:#ccc;border-radius:50%;"></div>
                         <strong>${fmtDate(entry.ngay_doi)}</strong>:
-                        <span style="color:#888;">${entry.trang_thai_cu || 'Mới'}</span>
+                        <span style="color:#888;">${escapeHtml(entry.trang_thai_cu || 'Mới')}</span>
                         &rarr;
-                        <span class="text-primary" style="font-weight:600;">${entry.trang_thai_moi || ''}</span>
-                        ${entry.ghi_chu ? `<div style="font-style:italic;color:#666;margin-top:2px;">- Ghi chú: ${entry.ghi_chu}</div>` : ''}
+                        <span class="text-primary" style="font-weight:600;">${escapeHtml(entry.trang_thai_moi || '')}</span>
+                        ${entry.ghi_chu ? `<div style="font-style:italic;color:#666;margin-top:2px;">- Ghi chú: ${escapeHtml(entry.ghi_chu)}</div>` : ''}
                     </div>
                 `);
             });
@@ -244,50 +372,59 @@
     };
 
     $(document).off('click', '.btn-view').on('click', '.btn-view', function() {
-        window.loadReportDetail($(this).data('id'));
-    });
-
-    $(document).off('click', '.btn-approve').on('click', '.btn-approve', function() {
         const id = $(this).data('id');
-        $('#confirmApproveModal').data('reportId', id);
-        $('#confirm-approve-text').text('Bạn có chắc chắn muốn duyệt báo cáo #' + id + '?');
-        $('#confirmApproveModal').fadeIn(150);
+        if (!id) return;
+        window.loadReportDetail(id);
     });
 
-    $(document).off('click', '#confirm-approve-btn').on('click', '#confirm-approve-btn', async function() {
-        const id = $('#confirmApproveModal').data('reportId');
-        if (!id) return;
+    $(document).off('click', '.btn-approve').on('click', '.btn-approve', async function() {
+        const id = $(this).data('id');
+        const result = await window.openAdminActionModal({
+            type: 'success',
+            badge: 'Phê duyệt báo cáo',
+            title: 'Xác nhận duyệt báo cáo',
+            message: 'Báo cáo #' + id + ' sẽ được chuyển sang trạng thái đã duyệt và sẵn sàng để phân công xử lý.',
+            confirmText: 'Duyệt báo cáo'
+        });
+        if (!result.confirmed) return;
+
         try {
             await window.apiRequest('PUT', `/admin/bao-cao/${id}/duyet`);
-            $('#confirmApproveModal').fadeOut(150);
-            if (window.refreshSidebarCounts) window.refreshSidebarCounts();
-            reloadStatusList('cho_duyet', '#table-body-cho-duyet');
+            window.showToast({
+                type: 'success',
+                title: 'Đã duyệt báo cáo',
+                message: 'Báo cáo #' + id + ' đã được phê duyệt thành công.'
+            });
+            await refreshAfterReportAction('cho_duyet', '#table-body-cho-duyet');
         } catch (err) {
             window.showApiError(err);
         }
     });
 
-    $(document).off('click', '.btn-reject').on('click', '.btn-reject', function() {
+    $(document).off('click', '.btn-reject').on('click', '.btn-reject', async function() {
         const id = $(this).data('id');
-        $('#rejectModal').data('reportId', id);
-        $('#reject-reason').val('');
-        $('#confirm-reject-btn').prop('disabled', true);
-        $('#rejectModal').fadeIn(150);
-    });
+        const result = await window.openAdminActionModal({
+            type: 'danger',
+            badge: 'Từ chối báo cáo',
+            title: 'Xác nhận từ chối báo cáo',
+            message: 'Lý do từ chối sẽ được lưu lại để người gửi biết cần điều chỉnh nội dung nào.',
+            requireReason: true,
+            minLength: 3,
+            label: 'Lý do từ chối',
+            hint: 'Tối thiểu 3 ký tự. Nên ghi rõ và ngắn gọn để người dùng dễ hiểu.',
+            placeholder: 'Ví dụ: Ảnh chưa đủ rõ để xác minh sự cố thực tế.',
+            confirmText: 'Xác nhận từ chối'
+        });
+        if (!result.confirmed) return;
 
-    $(document).off('input', '#reject-reason').on('input', '#reject-reason', function() {
-        $('#confirm-reject-btn').prop('disabled', $(this).val().trim().length < 3);
-    });
-
-    $(document).off('click', '#confirm-reject-btn').on('click', '#confirm-reject-btn', async function() {
-        const id = $('#rejectModal').data('reportId');
-        const note = $('#reject-reason').val().trim();
-        if (!id || !note) return;
         try {
-            await window.apiRequest('PUT', `/admin/bao-cao/${id}/tu-choi`, { ghi_chu: note });
-            $('#rejectModal').fadeOut(150);
-            if (window.refreshSidebarCounts) window.refreshSidebarCounts();
-            reloadStatusList('cho_duyet', '#table-body-cho-duyet');
+            await window.apiRequest('PUT', `/admin/bao-cao/${id}/tu-choi`, { ghi_chu: result.value });
+            window.showToast({
+                type: 'success',
+                title: 'Đã từ chối báo cáo',
+                message: 'Báo cáo #' + id + ' đã được cập nhật kèm lý do từ chối.'
+            });
+            await refreshAfterReportAction('cho_duyet', '#table-body-cho-duyet');
         } catch (err) {
             window.showApiError(err);
         }
@@ -295,11 +432,23 @@
 
     $(document).off('click', '.btn-accept').on('click', '.btn-accept', async function() {
         const id = $(this).data('id');
-        if (!confirm('Nghiệm thu thành công? Báo cáo sẽ được đóng.')) return;
+        const result = await window.openAdminActionModal({
+            type: 'success',
+            badge: 'Nghiệm thu đạt',
+            title: 'Xác nhận nghiệm thu hoàn tất',
+            message: 'Báo cáo #' + id + ' sẽ được đóng và đánh dấu hoàn thành.',
+            confirmText: 'Xác nhận đạt'
+        });
+        if (!result.confirmed) return;
+
         try {
             await window.apiRequest('PUT', `/admin/bao-cao/${id}/nghiem-thu`, { ket_qua: 'dat' });
-            if (window.refreshSidebarCounts) window.refreshSidebarCounts();
-            reloadStatusList('cho_nghiem_thu', '#table-body-nghiem-thu');
+            window.showToast({
+                type: 'success',
+                title: 'Nghiệm thu thành công',
+                message: 'Báo cáo #' + id + ' đã được đóng.'
+            });
+            await refreshAfterReportAction('cho_nghiem_thu', '#table-body-nghiem-thu');
         } catch (err) {
             window.showApiError(err);
         }
@@ -307,28 +456,33 @@
 
     $(document).off('click', '.btn-reject-nt').on('click', '.btn-reject-nt', async function() {
         const id = $(this).data('id');
-        if (!confirm('Nghiệm thu không đạt? Nhân viên sẽ phải làm lại.')) return;
+        const result = await window.openAdminActionModal({
+            type: 'danger',
+            badge: 'Nghiệm thu không đạt',
+            title: 'Yêu cầu xử lý lại',
+            message: 'Báo cáo #' + id + ' sẽ quay lại luồng xử lý để nhân viên tiếp tục khắc phục.',
+            confirmText: 'Trả về xử lý'
+        });
+        if (!result.confirmed) return;
+
         try {
             await window.apiRequest('PUT', `/admin/bao-cao/${id}/nghiem-thu`, { ket_qua: 'khong_dat' });
-            if (window.refreshSidebarCounts) window.refreshSidebarCounts();
-            reloadStatusList('cho_nghiem_thu', '#table-body-nghiem-thu');
+            window.showToast({
+                type: 'success',
+                title: 'Đã trả về xử lý',
+                message: 'Báo cáo #' + id + ' đã được chuyển lại cho nhân viên.'
+            });
+            await refreshAfterReportAction('cho_nghiem_thu', '#table-body-nghiem-thu');
         } catch (err) {
             window.showApiError(err);
         }
-    });
-
-    $(document).off('click', '#cancel-approve-btn, #confirmApproveModal .modal-overlay').on('click', '#cancel-approve-btn, #confirmApproveModal .modal-overlay', function() {
-        $('#confirmApproveModal').fadeOut(150);
-    });
-
-    $(document).off('click', '#cancel-reject-btn, #rejectModal .modal-overlay').on('click', '#cancel-reject-btn, #rejectModal .modal-overlay', function() {
-        $('#rejectModal').fadeOut(150);
     });
 
     $(document).off('click', '.report-thumb-img').on('click', '.report-thumb-img', function(e) {
         e.preventDefault();
         const src = $(this).data('src') || $(this).attr('src');
         if (!src) return;
+
         if ($('#imageViewerModal').length === 0) {
             $(document.body).append(`
                 <div id="imageViewerModal" style="display:none;position:fixed;inset:0;z-index:10000;">
@@ -345,6 +499,7 @@
         } else {
             $('#iv-image').attr('src', src);
         }
+
         $('#imageViewerModal').fadeIn(150);
     });
 })(window, jQuery);

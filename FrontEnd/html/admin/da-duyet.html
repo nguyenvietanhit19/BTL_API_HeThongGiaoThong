@@ -13,15 +13,15 @@
 
     <div class="main-content">
         <div class="page-header">
-            <h1 id="topbar-title" style="display: none;">GiaoThôngAn - Báo cáo đã duyệt</h1>
+            <h1 id="topbar-title" style="display: none;">GiaoThongAn - Báo cáo đã duyệt</h1>
             <h2>Danh sách báo cáo đã duyệt</h2>
+            
             <div class="filters">
-                <input type="text" id="search-approved" placeholder="Tìm theo mã hoặc tiêu đề...">
-                <select id="filter-priority">
-                    <option value="">Mọi mức độ ưu tiên</option>
-                    <option value="cao">Ưu tiên cao</option>
-                    <option value="trung-binh">Trung bình</option>
+                <input type="text" class="filter-search" placeholder="Tìm theo mã BC hoặc tiêu đề...">
+                <select class="filter-category">
+                    <option value="">Tất cả loại sự cố</option>
                 </select>
+                <input type="date" class="filter-date">
             </div>
         </div>
 
@@ -30,14 +30,14 @@
                 <thead>
                     <tr>
                         <th>MÃ BC</th>
-                        <th>SỰ CỐ</th>
-                        <th>ĐỊA CHỈ</th>
+                        <th>SỰ CỐ & ĐỊA CHỈ</th>
+                        <th>LOẠI SỰ CỐ</th>
                         <th>NGÀY DUYỆT</th>
                         <th>HÀNH ĐỘNG</th>
                     </tr>
                 </thead>
                 <tbody id="table-body-da-duyet">
-                    </tbody>
+                </tbody>
             </table>
         </div>
     </div>

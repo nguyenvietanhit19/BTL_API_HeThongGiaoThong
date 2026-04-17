@@ -15,15 +15,17 @@
 
     <div class="main-content">
         <div class="page-header">
-            <h1 id="topbar-title" style="display: none;">GiaoThôngAn - Chờ duyệt báo cáo</h1>
+            <h1 id="topbar-title" style="display: none;">GiaoThongAn - Chờ duyệt báo cáo</h1>
             <h2>Danh sách báo cáo chờ duyệt</h2>
+            
             <div class="filters">
-                <input type="text" id="search-report" placeholder="Tìm theo tiêu đề, địa chỉ...">
-                <select id="filter-category">
+                <input type="text" class="filter-search" placeholder="Nhập mã BC hoặc tiêu đề...">
+                <select class="filter-category">
                     <option value="">Tất cả loại sự cố</option>
                 </select>
-                <input type="date" id="filter-date">
+                <input type="date" class="filter-date">
             </div>
+            
         </div>
 
         <div class="table-container">
@@ -74,8 +76,10 @@
             </div>
         </div>
     </div> 
+
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="/FrontEnd/js/api.js"></script>
+<script src="/FrontEnd/js/pagination.js"></script>
 <script src="/FrontEnd/js/pages/tongquan.js"></script>
 <script src="/FrontEnd/js/pages/reports.js"></script>
 <script src="/FrontEnd/js/pages/assignment.js"></script>
@@ -84,5 +88,4 @@
 <script src="/FrontEnd/js/pages/profile.js"></script>
 <script src="/FrontEnd/js/layout.js"></script>
 </body>
-
 </html>

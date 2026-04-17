@@ -51,7 +51,6 @@
                             <span class="muted" style="font-size:13px;color:#6c757d;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${item.dia_chi || 'Chưa cập nhật địa chỉ'}</span>
                         </div>
                     `;
-
                     $tbody.append(`
                         <tr class="report-row">
                             <td><strong style="color: #2b3035; font-size: 15px;">#${id}</strong></td>

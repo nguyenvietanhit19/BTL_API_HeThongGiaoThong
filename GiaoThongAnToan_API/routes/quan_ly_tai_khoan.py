@@ -1,8 +1,21 @@
 from flask import Blueprint, request, jsonify
 from middleware.auth_middleware import can_access
 from db import get_db
+from datetime import datetime
 
 quan_ly_bp = Blueprint('quan_ly', __name__)
+
+
+def _sort_activity_key(item):
+    value = item.get('thoi_gian')
+    if value is None:
+        return datetime.min
+    if isinstance(value, datetime):
+        return value
+    try:
+        return datetime.fromisoformat(str(value).replace('Z', '+00:00'))
+    except Exception:
+        return datetime.min
 
 
 # ==========================================
@@ -75,9 +88,85 @@ def chi_tiet_nguoi_dung(id):
         cols_bc = [d[0] for d in cursor.description]
         bao_cao = [dict(zip(cols_bc, r)) for r in rows]
 
+        # Lay lich su tac dong len tai khoan nay
+        cursor.execute("""
+            SELECT
+                nk.nhat_ky_id,
+                nk.hanh_dong,
+                nk.gia_tri_cu,
+                nk.gia_tri_moi,
+                nk.thoi_gian,
+                admin.ho_ten AS ten_admin
+            FROM nhat_ky_admin nk
+            JOIN nguoi_dung admin ON nk.admin_id = admin.nguoi_dung_id
+            WHERE nk.nguoi_dung_id = ?
+            ORDER BY nk.thoi_gian DESC
+        """, (id,))
+        rows = cursor.fetchall()
+        cols_nk = [d[0] for d in cursor.description]
+        nhat_ky = [dict(zip(cols_nk, r)) for r in rows]
+
+        hoat_dong = []
+
+        for bc in bao_cao:
+            hoat_dong.append({
+                'loai': 'bao_cao_tao',
+                'thoi_gian': bc.get('ngay_tao'),
+                'tieu_de': 'Đăng báo cáo mới',
+                'mo_ta': bc.get('tieu_de') or 'Báo cáo sự cố',
+                'tham_chieu': bc.get('bao_cao_id'),
+                'trang_thai': bc.get('trang_thai')
+            })
+
+        cursor.execute("""
+            SELECT
+                ls.bao_cao_id,
+                ls.trang_thai_cu,
+                ls.trang_thai_moi,
+                ls.ghi_chu,
+                ls.ngay_doi,
+                bc.tieu_de,
+                nd.ho_ten AS ten_nguoi_doi
+            FROM lich_su_trang_thai ls
+            JOIN bao_cao bc ON bc.bao_cao_id = ls.bao_cao_id
+            LEFT JOIN nguoi_dung nd ON nd.nguoi_dung_id = ls.nguoi_doi_id
+            WHERE bc.nguoi_dung_id = ?
+            ORDER BY ls.ngay_doi DESC
+        """, (id,))
+        rows = cursor.fetchall()
+        cols_ls = [d[0] for d in cursor.description]
+        lich_su_bao_cao = [dict(zip(cols_ls, r)) for r in rows]
+
+        for ls in lich_su_bao_cao:
+            hoat_dong.append({
+                'loai': 'bao_cao_cap_nhat',
+                'thoi_gian': ls.get('ngay_doi'),
+                'tieu_de': 'Cập nhật trạng thái báo cáo',
+                'mo_ta': ls.get('tieu_de') or 'Báo cáo sự cố',
+                'tham_chieu': ls.get('bao_cao_id'),
+                'trang_thai_cu': ls.get('trang_thai_cu'),
+                'trang_thai_moi': ls.get('trang_thai_moi'),
+                'ghi_chu': ls.get('ghi_chu'),
+                'ten_nguoi_thuc_hien': ls.get('ten_nguoi_doi')
+            })
+
+        for nk in nhat_ky:
+            hoat_dong.append({
+                'loai': 'tai_khoan_cap_nhat',
+                'thoi_gian': nk.get('thoi_gian'),
+                'tieu_de': nk.get('hanh_dong'),
+                'gia_tri_cu': nk.get('gia_tri_cu'),
+                'gia_tri_moi': nk.get('gia_tri_moi'),
+                'ten_nguoi_thuc_hien': nk.get('ten_admin')
+            })
+
+        hoat_dong.sort(key=_sort_activity_key, reverse=True)
+
         return jsonify({
             'nguoi_dung': nguoi_dung,
-            'bao_cao': bao_cao
+            'bao_cao': bao_cao,
+            'nhat_ky': nhat_ky,
+            'hoat_dong': hoat_dong
         }), 200
 
     except Exception as e:

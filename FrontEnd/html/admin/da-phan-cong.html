@@ -12,12 +12,17 @@
     <div id="sidebar-container"></div>
 
     <div class="main-content">
+        <h1 id="topbar-title" style="display: none;">GiaoThôngAn - Đã phân công</h1>
+        
         <div class="page-header">
-            <h1 id="topbar-title" style="display: none;">GiaoThôngAn - Đã phân công</h1>
             <h2>Công việc đã giao</h2>
+            
             <div class="filters">
-                <input type="text" id="search-assigned" placeholder="Tìm nhân viên hoặc sự cố...">
-                <button class="btn-action btn-view">Lịch trình hôm nay</button>
+                <input type="text" class="filter-search" placeholder="Tìm mã BC, nhân viên...">
+                <select class="filter-category">
+                    <option value="">Tất cả loại sự cố</option>
+                </select>
+                <input type="date" class="filter-date">
             </div>
         </div>
 
@@ -38,6 +43,7 @@
             </table>
         </div>
     </div>
+
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="/FrontEnd/js/api.js"></script>
 <script src="/FrontEnd/js/pagination.js"></script>

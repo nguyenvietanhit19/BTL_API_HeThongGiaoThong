@@ -17,9 +17,51 @@
         };
     }
 
-    window.loadPhanCong = async function(page = 1, limit = 10) {
+    function getAssignmentFilters() {
+        return {
+            keyword: ($('.filter-search').val() || '').trim(),
+            loai_su_co_id: ($('.filter-category').val() || '').trim(),
+            ngay_loc: ($('.filter-date').val() || '').trim()
+        };
+    }
+
+    async function loadLoaiSuCoOptions() {
+        const $select = $('.filter-category');
+        if (!$select.length || $select.data('loaded')) return;
+
         try {
-            const res = await window.apiRequest('GET', '/admin_get/dashboard?trang_thai=da_duyet&page=1&limit=1000');
+            const list = await window.apiRequest('GET', '/api/Reports/loai-su-co');
+            (Array.isArray(list) ? list : []).forEach(function(item) {
+                const id = item.id || item.loai_su_co_id || '';
+                const ten = item.ten || '';
+                if (!id || !ten) return;
+                if ($select.find(`option[value="${id}"]`).length) return;
+                $select.append(`<option value="${id}">${ten}</option>`);
+            });
+            $select.data('loaded', true);
+        } catch (err) {
+            console.warn('Không thể tải danh mục loại sự cố', err);
+        }
+    }
+
+    window.loadPhanCong = async function(page, limit) {
+        page = page || 1;
+        limit = limit || 10;
+
+        try {
+            loadLoaiSuCoOptions();
+            const filters = getAssignmentFilters();
+            const query = new URLSearchParams({
+                trang_thai: 'da_duyet',
+                page: 1,
+                limit: 1000
+            });
+
+            if (filters.keyword) query.set('keyword', filters.keyword);
+            if (filters.loai_su_co_id) query.set('loai_su_co_id', filters.loai_su_co_id);
+            if (filters.ngay_loc) query.set('ngay_loc', filters.ngay_loc);
+
+            const res = await window.apiRequest('GET', '/admin_get/dashboard?' + query.toString());
             let reports = res && res.list && Array.isArray(res.list.data) ? res.list.data : [];
             reports = reports.filter(function(report) {
                 return !report.nhan_vien_phu_trach && !report.nhan_vien_id && !report.nhan_vien;
@@ -103,14 +145,44 @@
         }
     };
 
-    $(document).off('click', '.btn-assign-now').on('click', '.btn-assign-now', function() {
+    $(document)
+        .off('input.assignmentFilter change.assignmentFilter', '.filter-search, .filter-category, .filter-date')
+        .on('input.assignmentFilter', '.filter-search', function() {
+            clearTimeout(window.__assignmentFilterTimer);
+            window.__assignmentFilterTimer = setTimeout(function() {
+                const paging = getAssignmentPaging();
+                window.loadPhanCong(1, paging.limit);
+            }, 300);
+        })
+        .on('change.assignmentFilter', '.filter-category, .filter-date', function() {
+            const paging = getAssignmentPaging();
+            window.loadPhanCong(1, paging.limit);
+        });
+
+    $(document).off('click', '.btn-assign-now').on('click', '.btn-assign-now', async function() {
         const id = $(this).data('id');
-        const nhanVienId = $(this).closest('tr').find('select.assign-select').val();
+        const $row = $(this).closest('tr');
+        const $select = $row.find('select.assign-select');
+        const nhanVienId = $select.val();
+        const nhanVienLabel = $select.find('option:selected').text();
 
         if (!nhanVienId) {
-            alert('Vui lòng chọn một nhân viên trước khi giao việc.');
+            window.showToast({
+                type: 'error',
+                title: 'Chưa chọn nhân viên',
+                message: 'Vui lòng chọn một nhân viên trước khi giao việc.'
+            });
             return;
         }
+
+        const result = await window.openAdminActionModal({
+            type: 'info',
+            badge: 'Phân công xử lý',
+            title: 'Xác nhận giao việc',
+            message: `Báo cáo #${id} sẽ được phân công cho ${nhanVienLabel}.`,
+            confirmText: 'Xác nhận phân công'
+        });
+        if (!result.confirmed) return;
 
         const $button = $(this);
         $button.prop('disabled', true).text('Đang giao...');
@@ -121,7 +193,11 @@
             if (window.refreshSidebarCounts) window.refreshSidebarCounts();
             const paging = getAssignmentPaging();
             window.loadPhanCong(paging.page, paging.limit);
-            alert('Phân công nhân viên thành công.');
+            window.showToast({
+                type: 'success',
+                title: 'Phân công thành công',
+                message: `Báo cáo #${id} đã được giao cho ${nhanVienLabel}.`
+            });
         }).catch(function(err) {
             $button.prop('disabled', false).text('Giao việc');
             window.showApiError(err);

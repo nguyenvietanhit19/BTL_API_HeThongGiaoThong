@@ -214,16 +214,6 @@
         $root.show().html(`
             <div class="shared-pagination-info"></div>
             <div class="shared-pagination-controls">
-                <div class="shared-pagination-size">
-                    <span>So dong</span>
-                    <select class="pagination-size">
-                        <option value="5">5</option>
-                        <option value="6">6</option>
-                        <option value="10">10</option>
-                        <option value="20">20</option>
-                        <option value="50">50</option>
-                    </select>
-                </div>
                 <button type="button" class="pagination-prev">Truoc</button>
                 <div class="shared-pagination-pages"></div>
                 <button type="button" class="pagination-next">Sau</button>
