@@ -1,0 +1,707 @@
+    <!DOCTYPE html>
+    <html lang="vi">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>GiaoThôngAn — Nhân viên</title>
+
+        <link rel="stylesheet" href="/FrontEnd/css/nhanVien/nhanVien.css">
+        <script src="/FrontEnd/js/NhanVien/nhanVien.js" defer></script>
+        <script src="/FrontEnd/js/NhanVien/profileNV.js"></script>
+        <link rel="stylesheet" href="/FrontEnd/css/nhanVien/profile.css">
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    </head>
+    <body>
+
+    <!-- TOPBAR -->
+    <div class="topbar">
+        <div class="left">
+            <span id="btn-menu">☰</span>
+            <span class="topbar-title">Giao Thông An Toàn</span>
+        </div>
+
+        <div class="user-badge">
+            <span id="user-name">Nhân viên</span>
+            <div class="user-dropdown">
+                <a href="#" id="btn-profile">Thông tin</a>
+                <a href="#" id="logout-btn">Đăng xuất</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <div class="menu-item active" data-page="viec-cua-toi">
+            <span class="dot green"></span> Việc của tôi (<span id="menu-count">0</span>)
+        </div>
+        <div class="menu-item" data-page="da-hoan-thanh">
+            <span class="dot gray"></span> Đã hoàn thành
+        </div>
+        <div class="menu-item" data-page="lich-su">
+            <span class="dot blue"></span> Lịch sử công việc
+        </div>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main-content">
+
+        <!-- PAGE 1 -->
+        <div class="page active" id="page-viec-cua-toi">
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="stat-num red" id="stat-moi">0</div>
+                    <div class="stat-label">Mới được giao</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-num blue" id="stat-dang">0</div>
+                    <div class="stat-label">Đang xử lý</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-num green" id="stat-done">0</div>
+                    <div class="stat-label">Đã hoàn thành</div>
+                </div>
+            </div>
+
+            <div class="section-title">Việc được phân công</div>
+            <div class="section" id="section-chua-nhan">
+                <h3>📥 Chưa nhận</h3>
+                <div id="list-chua-nhan"></div>
+            </div>
+
+            <div class="section" id="section-dang-lam">
+                <h3>⚙️ Đang làm</h3>
+                <div id="list-dang-lam"></div>
+            </div>
+
+            <div class="section" id="section-da-xong">
+                <h3>✅ Đã xong</h3>
+                <div id="list-da-xong"></div>
+            </div>
+        </div>
+
+        <!-- PAGE 2 -->
+        <div class="page" id="page-da-hoan-thanh">
+            <div class="filter-row">
+                <input type="month" id="filter-month-done">
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>MÃ BC</th>
+                            <th>SỰ CỐ</th>
+                            <th>LOẠI</th>
+                            <th>NGÀY HOÀN THÀNH</th>
+                            <th>KẾT QUẢ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="done-table-body"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- PAGE 3 -->
+        <div class="page" id="page-lich-su">
+            <div class="filter-row">
+                <input type="text" placeholder="Tìm kiếm..." id="search-history">
+                <select id="filter-status">
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="done">Hoàn thành</option>
+                    <option value="reject">Bị trả lại</option>
+                </select>
+                <input type="month" id="filter-month-history">
+            </div>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>MÃ BC</th>
+                            <th>SỰ CỐ</th>
+                            <th>LOẠI</th>
+                            <th>THỜI GIAN</th>
+                            <th>KẾT QUẢ</th>
+                            <th>GHI CHÚ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-table-body"></tbody>
+                </table>
+            </div>
+        </div>
+        <div class="page" id="page-profile"></div>
+
+
+    </div>
+
+    <!-- MODAL NHẬN VIỆC -->
+    <div class="modal-overlay" id="modal-nhan-viec">
+        <div class="modal">
+            <div class="modal-header">
+                <span class="modal-title" id="mn-title"></span>
+                <button class="modal-close" onclick="closeModal('modal-nhan-viec')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning" id="mn-alert"></div>
+
+                <div class="info-row-modal"><span class="label">Địa chỉ  :</span><span id="mn-addr"></span></div>
+                <div class="info-row-modal"><span class="label">Loại     :</span><span id="mn-type"></span></div>
+                <div class="info-row-modal"><span class="label">Thời gian:</span><span id="mn-time"></span></div>
+                <div class="info-row-modal"><span class="label">Lần      :</span><span id="mn-attempt"></span></div>
+
+                <div id="mn-map"></div>
+
+                <div>Mô tả:</div>
+                <div id="mn-mota"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" id="btn-confirm-nhan">Nhận việc</button>
+                <button id="btn-tu-choi" class="btn">Từ chối</button>
+                <button class="btn btn-success" id="btn-open-hoan-thanh" style="display:none">Báo hoàn thành</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL HOÀN THÀNH -->
+    <div class="modal-overlay" id="modal-hoan-thanh">
+        <div class="modal">
+            <div class="modal-header">
+                <span class="modal-title">Báo hoàn thành</span>
+                <button class="modal-close" onclick="closeModal('modal-hoan-thanh')">&times;</button>
+            </div>
+            <div class="modal-body">
+
+                <input type="file" id="upload-after" multiple>
+
+                <textarea id="note-hoan-thanh" placeholder="Ghi chú..."></textarea>
+
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('modal-hoan-thanh')">Huỷ</button>
+                <button type="button" class="btn btn-primary" id="btn-confirm-hoan">Gửi</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL GHI CHÚ -->
+    <div class="modal-overlay" id="modal-ghi-chu">
+        <div class="modal">
+            <div class="modal-header">
+                <span class="modal-title">Cập nhật</span>
+                <button class="modal-close" onclick="closeModal('modal-ghi-chu')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="file" id="upload-note-img">
+                <textarea id="note-progress"></textarea>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- TOAST -->
+    <div class="toast" id="toast"></div>
+
+    </body>
+    </html>
+nhanVien.html
+
+// ============ CONFIG ============
+const API_BASE = "http://127.0.0.1:5000";
+
+// ============ GLOBAL ============
+let currentTaskId = null;
+
+let taskMap = {};
+
+// ============ INIT ============
+$(document).ready(function () {
+
+    const token = localStorage.getItem('token');
+
+    if (!token) {
+        showToast("Chưa đăng nhập", true);
+        return;
+    }
+
+    // ===== LOAD BAN ĐẦU =====
+    fetchTasks();
+
+    // ===== HIỂN THỊ TÊN =====
+    const name = localStorage.getItem("ho_ten");
+    if (name) $('#user-name').text(name);
+
+    // ===== USER DROPDOWN (FIX CLICK + MOBILE) =====
+    $('.user-badge').click(function (e) {
+        e.stopPropagation(); // không cho lan ra ngoài
+        $('.user-dropdown').toggleClass('show');
+    });
+
+    // click ra ngoài thì đóng
+    $(document).click(function () {
+        $('.user-dropdown').removeClass('show');
+    });
+
+    // click bên trong menu không bị đóng
+    $('.user-dropdown').click(function (e) {
+        e.stopPropagation();
+    });
+
+    // ===== MOBILE MENU =====
+    $('#btn-menu').click(function () {
+        $('.sidebar').toggleClass('open');
+    });
+
+    // ===== SIDEBAR NAV =====
+    $('.menu-item').click(function () {
+
+        $('.menu-item').removeClass('active');
+        $(this).addClass('active');
+
+        $('.page').removeClass('active');
+
+        const page = $(this).data('page');
+        $(`#page-${page}`).addClass('active');
+
+        // load data theo tab
+        if (page === 'da-hoan-thanh') loadDoneTasks();
+        if (page === 'lich-su') loadHistory();
+
+        // mobile: auto đóng menu
+        $('.sidebar').removeClass('open');
+    });
+
+    // ===== PROFILE (AJAX LOAD) =====
+    $('#btn-profile').click(function (e) {
+        e.preventDefault();
+
+        $('.page').removeClass('active');
+
+        $('#page-profile').load('/FrontEnd/html/NhanVien/profileNV.html .container', function () {
+            $('#page-profile').addClass('active');
+
+            // gọi init profile
+            if (typeof initProfilePage === "function") {
+                initProfilePage();
+            } else {
+                console.error("Thiếu initProfilePage()");
+            }
+        });
+
+        $('.sidebar').removeClass('open');
+    });
+
+    // ===== FILTER =====
+    $('#filter-month-done').on('change', loadDoneTasks);
+
+    $('#search-history, #filter-status, #filter-month-history')
+        .on('input change', loadHistory);
+
+    // ===== BTN HOÀN THÀNH =====
+    $('#btn-confirm-hoan').off('click').on('click', function (e) {
+
+        e.preventDefault(); // ❗ THÊM DÒNG NÀY (QUAN TRỌNG)
+
+        if (!currentTaskId) {
+            showToast("Không xác định công việc", true);
+            return;
+        }
+
+        const files = $('#upload-after')[0].files;
+
+        if (!files || files.length === 0) {
+            showToast("Phải upload ít nhất 1 ảnh sau sửa chữa", true);
+            return;
+        }
+
+        const btn = $(this);
+        btn.prop('disabled', true).text('Đang gửi...');
+
+        baoHoanThanhAPI(currentTaskId, () => {
+            btn.prop('disabled', false).text('Gửi');
+        }, () => {
+            btn.prop('disabled', false).text('Gửi');
+        });
+    });
+    
+    // ===== BTN nhận việc =====
+    $('#btn-confirm-nhan').click(function () {
+        if (!currentTaskId) return;
+
+        $.ajax({
+            url: `${API_BASE}/nhan-vien/bao-cao/${currentTaskId}/nhan-viec`,
+            method: "PUT",
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem('token')}`
+            },
+            success: function () {
+                showToast("Nhận việc thành công");
+                closeModal('modal-nhan-viec');
+                fetchTasks();
+            },
+            error: function (xhr) {
+                showToast(xhr.responseJSON?.loi || "Lỗi", true);
+            }
+        });
+    });
+
+    // ===== BTN từ chối =====
+
+    $('#btn-tu-choi').click(function () {
+        if (!currentTaskId) return;
+
+        tuChoi(currentTaskId);
+        closeModal('modal-nhan-viec');
+    });
+
+    // ===== LOGOUT =====
+    $('#logout-btn').click(function () {
+        localStorage.removeItem("token");
+        window.location.href = "/FrontEnd/html/login.html";
+    });
+    // ===== CLICK BÁO HOÀN THÀNH (FIX CSP) =====
+    $(document).on('click', '.btn-hoan-thanh', function (e) {
+        e.stopPropagation();
+
+        const id = $(this).closest('.task-card').data('id');
+
+        if (!id) {
+            showToast("Không lấy được ID", true);
+            return;
+        }
+
+        openHoanThanh(id);
+    });
+});
+
+
+// ============ API ============
+
+function fetchTasks() {
+    $.ajax({
+        url: `${API_BASE}/nhan-vien/viec-cua-toi`,
+        method: "GET",
+        headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+        },
+        success: function (data) {
+            renderTasks(data.danh_sach);
+        },
+        error: function (xhr) {
+            showToast(xhr.responseJSON?.loi || "Lỗi tải dữ liệu", true);
+        }
+    });
+}
+
+function baoHoanThanhAPI(id, onSuccess, onError) {
+
+    const formData = new FormData();
+
+    const note = $('#note-hoan-thanh').val();
+    formData.append("ghi_chu", note);
+
+    const files = $('#upload-after')[0].files;
+    for (let i = 0; i < files.length; i++) {
+        formData.append("images", files[i]);
+    }
+
+    $.ajax({
+        url: `${API_BASE}/nhan-vien/bao-cao/${id}/hoan-thanh`,
+        method: "PUT",
+        headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+        },
+        data: formData,
+        processData: false,
+        contentType: false,
+
+        success: function () {
+            showToast("Đã gửi nghiệm thu!");
+            fetchTasks();
+            closeModal('modal-hoan-thanh');
+
+            // reset form
+            $('#note-hoan-thanh').val('');
+            $('#upload-after').val('');
+
+            if (onSuccess) onSuccess();
+        },
+
+        error: function (xhr) {
+            showToast(xhr.responseJSON?.loi || "Lỗi server", true);
+            if (onError) onError();
+        }
+    });
+}
+
+
+// ============ RENDER ============
+
+function getStatusLabel(status) {
+    switch (status) {
+        case 'dang_xu_ly': return 'Đang xử lý';
+        case 'cho_nghiem_thu': return 'Chờ nghiệm thu';
+        default: return status;
+    }
+}
+
+
+function renderTasks(tasks) {
+    taskMap = {};
+
+    const chuaNhan = $('#list-chua-nhan');
+    const dangLam = $('#list-dang-lam');
+    const daXong = $('#list-da-xong');
+
+    chuaNhan.empty();
+    dangLam.empty();
+    daXong.empty();
+
+    let countChuaNhan = 0;
+    let countDangLam = 0;
+    let countDaXong = 0;
+
+    tasks.forEach(task => {
+
+        taskMap[task.bao_cao_id] = task;
+
+        let actions = "";
+
+        // ===== CHƯA NHẬN =====
+        if (task.trang_thai === 'da_phan_cong') {
+            actions = `
+                <div style="margin-top:10px">
+                    <button class="btn btn-primary"
+                        onclick="event.stopPropagation(); nhanViec(${task.bao_cao_id})">
+                        Nhận
+                    </button>
+                    <button class="btn"
+                        onclick="event.stopPropagation(); tuChoi(${task.bao_cao_id})">
+                        Từ chối
+                    </button>
+                </div>
+            `;
+        }
+
+        // ===== ĐANG LÀM =====
+        else if (task.trang_thai === 'dang_xu_ly') {
+            actions = `
+                <div style="margin-top:10px">
+                    <button class="btn btn-primary btn-hoan-thanh">
+                        Báo hoàn thành
+                    </button>
+                </div>
+            `;
+        }
+
+        // ===== HTML =====
+        const html = `
+            <div class="task-card" data-id="${task.bao_cao_id}" onclick="openTaskDetail(${task.bao_cao_id})">
+                <div class="task-title">${task.tieu_de}</div>
+                <div>${task.dia_chi}</div>
+                <div>${task.loai_su_co}</div>
+                ${actions}
+            </div>
+        `;
+
+        if (task.trang_thai === 'da_phan_cong') {
+            chuaNhan.append(html);
+            countChuaNhan++;
+        }
+        else if (task.trang_thai === 'dang_xu_ly') {
+            dangLam.append(html);
+            countDangLam++;
+        }
+        else if (task.trang_thai === 'cho_nghiem_thu') {
+            daXong.append(html);
+            countDaXong++;
+        }
+    });
+    toggleSection('#section-chua-nhan', countChuaNhan);
+    toggleSection('#section-dang-lam', countDangLam);
+    toggleSection('#section-da-xong', countDaXong);
+
+    $('#stat-moi').text(countChuaNhan);
+    $('#stat-dang').text(countDangLam);
+    $('#stat-done').text(countDaXong);
+
+    $('#menu-count').text(countChuaNhan + countDangLam);
+}
+function toggleSection(selector, count) {
+    if (count === 0) {
+        $(selector).hide();
+    } else {
+        $(selector).show();
+    }
+}
+
+
+// ============ TAB DATA ============
+
+function loadDoneTasks() {
+    const month = $('#filter-month-done').val();
+
+    $.ajax({
+        url: `${API_BASE}/nhan-vien/da-hoan-thanh`,
+        method: "GET",
+        data: { month },
+        headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+        },
+        success: function (data) {
+            const tbody = $('#done-table-body');
+            tbody.empty();
+
+            data.forEach(item => {
+                tbody.append(`
+                    <tr>
+                        <td>${item.bao_cao_id}</td>
+                        <td>${item.tieu_de}</td>
+                        <td>${item.loai_su_co}</td>
+                        <td>${item.ngay_xong || ''}</td>
+                        <td>Hoàn thành</td>
+                    </tr>
+                `);
+            });
+        }
+    });
+}
+
+function loadHistory() {
+    const search = $('#search-history').val();
+    const status = $('#filter-status').val();
+    const month = $('#filter-month-history').val();
+
+    $.ajax({
+        url: `${API_BASE}/nhan-vien/lich-su`,
+        method: "GET",
+        data: { search, status, month },
+        headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+        },
+        success: function (data) {
+            const tbody = $('#history-table-body');
+            tbody.empty();
+
+            data.forEach(item => {
+                tbody.append(`
+                    <tr>
+                        <td>${item.bao_cao_id}</td>
+                        <td>${item.tieu_de}</td>
+                        <td>${item.loai_su_co}</td>
+                        <td>${item.ngay_doi}</td>
+                        <td>${item.trang_thai_moi}</td>
+                        <td>${item.ghi_chu || ''}</td>
+                    </tr>
+                `);
+            });
+        }
+    });
+}
+
+
+// ============ UI ============
+
+function openHoanThanh(id) {
+    currentTaskId = id;
+
+    $('#btn-confirm-hoan')
+        .prop('disabled', false)
+        .text('Gửi');
+
+    openModal('modal-hoan-thanh');
+}
+
+function showToast(msg, isError = false) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast' + (isError ? ' error' : '');
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+function openModal(id) {
+    document.getElementById(id)?.classList.add('open');
+}
+
+function closeModal(id) {
+    document.getElementById(id)?.classList.remove('open');
+}
+
+function tuChoi(id) {
+    if (!confirm("Bạn chắc chắn muốn từ chối?")) return;
+
+    $.ajax({
+        url: `${API_BASE}/nhan-vien/bao-cao/${id}/tu-choi`,
+        method: "PUT",
+        headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+        },
+        success: function () {
+            showToast("Đã từ chối");
+            fetchTasks();
+        }
+    });
+}
+function openTaskDetail(id) {
+    const task = taskMap[id];
+    if (!task) return;
+
+    currentTaskId = task.bao_cao_id;
+
+    $('#mn-title').text(task.tieu_de);
+    $('#mn-addr').text(task.dia_chi);
+    $('#mn-type').text(task.loai_su_co);
+    $('#mn-time').text(task.ngay_tao);
+    $('#mn-attempt').text(task.lan_thu || 1);
+    $('#mn-mota').text(task.mo_ta);
+
+    // ===== LOGIC NÚT =====
+    // reset trước cho chắc
+    $('#btn-confirm-nhan').hide();
+    $('#btn-tu-choi').hide();
+    $('#btn-open-hoan-thanh').hide();
+
+    if (task.trang_thai === 'da_phan_cong') {
+        $('#btn-confirm-nhan').show();
+        $('#btn-tu-choi').show();
+        $('#btn-open-hoan-thanh').hide();
+    } 
+    else if (task.trang_thai === 'dang_xu_ly') {
+        $('#btn-open-hoan-thanh').show();
+        $('#btn-confirm-nhan').hide();
+        $('#btn-tu-choi').hide();
+
+        // thêm dòng này nếu muốn mở modal riêng
+        $('#btn-open-hoan-thanh').off('click').on('click', function () {
+            openHoanThanh(task.bao_cao_id);
+        });
+    }else {
+        $('#btn-confirm-nhan').hide();
+        $('#btn-tu-choi').hide();
+        $('#btn-open-hoan-thanh').hide();
+    }
+
+    openModal('modal-nhan-viec');
+    document.querySelector('.modal')?.scrollTo(0, 0);
+
+}
+function nhanViec(id) {
+    currentTaskId = id;
+
+    $.ajax({
+        url: `${API_BASE}/nhan-vien/bao-cao/${id}/nhan-viec`,
+        method: "PUT",
+        headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+        },
+        success: function () {
+            showToast("Nhận việc thành công");
+            fetchTasks();
+        },
+        error: function (xhr) {
+            showToast(xhr.responseJSON?.loi || "Lỗi", true);
+        }
+    });
+}
+nhanVien.js
+viết lại js cho tôi để thực hiện các chức năng sau

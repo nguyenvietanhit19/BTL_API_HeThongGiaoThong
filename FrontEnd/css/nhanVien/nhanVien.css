@@ -328,6 +328,7 @@ td {
     opacity: 0;
     transform: translateY(50px);
     transition: 0.3s;
+    z-index: 1001;
 }
 
 .toast.show {
@@ -337,6 +338,51 @@ td {
 
 .toast.error {
     background: #ef4444;
+}
+.info-row-modal {
+    display: flex;
+    margin-bottom: 8px;
+}
+
+.info-row-modal .label {
+    width: 120px;   /* chỉnh số này để thẳng hàng */
+    font-weight: 500;
+    color: #555;
+}
+
+.info-row-modal span:last-child {
+    flex: 1;
+}
+
+.modal-header {
+position: relative;
+margin-bottom: 10px;
+}
+
+.modal-title {
+    font-weight: 600;
+    font-size: 16px;
+}
+
+/* NÚT X */
+.modal-close {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+
+    width: 36px;
+    height: 36px;
+
+    border: none;
+    border-radius: 50%;
+    background: #f3f4f6;
+
+    font-size: 22px;
+    cursor: pointer;
+}
+
+.modal-close:hover {
+    background: #e5e7eb;
 }
 
 /* ================= MOBILE ================= */
@@ -357,5 +403,44 @@ td {
 
     .stats-row {
         grid-template-columns: 1fr;
+    }
+    .modal-overlay {
+        align-items: flex-start;
+    }
+
+    .modal {
+        margin-top: 56px; /* đúng chiều cao topbar */
+        height: calc(100% - 56px);
+        border-radius: 0;
+    }
+    .modal-header {
+    position: relative;
+    margin-bottom: 10px;
+    }
+
+    .modal-title {
+        font-weight: 600;
+        font-size: 16px;
+    }
+
+    /* NÚT X */
+    .modal-close {
+        position: absolute;
+        top: -10px;
+        right: -10px;
+
+        width: 36px;
+        height: 36px;
+
+        border: none;
+        border-radius: 50%;
+        background: #f3f4f6;
+
+        font-size: 22px;
+        cursor: pointer;
+    }
+
+    .modal-close:hover {
+        background: #e5e7eb;
     }
 }
