@@ -13,11 +13,16 @@
 
     <div class="main-content">
         <div class="page-header">
-            <h1 id="topbar-title" style="display: none;">GiaoThôngAn - Đội ngũ nhân viên</h1>
+            <h1 id="topbar-title" style="display: none;">GiaoThongAn - Đội ngũ nhân viên</h1>
             <h2>Quản lý Đội ngũ thi công</h2>
             <div class="filters">
-                <input type="text" id="search-staff" placeholder="Tìm theo tên nhân viên...">
-                <button style="padding: 6px 12px; background: #6b46c1; color: white; border: none; border-radius: 4px; cursor: pointer;">+ Thêm nhân viên</button>
+                <input type="text" id="search-staff" placeholder="Tìm theo tên, email, mã nhân viên...">
+                <select id="filter-staff-status">
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="available">Đang rảnh</option>
+                    <option value="busy">Đang thi công</option>
+                    <option value="suspended">Bị đình chỉ</option>
+                </select>
             </div>
         </div>
 
@@ -39,7 +44,7 @@
                     </tr>
                 </thead>
                 <tbody id="table-body-nhan-vien">
-                    </tbody>
+                </tbody>
             </table>
         </div>
     </div>

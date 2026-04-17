@@ -7,10 +7,17 @@
     gap: 20px;
     padding: 24px;
     background-color: #f4f7fe;
-    min-height: 0;
-    overflow: hidden;
-}
 
+    /* 3 Dòng quan trọng nhất để khóa khung */
+    min-height: 0;
+    height: calc(100vh - 60px); /* Vừa khít màn hình, trừ đi thanh Topbar */
+    overflow: hidden !important; /* CẤM TUYỆT ĐỐI cuộn toàn trang */
+}
+.user-detail-panel { /* Hoặc đổi thành class/id thực tế của khung chi tiết bên phải */
+    max-height: calc(100vh - 100px); /* Khống chế chiều cao tối đa */
+    overflow-y: auto; /* Tạo thanh cuộn dọc RỜI cho khung chi tiết này */
+    overflow-x: hidden;
+}
 .page-header {
     flex-shrink: 0;
     display: flex;
@@ -36,7 +43,7 @@
     align-items: center;
 }
 
-.filters input, 
+.filters input,
 .filters select {
     padding: 10px 16px;
     border: 1px solid #e0e5f2;
@@ -48,7 +55,7 @@
     transition: 0.2s;
 }
 
-.filters input:focus, 
+.filters input:focus,
 .filters select:focus {
     border-color: #4318ff;
     box-shadow: 0 0 0 2px rgba(67, 24, 255, 0.1);
@@ -86,13 +93,14 @@
    4. BẢNG DỮ LIỆU (TABLE)
    ========================================================= */
 .table-container {
-    flex: 1;
-    min-height: 0;
+    flex: 1; /* Lệnh Flexbox: Hút cạn toàn bộ không gian trống còn lại của màn hình */
+    min-height: 0; /* Lệnh Flexbox: Chặn không cho nội dung bên trong phình ra phá vỡ khung */
+    overflow-y: auto; /* Nếu bảng có nhiều User quá, thanh cuộn sẽ chỉ xuất hiện TẠI ĐÂY */
+
+    /* Các thuộc tính làm đẹp giữ nguyên */
     background: #fff;
-    border-radius: 16px;
-    padding: 20px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.02);
-    overflow: hidden;
+    border-radius: 8px;
+    border: 1px solid #eaeaea;
 }
 
 table {
@@ -122,6 +130,22 @@ table tbody tr:hover {
     background-color: #fcfcfc;
 }
 
+table tbody tr.state-row-suspended {
+    background: linear-gradient(90deg, rgba(254, 226, 226, 0.8), rgba(255, 255, 255, 1));
+}
+
+table tbody tr.state-row-locked {
+    background: linear-gradient(90deg, rgba(255, 237, 213, 0.85), rgba(255, 255, 255, 1));
+}
+
+table tbody tr.state-row-suspended:hover {
+    background: linear-gradient(90deg, rgba(254, 202, 202, 0.9), rgba(255, 255, 255, 1));
+}
+
+table tbody tr.state-row-locked:hover {
+    background: linear-gradient(90deg, rgba(254, 215, 170, 0.9), rgba(255, 255, 255, 1));
+}
+
 /* =========================================================
    5. NHÃN TRẠNG THÁI (BADGES)
    ========================================================= */
@@ -131,6 +155,36 @@ table tbody tr:hover {
     font-size: 12px;
     font-weight: 600;
     display: inline-block;
+}
+
+.badge.green { background: #dcfce7; color: #15803d; }
+.badge.orange { background: #ffedd5; color: #c2410c; }
+.badge.red { background: #fee2e2; color: #b91c1c; }
+.badge.blue { background: #dbeafe; color: #1d4ed8; }
+.badge.purple { background: #ede9fe; color: #6d28d9; }
+
+.badge.status-suspended {
+    background: #fee2e2;
+    color: #b91c1c;
+    box-shadow: inset 0 0 0 1px #fecaca;
+}
+
+.badge.status-locked {
+    background: #ffedd5;
+    color: #c2410c;
+    box-shadow: inset 0 0 0 1px #fdba74;
+}
+
+.status-card.status-suspended,
+.status-panel.status-suspended {
+    background: linear-gradient(180deg, #fff1f2 0%, #ffffff 100%) !important;
+    border: 1px solid #fecdd3 !important;
+}
+
+.status-card.status-locked,
+.status-panel.status-locked {
+    background: linear-gradient(180deg, #fff7ed 0%, #ffffff 100%) !important;
+    border: 1px solid #fed7aa !important;
 }
 
 .badge-pending { background: #fff8e1; color: #ffb300; }     /* Chờ duyệt */
@@ -161,6 +215,8 @@ table tbody tr:hover {
 
 .btn-view { background: #f4f7fe; color: #4318ff; }
 .btn-view:hover { background: #e2e8f0; }
+.btn-secondary { background: #f4f7fe; color: #4b5563; }
+.btn-secondary:hover { background: #e5e7eb; }
 
 .btn-assign { background: #4318ff; color: #fff; }
 .btn-assign:hover { background: #3311cc; }
@@ -178,7 +234,7 @@ table tbody tr:hover {
 
 /* =========================================================
    MERGED PER-PAGE CSS (tong-quan.css, thong-tin-tai-khoan.css,
-   cho-nghiem-thu.css, quan-ly-user.css, phan-cong.css)
+   cho-nghiem-thu.css, user.css, phan-cong.css)
    Appended so pages can reference only admin.css
    ========================================================= */
 
@@ -327,7 +383,7 @@ table tbody tr:hover {
 .btn-back { background: none; border: none; color: #4318ff; font-size: 14px; font-weight: 600; cursor: pointer; padding: 0; margin-bottom: 20px; display: inline-flex; align-items: center; transition: 0.2s; }
 .btn-back:hover { color: #3311cc; text-decoration: underline; }
 
-/* --- quan-ly-user.css --- */
+/* --- user.css --- */
 /* Cột Người dùng (Avatar + Info) */
 .user-info { display: flex; align-items: center; gap: 12px; }
 .avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; }
@@ -364,8 +420,17 @@ table tbody tr:hover {
 .table-container.panel-open table tbody tr.active-row { opacity: 1; background-color: #f4f2ff; }
 
 .shared-pagination {
-    flex-shrink: 0;
-    margin-top: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 14px 20px; /* Thêm padding 2 bên cho đẹp */
+
+    /* BỔ SUNG 3 DÒNG NÀY */
+    margin-top: -15px; /* Hút thanh phân trang sát lên mép trên, đè lên viền dưới của table */
+    background: #fff; /* Tô màu trắng để nó dính liền vào cái bảng */
+    border-radius: 0 0 8px 8px; /* Bo tròn 2 góc dưới cho khớp với bảng */
 }
 
 /* --- phan-cong.css --- */
@@ -408,9 +473,449 @@ table tbody tr:hover {
     object-fit: cover;
     display: block;
 }
-
+#confirm-reject-btn:disabled {
+    opacity: 0.5;
+    background: #999 !important;
+}
+#confirm-reject-btn:not(:disabled) {
+    opacity: 1;
+    background: #dc3545 !important;
+}
 /* Image viewer modal basic styles */
 #imageViewerModal .iv-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.85); }
 #imageViewerModal .iv-content { position: relative; max-width: 90vw; max-height: 90vh; margin: 40px auto; display: flex; align-items: center; justify-content: center; }
 #imageViewerModal img { max-width: 100%; max-height: 80vh; border-radius: 8px; display: block; }
 #imageViewerModal .iv-close { position: absolute; right: 12px; top: 8px; border: none; background: none; color: #fff; font-size: 28px; cursor: pointer; }
+/* 1. Khóa chiều cao tối đa của vùng thân Panel, cho phép cuộn nội dung bên trong */
+.panel-body {
+    max-height: calc(100vh - 150px); /* Trừ đi không gian của thanh Topbar và Header của Panel */
+    overflow-y: auto;
+}
+
+/* 2. (Tùy chọn) Chỉ làm cuộn riêng phần Nhật ký hành động nếu nó quá dài */
+.log-list {
+    max-height: 450px;
+    overflow-y: auto;
+    padding-right: 5px; /* Để chữ không bị dính sát vào thanh cuộn */
+}
+
+/* 3. Làm đẹp thanh cuộn cho Panel (Tùy chọn) */
+.log-list::-webkit-scrollbar,
+.panel-body::-webkit-scrollbar {
+    width: 6px;
+}
+.log-list::-webkit-scrollbar-thumb,
+.panel-body::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1;
+    border-radius: 4px;
+}
+
+@media (max-width: 992px) {
+    .main-content {
+        gap: 16px;
+        padding: 20px;
+        height: auto;
+        min-height: calc(100vh - 60px);
+        overflow: visible !important;
+    }
+
+    .page-header {
+        margin-bottom: 16px;
+    }
+
+    .page-header h2 {
+        font-size: 22px;
+    }
+
+    .filters {
+        width: 100%;
+        flex-wrap: wrap;
+    }
+
+    .filters input,
+    .filters select {
+        flex: 1 1 220px;
+        min-width: 0;
+    }
+
+    .stats-container {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+        margin-bottom: 16px;
+    }
+
+    .table-section {
+        margin-top: 20px;
+    }
+
+    .table-container {
+        width: 100%;
+        overflow-x: auto;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    table {
+        min-width: 760px;
+    }
+
+    .panel-body,
+    .panel-footer,
+    .report-header,
+    .info-panels,
+    .image-grid,
+    .form-row {
+        grid-template-columns: 1fr;
+        flex-direction: column;
+    }
+
+    .panel-body {
+        gap: 24px;
+        max-height: none;
+    }
+
+    .report-header {
+        gap: 12px;
+    }
+
+    .profile-card,
+    .image-section,
+    .content-section,
+    .panel {
+        padding: 20px;
+    }
+
+    .tab-header {
+        gap: 16px;
+        overflow-x: auto;
+        padding-bottom: 4px;
+    }
+}
+
+@media (max-width: 640px) {
+    .main-content {
+        padding: 16px 14px 20px;
+        gap: 14px;
+    }
+
+    .page-header {
+        gap: 12px;
+    }
+
+    .page-header h2 {
+        font-size: 20px;
+    }
+
+    .filters {
+        gap: 10px;
+    }
+
+    .filters input,
+    .filters select {
+        flex-basis: 100%;
+        width: 100%;
+        padding: 10px 12px;
+    }
+
+    .stats-container,
+    .info-panels,
+    .image-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .card,
+    .profile-card,
+    .image-section,
+    .content-section,
+    .panel {
+        padding: 16px;
+        border-radius: 14px;
+    }
+
+    .card h3,
+    .card h2 {
+        font-size: 24px;
+    }
+
+    table {
+        min-width: 680px;
+    }
+
+    table th,
+    table td {
+        padding: 12px 10px;
+        font-size: 13px;
+    }
+
+    .badge {
+        white-space: nowrap;
+    }
+
+    .btn-action,
+    .assign-select {
+        width: 100%;
+    }
+
+    .actions,
+    .panel-footer {
+        align-items: stretch;
+    }
+
+    .panel-header,
+    .panel-body,
+    .panel-footer {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
+    .info-row {
+        flex-direction: column;
+        gap: 4px;
+        align-items: flex-start;
+    }
+
+    .info-value {
+        text-align: left;
+    }
+
+    .shared-pagination {
+        padding: 12px 14px;
+    }
+
+.shared-pagination button,
+.shared-pagination select {
+    width: 100%;
+}
+}
+
+.admin-toast-root {
+    position: fixed;
+    top: 76px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    z-index: 10020;
+    pointer-events: none;
+}
+
+.admin-toast {
+    width: min(380px, calc(100vw - 32px));
+    display: grid;
+    grid-template-columns: 42px 1fr 24px;
+    gap: 12px;
+    align-items: start;
+    padding: 14px 14px 14px 12px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 20px 45px rgba(15, 23, 42, 0.16);
+    transform: translateY(-10px);
+    opacity: 0;
+    transition: opacity 0.18s ease, transform 0.18s ease;
+    pointer-events: auto;
+}
+
+.admin-toast.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.admin-toast__icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.admin-toast__title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 4px;
+}
+
+.admin-toast__message {
+    font-size: 13px;
+    line-height: 1.5;
+    color: #6b7280;
+}
+
+.admin-toast__close {
+    border: none;
+    background: transparent;
+    color: #9ca3af;
+    font-size: 20px;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.admin-toast--success .admin-toast__icon {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.admin-toast--error .admin-toast__icon {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.admin-toast--info .admin-toast__icon {
+    background: #dbeafe;
+    color: #2563eb;
+}
+
+.admin-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 10010;
+}
+
+.admin-modal__overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.48);
+    backdrop-filter: blur(4px);
+}
+
+.admin-modal__dialog {
+    position: relative;
+    width: min(560px, calc(100vw - 32px));
+    margin: 80px auto;
+    padding: 28px;
+    background: #fff;
+    border-radius: 24px;
+    box-shadow: 0 28px 60px rgba(15, 23, 42, 0.2);
+    border: 1px solid #e5e7eb;
+}
+
+.admin-modal__close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: 10px;
+    background: #f3f4f6;
+    color: #6b7280;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.admin-modal__badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 32px;
+    padding: 0 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    margin-bottom: 16px;
+}
+
+.admin-modal__badge--info {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.admin-modal__badge--success {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.admin-modal__badge--danger {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.admin-modal__title {
+    margin: 0 0 10px;
+    color: #111827;
+    font-size: 24px;
+    font-weight: 700;
+}
+
+.admin-modal__message {
+    margin: 0;
+    color: #6b7280;
+    font-size: 14px;
+    line-height: 1.7;
+}
+
+.admin-modal__field {
+    margin-top: 20px;
+}
+
+.admin-modal__label {
+    display: block;
+    margin-bottom: 10px;
+    color: #1f2937;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.admin-modal__textarea {
+    width: 100%;
+    min-height: 124px;
+    padding: 14px 16px;
+    border: 1px solid #d1d5db;
+    border-radius: 16px;
+    resize: vertical;
+    font: inherit;
+    color: #1f2937;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.admin-modal__textarea:focus {
+    border-color: #4318ff;
+    box-shadow: 0 0 0 4px rgba(67, 24, 255, 0.08);
+}
+
+.admin-modal__hint {
+    margin-top: 8px;
+    color: #9ca3af;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.admin-modal__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 24px;
+}
+
+@media (max-width: 640px) {
+    .admin-toast-root {
+        top: 68px;
+        right: 12px;
+        left: 12px;
+    }
+
+    .admin-toast {
+        width: 100%;
+    }
+
+    .admin-modal__dialog {
+        width: calc(100vw - 24px);
+        margin: 68px auto 24px;
+        padding: 22px 16px 16px;
+        border-radius: 20px;
+    }
+
+    .admin-modal__title {
+        font-size: 20px;
+        padding-right: 36px;
+    }
+
+    .admin-modal__actions {
+        flex-direction: column-reverse;
+    }
+}

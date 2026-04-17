@@ -12,14 +12,17 @@
     <div id="sidebar-container"></div>
 
     <div class="main-content">
+        <h1 id="topbar-title" style="display: none;">GiaoThongAn - Đang xử lý</h1>
+        
         <div class="page-header">
-            <h1 id="topbar-title" style="display: none;">GiaoThôngAn - Đang xử lý</h1>
             <h2>Tiến độ khắc phục sự cố</h2>
+            
             <div class="filters">
-                <input type="text" id="search-progress" placeholder="Tìm kiếm...">
-                <select id="filter-staff">
-                    <option value="">Tất cả nhân viên</option>
-                    </select>
+                <input type="text" class="filter-search" placeholder="Tìm mã BC, địa chỉ...">
+                <select class="filter-category">
+                    <option value="">Tất cả loại sự cố</option>
+                </select>
+                <input type="date" class="filter-date">
             </div>
         </div>
 
@@ -27,7 +30,8 @@
             <table>
                 <thead>
                     <tr>
-                        <th>SỰ CỐ</th>
+                        <th>MÃ BC</th>
+                        <th>SỰ CỐ & ĐỊA CHỈ</th>
                         <th>NHÂN VIÊN PHỤ TRÁCH</th>
                         <th>NGÀY GIAO VIỆC</th>
                         <th>TRẠNG THÁI</th>
@@ -35,10 +39,11 @@
                     </tr>
                 </thead>
                 <tbody id="table-body-dang-xu-ly">
-                    </tbody>
+                </tbody>
             </table>
         </div>
     </div>
+
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="/FrontEnd/js/api.js"></script>
 <script src="/FrontEnd/js/pagination.js"></script>

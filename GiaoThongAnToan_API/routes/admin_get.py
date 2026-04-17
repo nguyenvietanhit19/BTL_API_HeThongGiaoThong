@@ -60,11 +60,25 @@ def dashboard():
         # 🔥 3. FILTER LIST
         # ========================
         trang_thai = request.args.get('trang_thai')
-        keyword = request.args.get('keyword')
+        keyword = (request.args.get('keyword') or '').strip()
+        loai_su_co_id = request.args.get('loai_su_co_id')
+        ngay_loc = request.args.get('ngay_loc')
+        thang = request.args.get('thang')
+        nam = request.args.get('nam')
 
         page = int(request.args.get('page', 1))
         limit = int(request.args.get('limit', 10))
         offset = (page - 1) * limit
+
+        ngay_hien_thi_expr = """
+            COALESCE(
+                (SELECT MAX(ls.ngay_doi)
+                 FROM lich_su_trang_thai ls
+                 WHERE ls.bao_cao_id = bc.bao_cao_id
+                   AND ls.trang_thai_moi = bc.trang_thai),
+                bc.ngay_tao
+            )
+        """
 
         query = """
             FROM bao_cao bc
@@ -81,8 +95,29 @@ def dashboard():
             params.append(trang_thai)
 
         if keyword:
-            query += " AND bc.tieu_de LIKE ?"
-            params.append(f"%{keyword}%")
+            query += """
+                AND (
+                    bc.tieu_de LIKE ?
+                    OR CAST(bc.bao_cao_id AS VARCHAR(50)) LIKE ?
+                )
+            """
+            keyword_like = f"%{keyword}%"
+            params.extend([keyword_like, keyword_like])
+
+        if loai_su_co_id:
+            query += " AND bc.loai_su_co_id = ?"
+            params.append(loai_su_co_id)
+
+        if ngay_loc:
+            query += f" AND CAST({ngay_hien_thi_expr} AS DATE) = ?"
+            params.append(ngay_loc)
+        else:
+            if thang:
+                query += f" AND MONTH({ngay_hien_thi_expr}) = ?"
+                params.append(thang)
+            if nam:
+                query += f" AND YEAR({ngay_hien_thi_expr}) = ?"
+                params.append(nam)
 
         # 🔹 count
         cursor.execute("SELECT COUNT(*) " + query, params)
@@ -98,9 +133,10 @@ def dashboard():
                 nd.ho_ten AS nguoi_bao_cao,
                 bc.ngay_tao,
                 bc.trang_thai,
+                bc.nhan_vien_id,
                 nv.ho_ten AS nhan_vien_phu_trach,
                 -- last time this report entered its current status
-                (SELECT MAX(ls.ngay_doi) FROM lich_su_trang_thai ls WHERE ls.bao_cao_id = bc.bao_cao_id AND ls.trang_thai_moi = bc.trang_thai) AS ngay_trang_thai,
+                {ngay_hien_thi_expr} AS ngay_trang_thai,
                 -- last note associated with this status change (if any)
                 (SELECT TOP 1 ls2.ghi_chu FROM lich_su_trang_thai ls2 WHERE ls2.bao_cao_id = bc.bao_cao_id AND ls2.trang_thai_moi = bc.trang_thai ORDER BY ls2.ngay_doi DESC) AS ghi_chu_trang_thai
             {query}

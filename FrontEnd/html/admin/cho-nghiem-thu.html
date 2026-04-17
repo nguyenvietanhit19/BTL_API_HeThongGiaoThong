@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>GiaoThôngAn - Chờ nghiệm thu</title>
+    <title>GiaoThongAn - Chờ nghiệm thu</title>
     <link rel="stylesheet" href="/FrontEnd/css/common.css">
     <link rel="stylesheet" href="/FrontEnd/css/admin/admin.css">
 </head>
@@ -11,33 +11,32 @@
     <div id="sidebar-container"></div>
 
     <div class="main-content">
+        <h1 id="topbar-title" style="display: none;">GiaoThongAn - Chờ nghiệm thu</h1>
+        
         <div id="view-list">
-            <div class="page-header" style="margin-bottom: 20px;">
-                <h2 style="font-size: 18px; font-weight: 600;">Danh sách chờ nghiệm thu</h2>
+            <div class="page-header">
+                <h2>Danh sách chờ nghiệm thu</h2>
+                <div class="filters">
+                    <input type="text" class="filter-search" placeholder="Tìm theo mã BC hoặc tiêu đề...">
+                    <select class="filter-category">
+                        <option value="">Tất cả loại sự cố</option>
+                    </select>
+                    <input type="date" class="filter-date">
+                </div>
             </div>
+            
             <div class="table-container">
-                <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 8px; border: 1px solid #eaeaea;">
+                <table>
                     <thead>
-                        <tr style="background: #fcfcfc; text-align: left; border-bottom: 1px solid #f0f0f0;">
-                                <th style="padding: 16px; font-size: 12px; color: #777;">MÃ BC</th>
-                                <th style="padding: 16px; font-size: 12px; color: #777;">SỰ CỐ</th>
-                                <th style="padding: 16px; font-size: 12px; color: #777;">NHÂN VIÊN XỬ LÝ</th>
-                                <th style="padding: 16px; font-size: 12px; color: #777;">THỜI GIAN HOÀN THÀNH</th>
-                                <th style="padding: 16px; font-size: 12px; color: #777;">HÀNH ĐỘNG</th>
+                        <tr>
+                            <th>MÃ BC</th>
+                            <th>SỰ CỐ & ĐỊA CHỈ</th>
+                            <th>NHÂN VIÊN XỬ LÝ</th>
+                            <th>NGÀY HOÀN THÀNH</th>
+                            <th>HÀNH ĐỘNG</th>
                         </tr>
                     </thead>
                     <tbody id="table-body-nghiem-thu">
-                        <tr class="report-row" style="cursor: pointer; border-bottom: 1px solid #f0f0f0; transition: 0.2s;">
-                            <td style="padding: 16px; font-weight: 600;"></td>
-                            <td style="padding: 16px;"></td>
-                            <td style="padding: 16px;"></td>
-                            <td style="padding: 16px;"></td>
-                            <td style="padding: 16px;">
-                                <button class="btn-action btn-accept" data-id="5">Duyệt</button> 
-                                <button class="btn-action btn-reject-nt" data-id="5">Không duyệt</button>
-                                <button class="btn-action btn-view" data-id="5">Xem</button>
-                            </td>
-                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -46,7 +45,7 @@
         <div id="view-detail" style="display: none;">
             <button id="btn-back-to-list" class="btn-back">← Quay lại danh sách</button>
             
-            <div class="breadcrumb">Chờ nghiệm thu › <strong id="bc-breadcrumb">Báo cáo #5...</strong></div>
+            <div class="breadcrumb">Chờ nghiệm thu › <strong id="bc-breadcrumb">...</strong></div>
             <div class="report-header">
                 <div class="report-title"><h2 id="bc-tieu-de">...</h2><p id="bc-dia-chi-time">...</p></div>
                 <div class="status-badge" id="bc-trang-thai">...</div>
@@ -59,7 +58,7 @@
                     <h3>THÔNG TIN BÁO CÁO</h3>
                     <div class="info-list">
                         <div class="info-row"><span class="info-label">Loại sự cố</span><span class="info-value" id="info-loai">...</span></div>
-                        </div>
+                    </div>
                 </div>
                 <div class="panel">
                     <h3>THÔNG TIN XỬ LÝ</h3>
@@ -85,6 +84,7 @@
             </div>
         </div>
     </div>
+    
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="/FrontEnd/js/api.js"></script>
 <script src="/FrontEnd/js/pagination.js"></script>

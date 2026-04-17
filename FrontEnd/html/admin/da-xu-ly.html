@@ -12,12 +12,15 @@
     <div id="sidebar-container"></div>
 
     <div class="main-content">
+        <h1 id="topbar-title" style="display: none;">GiaoThôngAn - Lịch sử đã xử lý</h1>
         <div class="page-header">
-            <h1 id="topbar-title" style="display: none;">GiaoThôngAn - Lịch sử đã xử lý</h1>
             <h2>Hồ sơ sự cố đã hoàn tất</h2>
             <div class="filters">
-                <input type="month" id="filter-month">
-                <button class="btn-export" style="padding: 6px 12px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;">Xuất Excel</button>
+                <input type="text" class="filter-search" placeholder="Tìm mã BC, nội dung...">
+                <select class="filter-category">
+                    <option value="">Tất cả loại sự cố</option>
+                </select>
+                <input type="date" class="filter-date">
             </div>
         </div>
 

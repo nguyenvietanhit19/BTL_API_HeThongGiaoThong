@@ -2,97 +2,13 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="refresh" content="0; url=user.html">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quản lý tài khoản - Giao Thông Cộng Đồng</title>
-    <link rel="stylesheet" href="/FrontEnd/css/common.css">
-    <link rel="stylesheet" href="/FrontEnd/css/admin/admin.css">
+    <title>Chuyen huong quan ly tai khoan</title>
 </head>
 <body>
-    <div id="topbar-container"></div>
-    <div id="sidebar-container"></div>
-
-    <div class="main-content">
-        <div class="page-header">
-            <h1 id="topbar-title" style="display: none;">GiaoThôngAn - Quản lý tài khoản</h1>
-            <h2>Quản lý tài khoản</h2>
-            <div class="filters">
-                <input type="text" id="search-user" placeholder="Tìm theo tên, email..">
-                <select id="filter-role">
-                    <option value="">Tất cả vai trò</option>
-                    <option value="Admin">Admin</option>
-                    <option value="User">User</option>
-                </select>
-                <select id="filter-status">
-                    <option value="">Tất cả trạng thái</option>
-                    <option value="active">Đang hoạt động</option>
-                    <option value="locked">Đã khoá</option>
-                </select>
-            </div>
-        </div>
-
-        <div class="stats-container">
-            <div class="card purple"><h3 id="stat-admin">...</h3><p>Admin</p></div>
-            <div class="card blue"><h3 id="stat-user">...</h3><p>User</p></div>
-            <div class="card green"><h3 id="stat-active">...</h3><p>Đang hoạt động</p></div>
-            <div class="card red"><h3 id="stat-locked">...</h3><p>Đã khoá</p></div>
-        </div>
-
-        <div class="table-container" id="mainTableContainer">
-            <table>
-                <thead>
-                    <tr>
-                        <th>NGƯỜI DÙNG</th>
-                        <th>VAI TRÒ</th>
-                        <th>TRẠNG THÁI</th>
-                        <th>NGÀY TẠO</th>
-                        <th>HÀNH ĐỘNG</th>
-                    </tr>
-                </thead>
-                <tbody id="table-body-users">
-                    </tbody>
-            </table>
-        </div>
-
-        <div class="user-detail-panel" id="userDetailPanel">
-            <div class="panel-header">
-                <h3 id="detailNameHeader">Chi tiết tài khoản</h3>
-                <button class="close-btn" id="closePanelBtn">&times;</button>
-            </div>
-            
-            <div class="panel-body">
-                <div class="info-column">
-                    <h4>THÔNG TIN TÀI KHOẢN</h4>
-                    <div class="info-list">
-                        <div class="info-row"><span class="info-label">Họ tên</span><span class="info-value" id="valName">...</span></div>
-                        <div class="info-row"><span class="info-label">Email</span><span class="info-value" id="valEmail">...</span></div>
-                        <div class="info-row"><span class="info-label">Vai trò</span><span class="info-value" id="valRole">...</span></div>
-                        <div class="info-row"><span class="info-label">Trạng thái</span><span class="info-value" id="valStatus">...</span></div>
-                        <div class="info-row"><span class="info-label">Ngày đăng ký</span><span class="info-value" id="valDate">...</span></div>
-                        <div class="info-row"><span class="info-label">Số báo cáo đã gửi</span><span class="info-value" id="valReportCount">...</span></div>
-                        <div class="info-row"><span class="info-label">Báo cáo hợp lệ</span><span class="info-value" id="valValidReports">...</span></div>
-                    </div>
-                </div>
-
-                <div class="log-column">
-                    <h4>NHẬT KÝ HÀNH ĐỘNG LIÊN QUAN</h4>
-                    <div class="log-list" id="user-log-list">
-                        </div>
-                </div>
-            </div>
-
-            <div class="panel-footer" id="detailPanelFooter">
-                </div>
-        </div>
-    </div>
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<script src="/FrontEnd/js/api.js"></script>
-<script src="/FrontEnd/js/pagination.js"></script>
-<script src="/FrontEnd/js/pages/tongquan.js"></script>
-<script src="/FrontEnd/js/pages/reports.js"></script>
-<script src="/FrontEnd/js/pages/assignment.js"></script>
-<script src="/FrontEnd/js/pages/users.js"></script>
-<script src="/FrontEnd/js/pages/nhanvien.js"></script>
-<script src="/FrontEnd/js/pages/profile.js"></script>
-<script src="/FrontEnd/js/layout.js"></script>
+<script>
+    window.location.replace('user.html');
+</script>
 </body>
 </html>
