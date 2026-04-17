@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>GiaoThông AnToàn — Bản đồ</title>
+
+  <!-- Mapbox GL JS -->
+  <link href="https://api.mapbox.com/mapbox-gl-js/v3.20.0/mapbox-gl.css" rel="stylesheet" />
+  <script src="https://api.mapbox.com/mapbox-gl-js/v3.20.0/mapbox-gl.js"></script>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Lexend:wght@300;400;500;600&display=swap"
+    rel="stylesheet" />
+
+  <!-- html/user/ban_do2.html → css/user/ban_do2.css -->
+  <link rel="stylesheet" href="../../css/user/ban_do2.css" />
+
+  <!-- Đọc EXIF GPS từ ảnh ở frontend -->
+  <script src="https://cdn.jsdelivr.net/npm/exifr/dist/full.umd.cjs"></script>
+
+  <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.3.1/mapbox-gl-directions.js"></script>
+  <link href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.3.1/mapbox-gl-directions.css" rel="stylesheet">
+
+</head>
+
+<body>
+
+  <!-- ===== HEADER ===== -->
+  <header class="header" id="header">
+    <div class="header-left">
+      <div class="logo">
+        <span class="logo-icon">🚦</span>
+        <span class="logo-text">GiaoThông<strong>AnToàn</strong></span>
+      </div>
+    </div>
+    <div class="header-tabs">
+      <button class="tab-btn active" data-tab="map" onclick="switchTab('map')">
+        <span class="tab-icon">🗺️</span>
+        <span class="tab-label">Bản đồ</span>
+      </button>
+      <button class="tab-btn" data-tab="my-reports" onclick="switchTab('my-reports')">
+        <span class="tab-icon">📋</span>
+        <span class="tab-label">Của tôi</span>
+        <span class="badge" id="badge-count" style="display:none">0</span>
+      </button>
+    </div>
+
+   
+    <div class="header-right">
+      <!-- User button -->
+      <div class="user-btn-wrap" id="user-btn-wrap" onclick="toggleUserMenu()">
+        <span class="avatar" id="avatar-text">U</span>
+        <div class="user-btn-info">
+          <span class="user-btn-name" id="user-name-display">Người dùng</span>
+          <span class="user-btn-id" id="user-id-display">#0000</span>
+        </div>
+        <span class="user-btn-arrow">▾</span>
+      </div>
+
+      <!-- Dropdown -->
+      <div class="user-dropdown" id="user-dropdown">
+        <div class="dropdown-item" onclick="moThongTin()">
+          👤 Thông tin tài khoản
+        </div>
+        <div class="dropdown-divider"></div>
+        <div class="dropdown-item danger" onclick="dangXuat()">
+          🚪 Đăng xuất
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal thông tin người dùng -->
+    <div class="modal-overlay" id="thong-tin-overlay" onclick="dongThongTin()"></div>
+    <div class="modal" id="thong-tin-modal">
+      <div class="modal-header">
+        <h3>👤 Thông tin tài khoản</h3>
+        <button class="modal-close" onclick="dongThongTin()">✕</button>
+      </div>
+      <div class="modal-body" id="thong-tin-content">
+        <div class="loading-state">
+          <div class="spinner"></div>
+        </div>
+      </div>
+    </div>
+    
+
+  </header>
+
+  <!-- ===== TAB: BẢN ĐỒ ===== -->
+  <div class="tab-content active" id="tab-map">
+
+    <!-- Map container -->
+    <div id="map"></div>
+
+    <!-- Filter chips -->
+    <div class="filter-bar" id="filter-bar">
+      <button class="chip active" data-loai="0" onclick="filterByLoai(0, this)">🔍 Tất cả</button>
+      <button class="chip" data-loai="1" onclick="filterByLoai(1, this)">🕳️ Ổ gà</button>
+      <button class="chip" data-loai="2" onclick="filterByLoai(2, this)">💧 Ngập nước</button>
+      <button class="chip" data-loai="3" onclick="filterByLoai(3, this)">🚦 Đèn hỏng</button>
+      <button class="chip" data-loai="4" onclick="filterByLoai(4, this)">⚠️ Tai nạn</button>
+      <button class="chip" data-loai="5" onclick="filterByLoai(5, this)">🚧 Vật cản</button>
+      <button class="chip" data-loai="6" onclick="filterByLoai(6, this)">❓ Khác</button>
+    </div>
+
+    <!-- Location status -->
+    <div class="location-bar" id="location-bar">
+      <span class="pulse-dot"></span>
+      <span id="location-text">Đang xác định vị trí...</span>
+    </div>
+
+    <!-- FAB: Báo cáo mới -->
+    <button class="fab" id="fab-report" onclick="openReportModal()" title="Gửi báo cáo mới">
+      <span class="fab-icon">＋</span>
+      <span class="fab-label">Báo cáo</span>
+    </button>
+
+  </div>
+
+  <!-- ===== TAB: BÁO CÁO CỦA TÔI ===== -->
+  <div class="tab-content" id="tab-my-reports">
+    <div class="my-reports-container">
+      <div class="my-reports-header">
+        <h2>Báo cáo của tôi</h2>
+        <button class="btn-refresh" onclick="loadMyReports()">↻ Làm mới</button>
+      </div>
+      <div id="my-reports-list">
+        <div class="loading-state">
+          <div class="spinner"></div>
+          <p>Đang tải...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== PANEL: CHI TIẾT BÁO CÁO ===== -->
+  <div class="slide-panel" id="detail-panel">
+    <div class="panel-handle"></div>
+    <button class="panel-close" onclick="closeDetailPanel()">✕</button>
+    <div class="panel-content" id="detail-content">
+      <!-- Dynamic content injected by JS -->
+    </div>
+  </div>
+  <div class="panel-overlay" id="panel-overlay" onclick="closeDetailPanel()"></div>
+
+  <!-- ===== MODAL: GỬI BÁO CÁO MỚI ===== -->
+  <div class="modal-overlay" id="report-modal-overlay" onclick="closeReportModal()"></div>
+  <div class="modal" id="report-modal">
+    <div class="modal-header">
+      <h3>📍 Gửi báo cáo sự cố</h3>
+      <button class="modal-close" onclick="closeReportModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <form id="report-form" onsubmit="submitReport(event)">
+
+        <div class="form-group">
+          <label>Loại sự cố <span class="required">*</span></label>
+          <div class="loai-grid" id="loai-grid">
+            <button type="button" class="loai-btn" data-id="1" onclick="selectLoai(1, this)">🕳️<br />Ổ gà</button>
+            <button type="button" class="loai-btn" data-id="2" onclick="selectLoai(2, this)">💧<br />Ngập nước</button>
+            <button type="button" class="loai-btn" data-id="3" onclick="selectLoai(3, this)">🚦<br />Đèn hỏng</button>
+            <button type="button" class="loai-btn" data-id="4" onclick="selectLoai(4, this)">⚠️<br />Tai nạn</button>
+            <button type="button" class="loai-btn" data-id="5" onclick="selectLoai(5, this)">🚧<br />Vật cản</button>
+            <button type="button" class="loai-btn" data-id="6" onclick="selectLoai(6, this)">❓<br />Khác</button>
+          </div>
+          <input type="hidden" id="selected-loai" name="loai_su_co_id" />
+        </div>
+
+        <div class="form-group">
+          <label for="tieu-de">Tiêu đề <span class="required">*</span></label>
+          <input type="text" id="tieu-de" placeholder="Mô tả ngắn sự cố..." maxlength="150" required />
+        </div>
+
+        <div class="form-group">
+          <label for="mo-ta">Mô tả chi tiết</label>
+          <textarea id="mo-ta" placeholder="Thông tin thêm về sự cố..." rows="3"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="dia-chi">Địa chỉ</label>
+          <input type="text" id="dia-chi" placeholder="Ví dụ: 123 Đường Cầu Giấy, Hà Nội" />
+        </div>
+
+        <div class="form-group">
+          <label>Vị trí GPS <span class="required">*</span></label>
+          <div class="gps-display" id="gps-display">
+            <span class="pulse-dot"></span>
+            <span id="gps-text">Đang lấy vị trí...</span>
+          </div>
+          <input type="hidden" id="vi-do" />
+          <input type="hidden" id="kinh-do" />
+        </div>
+
+        <div class="form-group">
+          <label>Ảnh hiện trường <span class="required">*</span></label>
+          <div class="upload-area" id="upload-area" onclick="document.getElementById('anh-input').click()">
+            <span class="upload-icon">📷</span>
+            <span>Nhấn để chọn ảnh</span>
+            <span class="upload-hint">JPG, PNG — tối đa 5MB</span>
+          </div>
+          <input type="file" id="anh-input" accept="image/jpeg,image/png" multiple style="display:none"
+            onchange="previewImages(event)" />
+          <div class="image-preview-grid" id="image-preview-grid"></div>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn-secondary" onclick="closeReportModal()">Huỷ</button>
+          <button type="submit" class="btn-primary" id="submit-btn">
+            <span id="submit-text">🚀 Gửi báo cáo</span>
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+  <!-- ===== TOAST NOTIFICATION ===== -->
+  <div class="toast" id="toast"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <!-- html/user/ban_do2.html → js/user/ban_do2.js -->
+  <script src="../../js/user/ban_do2.js"></script>
+</body>
+
+</html>

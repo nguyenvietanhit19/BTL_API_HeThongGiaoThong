@@ -6,6 +6,7 @@ let currentTaskId = null;
 
 // ============ INIT ============
 $(document).ready(function () {
+     // ← chỉ nhân viên mới vào được
 
     const token = localStorage.getItem('token');
 
@@ -18,7 +19,7 @@ $(document).ready(function () {
     fetchTasks();
 
     // ===== HIỂN THỊ TÊN =====
-    const name = localStorage.getItem("user_name");
+    const name = localStorage.getItem("ho_ten");
     if (name) $('#user-name').text(name);
 
     // ===== USER DROPDOWN (FIX CLICK + MOBILE) =====
@@ -96,7 +97,7 @@ $(document).ready(function () {
     // ===== LOGOUT =====
     $('#logout-btn').click(function () {
         localStorage.removeItem("token");
-        window.location.href = "/FrontEnd/html/login.html";
+        window.location.href = "/FrontEnd/html/dang_nhap/dang_nhap.html";
     });
 });
 

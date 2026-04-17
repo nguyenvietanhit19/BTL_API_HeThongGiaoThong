@@ -145,21 +145,19 @@
                     </div>
 
                     <div class="form-group-bc">
-                        <label class="form-label-bc">Mô tả chi tiết</label>
-                        <textarea class="form-textarea" id="bc-mo-ta"
-                            placeholder="Ổ gà sâu khoảng 15cm, rộng 30cm..."></textarea>
-                    </div>
-
-                    <div class="form-group-bc">
-                        <label class="form-label-bc">Ảnh hiện trường</label>
+                        <label class="form-label-bc">Ảnh hiện trường <span style="color:var(--do)">*</span></label>
                         <div class="upload-zone" onclick="$('#bc-anh').click()">
                             <div class="upload-icon">📷</div>
                             <div class="upload-text">Nhấn để chụp ảnh hoặc chọn từ thư viện</div>
+                            <div style="font-size:11px;color:rgba(44,44,42,.4);margin-top:4px;">Có thể chọn nhiều ảnh
+                            </div>
                         </div>
-                        <input type="file" id="bc-anh" accept="image/*" style="display:none" onchange="xemAnh(this)">
-                        <div id="bc-preview" style="display:none; margin-top:10px">
-                            <img id="bc-preview-img"
-                                style="width:100%;border-radius:10px;max-height:160px;object-fit:cover">
+                        <!-- multiple cho phép chọn nhiều ảnh -->
+                        <input type="file" id="bc-anh" accept="image/*" multiple style="display:none"
+                            onchange="xemAnh(this)">
+                        <!-- Preview nhiều ảnh -->
+                        <div id="bc-preview" style="display:none;margin-top:10px;">
+                            <div id="bc-preview-list" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
                         </div>
                     </div>
 
