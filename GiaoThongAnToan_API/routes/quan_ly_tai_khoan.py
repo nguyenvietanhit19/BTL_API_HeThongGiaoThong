@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify
 from middleware.auth_middleware import can_access
 from db import get_db
 from datetime import datetime
+from routes.suspension_utils import release_staff_assignments
 
 quan_ly_bp = Blueprint('quan_ly', __name__)
 
@@ -331,6 +332,20 @@ def go_dinh_chi(id):
                 return jsonify({'loi': f'{ho_ten} dang bi dinh chi roi'}), 400
 
             cursor.execute(
+                """
+                SELECT COUNT(*)
+                FROM bao_cao
+                WHERE nhan_vien_id = ?
+                  AND trang_thai = 'dang_xu_ly'
+                """,
+                (id,)
+            )
+            dang_xu_ly_count = cursor.fetchone()[0]
+
+            if dang_xu_ly_count > 0:
+                return jsonify({'loi': f'không thể đình chỉ nhân viên do nhân viên {ho_ten} đang có báo cáo đang xử lý'}), 400
+
+            cursor.execute(
                 "UPDATE nguoi_dung SET bi_dinh_chi = 1, ly_do_dinh_chi = ? WHERE nguoi_dung_id = ?",
                 (ly_do, id)
             )
@@ -340,6 +355,13 @@ def go_dinh_chi(id):
                    (admin_id, nguoi_dung_id, hanh_dong, gia_tri_cu, gia_tri_moi)
                    VALUES (?, ?, 'dinh_chi', 'False', 'True')""",
                 (request.nguoi_dung_id, id)
+            )
+
+            release_staff_assignments(
+                cursor,
+                id,
+                request.nguoi_dung_id,
+                'Nhan vien bi dinh chi, bao cao duoc tra ve trang thai da duyet'
             )
 
             conn.commit()

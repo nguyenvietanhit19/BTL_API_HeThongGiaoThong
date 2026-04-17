@@ -3,7 +3,7 @@
    Mapbox GL JS v3.20.0 + Standard Style
    ============================================= */
 
-const MAPBOX_TOKEN = 'mytoken';
+const MAPBOX_TOKEN = 'my_mapbox_token_here'; // ← thay bằng token của bạn
 mapboxgl.accessToken = MAPBOX_TOKEN;
 
 // ===== STATE =====

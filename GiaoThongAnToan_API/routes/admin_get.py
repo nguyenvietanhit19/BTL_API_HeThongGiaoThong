@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from db import get_db
-from .auth import can_access
+from middleware.auth_middleware import can_access
 
 admin_get_bp = Blueprint('admin_get_bp', __name__)
 

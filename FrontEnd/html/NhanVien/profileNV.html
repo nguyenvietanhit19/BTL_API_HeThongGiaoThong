@@ -1,52 +1,69 @@
-<div class="container" style="max-width: 700px; margin: auto; padding: 20px;">
+<div class="profile-page">
+    <section class="profile-hero">
+        <div class="profile-hero__avatar" id="profile-avatar">N</div>
+        <div class="profile-hero__content">
+            <p class="profile-hero__eyebrow">Tài khoản nhân viên</p>
+            <h2 id="display-name">Đang tải...</h2>
+            <div class="profile-hero__meta">
+                <span class="profile-role-badge" id="profile-role">Nhân viên</span>
+                <span id="profile-date">Thành viên từ --/--/----</span>
+            </div>
+        </div>
+    </section>
 
-    <h2>Thông tin tài khoản</h2>
+    <div class="profile-grid">
+        <section class="profile-card">
+            <div class="profile-card__header">
+                <div>
+                    <h3>Thông tin cá nhân</h3>
+                    <p>Dữ liệu tài khoản hiện tại của bạn.</p>
+                </div>
+            </div>
 
-    <div style="margin-top:20px;">
-        <p><strong>Họ tên:</strong> <span id="display-name"></span></p>
-        <p><strong>Email:</strong> <span id="profile-email"></span></p>
-        <p><strong>Vai trò:</strong> <span id="profile-role"></span></p>
-        <p><strong>Ngày tạo:</strong> <span id="profile-date"></span></p>
+            <div class="profile-info-list">
+                <div class="profile-info-row">
+                    <span class="profile-info-row__label">Họ và tên</span>
+                    <span class="profile-info-row__value" id="profile-name-text">--</span>
+                </div>
+                <div class="profile-info-row">
+                    <span class="profile-info-row__label">Email</span>
+                    <span class="profile-info-row__value" id="profile-email">--</span>
+                </div>
+                <div class="profile-info-row">
+                    <span class="profile-info-row__label">Vai trò</span>
+                    <span class="profile-info-row__value" id="profile-role-text">--</span>
+                </div>
+                <div class="profile-info-row">
+                    <span class="profile-info-row__label">Mã người dùng</span>
+                    <span class="profile-info-row__value" id="profile-user-id">--</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="profile-card">
+            <div class="profile-card__header">
+                <div>
+                    <h3>Cập nhật thông tin</h3>
+                    <p>Bạn có thể thay đổi tên hiển thị dùng trong hệ thống.</p>
+                </div>
+            </div>
+
+            <form id="form-update-profile" class="profile-form">
+                <div class="profile-field">
+                    <label for="full-name">Họ và tên</label>
+                    <input type="text" id="full-name" placeholder="Nhập họ và tên">
+                </div>
+
+                <div class="profile-field">
+                    <label for="profile-email-readonly">Email</label>
+                    <input type="text" id="profile-email-readonly" readonly>
+                </div>
+
+                <div class="profile-actions">
+                    <button type="submit" class="profile-btn profile-btn--primary">Lưu thay đổi</button>
+                </div>
+            </form>
+        </section>
     </div>
-
-    <hr style="margin:30px 0;">
-
-    <h3>Cập nhật thông tin</h3>
-
-    <form id="form-update-profile">
-        <div style="margin-bottom:10px;">
-            <label>Họ tên</label><br>
-            <input type="text" id="full-name" style="width:100%; padding:8px;">
-        </div>
-
-        <button type="submit">Lưu thay đổi</button>
-    </form>
-
-    <hr style="margin:30px 0;">
-
-    <h3>Đổi mật khẩu</h3>
-
-    <form id="form-change-password">
-        <div style="margin-bottom:10px;">
-            <label>Mật khẩu cũ</label><br>
-            <input type="password" id="old-pass">
-        </div>
-
-        <div style="margin-bottom:10px;">
-            <label>Mật khẩu mới</label><br>
-            <input type="password" id="new-pass">
-        </div>
-
-        <div style="margin-bottom:10px;">
-            <label>Xác nhận mật khẩu</label><br>
-            <input type="password" id="confirm-pass">
-        </div>
-
-        <button type="submit">Đổi mật khẩu</button>
-    </form>
-
-    <hr style="margin:30px 0;">
-
-    <button id="btn-back">← Quay lại</button>
 
 </div>

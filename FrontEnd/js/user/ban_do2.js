@@ -7,7 +7,7 @@
 
 /* ---------- CONFIG ---------- */
 const API_BASE = 'http://localhost:5000';         // Sửa thành URL deploy nếu cần
-const MAPBOX_TOKEN = 'mytoken';
+const MAPBOX_TOKEN = 'my_mapbox_token_here'; // ← thay bằng token của bạn
 const BAN_KINH_KM = 10;
 
 /* ---------- STATE ---------- */

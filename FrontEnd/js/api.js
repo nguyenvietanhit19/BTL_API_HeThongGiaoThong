@@ -2,18 +2,21 @@
     'use strict';
 
     const API_BASE = 'http://127.0.0.1:5000';
-    const HARDCODED_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuZ3VvaV9kdW5nX2lkIjoxLCJ2YWlfdHJvIjoiYWRtaW4iLCJleHAiOjE3NzY5NjAzMzR9.8p3F8PgbdELqrTsses5iNGblnpssj3J5-iID7VkuLYM';
 
     window.getToken = function() {
-        if (HARDCODED_TOKEN && HARDCODED_TOKEN !== 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuZ3VvaV9kdW5nX2lkIjoxLCJ2YWlfdHJvIjoiYWRtaW4iLCJleHAiOjE3NzY5NjAyODN9.6Kv7GFn0Cy32qYZ4ekN6bE8uEIZ9pcFzKtHCrcZUHDA') {
-            return HARDCODED_TOKEN;
-        }
         return localStorage.getItem('token');
     };
 
     window.setToken = function(t) {
         if (t) localStorage.setItem('token', t);
         else localStorage.removeItem('token');
+    };
+
+    window.clearAuthStorage = function() {
+        window.setToken(null);
+        localStorage.removeItem('vai_tro');
+        localStorage.removeItem('ho_ten');
+        localStorage.removeItem('user_name');
     };
 
     window.PREFERRED_TZ_OFFSET = 0;
@@ -253,6 +256,24 @@
                 else $confirm.trigger('focus');
             }, 30);
         });
+    };
+
+    window.confirmLogout = async function(options) {
+        options = options || {};
+        const result = await window.openAdminActionModal({
+            type: 'danger',
+            badge: options.badge || 'Đăng xuất',
+            title: options.title || 'Xác nhận đăng xuất',
+            message: options.message || 'Bạn sẽ cần đăng nhập lại để tiếp tục sử dụng hệ thống. Bạn có chắc chắn muốn đăng xuất không?',
+            confirmText: options.confirmText || 'Đăng xuất',
+            cancelText: options.cancelText || 'Ở lại'
+        });
+
+        if (!result.confirmed) return false;
+
+        window.clearAuthStorage();
+        window.location.href = options.redirectUrl || '/FrontEnd/html/dang_nhap/dang_nhap.html';
+        return true;
     };
 
     window.showApiError = function(err) {

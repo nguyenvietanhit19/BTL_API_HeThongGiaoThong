@@ -1,11 +1,15 @@
-from flask import Blueprint, request, jsonify
-from middleware.auth_middleware import can_access
+from datetime import datetime
+
+import cloudinary.uploader
+from flask import Blueprint, jsonify, request
+
 from db import get_db
+from middleware.auth_middleware import can_access
+from routes.suspension_utils import release_staff_assignments
 
 nhan_vien_bp = Blueprint('nhan_vien', __name__)
 
 
-# GET /nhan-vien/viec-cua-toi       (chỉ hiển thị các công việc đang làm)
 @nhan_vien_bp.route('/viec-cua-toi', methods=['GET'])
 @can_access(['nhan_vien'])
 def viec_cua_toi():
@@ -14,26 +18,22 @@ def viec_cua_toi():
 
     try:
         cursor.execute("""
-            SELECT 
+            SELECT
                 bc.bao_cao_id,
                 bc.tieu_de,
                 bc.mo_ta,
                 bc.dia_chi,
                 bc.trang_thai,
-                bc.ngay_tao,          -- 🔥 THÊM
+                bc.ngay_tao,
                 bc.ngay_cap_nhat,
-            
                 lsc.ten AS loai_su_co,
                 lsc.mau_sac,
-            
                 pc.lan_thu,
                 pc.ngay_nhan,
                 pc.trang_thai AS pc_trang_thai
-
             FROM bao_cao bc
             JOIN loai_su_co lsc ON bc.loai_su_co_id = lsc.loai_su_co_id
             JOIN phan_cong pc ON bc.bao_cao_id = pc.bao_cao_id
-
             WHERE pc.nhan_vien_id = ?
               AND pc.nhan_vien_id = ?
               AND pc.lan_thu = (
@@ -42,15 +42,13 @@ def viec_cua_toi():
                     WHERE bao_cao_id = bc.bao_cao_id
                       AND nhan_vien_id = ?
               )
-              AND bc.trang_thai IN ('da_phan_cong','dang_xu_ly','cho_nghiem_thu')
-
+              AND bc.trang_thai IN ('da_phan_cong', 'dang_xu_ly', 'cho_nghiem_thu')
             ORDER BY bc.ngay_cap_nhat DESC
         """, (request.nguoi_dung_id, request.nguoi_dung_id, request.nguoi_dung_id))
 
         rows = cursor.fetchall()
         cols = [d[0] for d in cursor.description]
         return jsonify([dict(zip(cols, r)) for r in rows])
-
     finally:
         conn.close()
 
@@ -64,68 +62,68 @@ def nhan_viec(id):
     try:
         conn.autocommit = False
 
-        # 1. Kiểm tra báo cáo tồn tại + trạng thái
         cursor.execute("""
-                       SELECT trang_thai, nhan_vien_id
-                       FROM bao_cao
-                       WHERE bao_cao_id = ?
-                       """, (id,))
+            SELECT trang_thai, nhan_vien_id
+            FROM bao_cao
+            WHERE bao_cao_id = ?
+        """, (id,))
         row = cursor.fetchone()
 
         if not row:
-            return jsonify({'loi': 'Không tồn tại'}), 404
+            return jsonify({'loi': 'Khong ton tai'}), 404
 
         if row[0] != 'da_phan_cong':
-            return jsonify({'loi': 'Không thể nhận việc này'}), 400
+            return jsonify({'loi': 'Khong the nhan viec nay'}), 400
 
         if row[1] != request.nguoi_dung_id:
-            return jsonify({'loi': 'Không phải của bạn'}), 403
+            return jsonify({'loi': 'Khong phai cua ban'}), 403
 
-        # 2. ❗ CHECK đang có việc chưa xong
         cursor.execute("""
-                       SELECT COUNT(*)
-                       FROM phan_cong
-                       WHERE nhan_vien_id = ?
-                         AND trang_thai = 'dang_lam'
-                       """, (request.nguoi_dung_id,))
-
+            SELECT COUNT(*)
+            FROM phan_cong pc
+            JOIN bao_cao bc ON bc.bao_cao_id = pc.bao_cao_id
+            WHERE pc.nhan_vien_id = ?
+              AND pc.trang_thai = 'dang_lam'
+              AND bc.trang_thai = 'dang_xu_ly'
+        """, (request.nguoi_dung_id,))
         dang_lam = cursor.fetchone()[0]
 
         if dang_lam > 0:
-            return jsonify({'loi': 'Bạn đang có việc chưa hoàn thành'}), 400
+            return jsonify({'loi': 'Ban dang co viec chua hoan thanh'}), 400
 
-        # 3. Update bảng phan_cong
         cursor.execute("""
-                       UPDATE phan_cong
-                       SET trang_thai = 'dang_lam'
-                       WHERE bao_cao_id = ?
-                         AND nhan_vien_id = ?
-                         AND trang_thai = 'dang_lam'
-                       """, (id, request.nguoi_dung_id))
+            UPDATE phan_cong
+            SET trang_thai = 'dang_lam'
+            WHERE phan_cong_id = (
+                SELECT TOP 1 phan_cong_id
+                FROM phan_cong
+                WHERE bao_cao_id = ?
+                  AND nhan_vien_id = ?
+                ORDER BY lan_thu DESC, phan_cong_id DESC
+            )
+        """, (id, request.nguoi_dung_id))
 
-        # 4. Update bảng bao_cao
         cursor.execute("""
-                       UPDATE bao_cao
-                       SET trang_thai = 'dang_xu_ly'
-                       WHERE bao_cao_id = ?
-                       """, (id,))
+            UPDATE bao_cao
+            SET trang_thai = 'dang_xu_ly'
+            WHERE bao_cao_id = ?
+        """, (id,))
 
-        # 5. Lưu lịch sử
         cursor.execute("""
-                       INSERT INTO lich_su_trang_thai
-                           (bao_cao_id, nguoi_doi_id, trang_thai_cu, trang_thai_moi, ghi_chu)
-                       VALUES (?, ?, 'da_phan_cong', 'dang_xu_ly', N'Nhân viên nhận việc')
-                       """, (id, request.nguoi_dung_id))
+            INSERT INTO lich_su_trang_thai
+                (bao_cao_id, nguoi_doi_id, trang_thai_cu, trang_thai_moi, ghi_chu)
+            VALUES (?, ?, 'da_phan_cong', 'dang_xu_ly', N'Nhan vien nhan viec')
+        """, (id, request.nguoi_dung_id))
 
         conn.commit()
         return jsonify({'ok': True})
-
     except Exception as e:
         conn.rollback()
         return jsonify({'loi': str(e)}), 500
-
     finally:
         conn.close()
+
+
 @nhan_vien_bp.route('/bao-cao/<int:id>/tu-choi', methods=['PUT'])
 @can_access(['nhan_vien'])
 def tu_choi(id):
@@ -143,62 +141,80 @@ def tu_choi(id):
         row = cursor.fetchone()
 
         if not row:
-            return jsonify({'loi': 'Không tồn tại'}), 404
+            return jsonify({'loi': 'Khong ton tai'}), 404
 
         if row[1] != request.nguoi_dung_id:
-            return jsonify({'loi': 'Không phải việc của bạn'}), 403
+            return jsonify({'loi': 'Khong phai viec cua ban'}), 403
 
         if row[0] != 'da_phan_cong':
-            return jsonify({'loi': 'Chỉ từ chối khi chưa xử lý'}), 400
+            return jsonify({'loi': 'Chi tu choi khi chua xu ly'}), 400
 
-        # lấy phan_cong hiện tại
         cursor.execute("""
-            SELECT TOP 1 phan_cong_id
+            SELECT TOP 1 phan_cong_id, ISNULL(so_lan_tra_lai, 0)
             FROM phan_cong
             WHERE bao_cao_id = ? AND nhan_vien_id = ?
-            ORDER BY lan_thu DESC
+            ORDER BY lan_thu DESC, phan_cong_id DESC
         """, (id, request.nguoi_dung_id))
-
         pc = cursor.fetchone()
 
-        # tăng số lần từ chối
+        if not pc:
+            return jsonify({'loi': 'Khong tim thay phan cong hien tai'}), 404
+
+        phan_cong_id, so_lan_tra_lai = pc
+        so_lan_tra_lai_moi = so_lan_tra_lai + 1
+
         cursor.execute("""
             UPDATE phan_cong
-            SET so_lan_tra_lai = so_lan_tra_lai + 1
+            SET so_lan_tra_lai = ?
             WHERE phan_cong_id = ?
-        """, (pc[0],))
-
-        # gọi SP đình chỉ nếu cần
-        cursor.execute("EXEC sp_kiem_tra_dinh_chi ?", (pc[0],))
-
-        # trả lại hệ thống
-        cursor.execute("""
-            UPDATE bao_cao
-            SET trang_thai = 'da_duyet',
-                nhan_vien_id = NULL
-            WHERE bao_cao_id = ?
-        """, (id,))
+        """, (so_lan_tra_lai_moi, phan_cong_id))
 
         cursor.execute("""
-            INSERT INTO lich_su_trang_thai
-            VALUES (?, ?, 'da_phan_cong', 'da_duyet', N'Từ chối')
-        """, (id, request.nguoi_dung_id))
+            SELECT ISNULL(SUM(ISNULL(so_lan_tra_lai, 0)), 0)
+            FROM phan_cong
+            WHERE nhan_vien_id = ?
+        """, (request.nguoi_dung_id,))
+        tong_so_lan_tu_choi = cursor.fetchone()[0]
+
+        if tong_so_lan_tu_choi >= 2:
+            cursor.execute(
+                """
+                UPDATE nguoi_dung
+                SET bi_dinh_chi = 1,
+                    ly_do_dinh_chi = ?
+                WHERE nguoi_dung_id = ?
+                  AND vai_tro = 'nhan_vien'
+                """,
+                ('Bi dinh chi do co 2 lan tu choi nhan viec', request.nguoi_dung_id)
+            )
+            release_staff_assignments(
+                cursor,
+                request.nguoi_dung_id,
+                request.nguoi_dung_id,
+                'Nhan vien bi dinh chi, bao cao duoc tra ve trang thai da duyet'
+            )
+        else:
+            cursor.execute("""
+                UPDATE bao_cao
+                SET trang_thai = 'da_duyet',
+                    nhan_vien_id = NULL
+                WHERE bao_cao_id = ?
+            """, (id,))
+
+            cursor.execute("""
+                INSERT INTO lich_su_trang_thai
+                (bao_cao_id, nguoi_doi_id, trang_thai_cu, trang_thai_moi, ghi_chu)
+                VALUES (?, ?, 'da_phan_cong', 'da_duyet', N'Tu choi')
+            """, (id, request.nguoi_dung_id))
 
         conn.commit()
         return jsonify({'ok': True})
-
-    except:
+    except Exception as e:
         conn.rollback()
-        raise
+        return jsonify({'loi': str(e)}), 500
     finally:
         conn.close()
 
-
-import os, uuid
-from werkzeug.utils import secure_filename
-
-UPLOAD_FOLDER = "uploads"
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 @nhan_vien_bp.route('/bao-cao/<int:id>/hoan-thanh', methods=['POST'])
 @can_access(['nhan_vien'])
@@ -213,7 +229,7 @@ def hoan_thanh(id):
         files = request.files.getlist("images")
 
         if not files or all(f.filename == "" for f in files):
-            return jsonify({'loi': 'Cần ảnh'}), 400
+            return jsonify({'loi': 'Can anh'}), 400
 
         cursor.execute("""
             SELECT trang_thai, nhan_vien_id
@@ -223,29 +239,30 @@ def hoan_thanh(id):
         row = cursor.fetchone()
 
         if not row:
-            return jsonify({'loi': 'Không tồn tại'}), 404
+            return jsonify({'loi': 'Khong ton tai'}), 404
 
         if row[0] != 'dang_xu_ly':
-            return jsonify({'loi': 'Sai trạng thái'}), 400
+            return jsonify({'loi': 'Sai trang thai'}), 400
 
         if row[1] != request.nguoi_dung_id:
-            return jsonify({'loi': 'Không phải của bạn'}), 403
+            return jsonify({'loi': 'Khong phai cua ban'}), 403
 
-        # upload ảnh
         for f in files:
             if f.filename == "":
                 continue
 
-            filename = str(uuid.uuid4()) + "_" + secure_filename(f.filename)
-            path = os.path.join(UPLOAD_FOLDER, filename)
-            f.save(path)
+            ket_qua = cloudinary.uploader.upload(
+                f,
+                folder='giao_thong',
+                resource_type='image'
+            )
+            url_anh = ket_qua['secure_url']
 
             cursor.execute("""
                 INSERT INTO anh (bao_cao_id, nguoi_upload_id, duong_dan_anh, loai_anh)
                 VALUES (?, ?, ?, 'sau_sua_chua')
-            """, (id, request.nguoi_dung_id, path))
+            """, (id, request.nguoi_dung_id, url_anh))
 
-        # update phân công
         cursor.execute("""
             UPDATE phan_cong
             SET trang_thai = 'hoan_thanh',
@@ -255,14 +272,12 @@ def hoan_thanh(id):
               AND trang_thai = 'dang_lam'
         """, (id, request.nguoi_dung_id))
 
-        # update báo cáo
         cursor.execute("""
             UPDATE bao_cao
             SET trang_thai = 'cho_nghiem_thu'
             WHERE bao_cao_id = ?
         """, (id,))
 
-        # lịch sử
         cursor.execute("""
             INSERT INTO lich_su_trang_thai
             (bao_cao_id, nguoi_doi_id, trang_thai_cu, trang_thai_moi, ghi_chu)
@@ -271,13 +286,12 @@ def hoan_thanh(id):
 
         conn.commit()
         return jsonify({'ok': True})
-
     except Exception as e:
         conn.rollback()
         return jsonify({'loi': str(e)}), 500
-
     finally:
         conn.close()
+
 
 @nhan_vien_bp.route('/da-hoan-thanh', methods=['GET'])
 @can_access(['nhan_vien'])
@@ -288,7 +302,7 @@ def da_hoan_thanh():
     month = request.args.get('month')
 
     query = """
-        SELECT 
+        SELECT
             bc.bao_cao_id,
             bc.tieu_de,
             lsc.ten AS loai_su_co,
@@ -296,13 +310,25 @@ def da_hoan_thanh():
         FROM phan_cong pc
         JOIN bao_cao bc ON bc.bao_cao_id = pc.bao_cao_id
         JOIN loai_su_co lsc ON bc.loai_su_co_id = lsc.loai_su_co_id
+        WHERE pc.nhan_vien_id = ?
+          AND pc.trang_thai = 'hoan_thanh'
     """
 
-    params = []
+    params = [request.nguoi_dung_id]
 
     if month:
-        query += " AND FORMAT(pc.ngay_xong, 'yyyy-MM') = ?"
-        params.append(month)
+        try:
+            month_start = datetime.strptime(month, '%Y-%m')
+            if month_start.month == 12:
+                month_end = month_start.replace(year=month_start.year + 1, month=1)
+            else:
+                month_end = month_start.replace(month=month_start.month + 1)
+            query += " AND pc.ngay_xong >= ? AND pc.ngay_xong < ?"
+            params.extend([month_start, month_end])
+        except ValueError:
+            return jsonify({'loi': 'Thang khong hop le'}), 400
+
+    query += " ORDER BY pc.ngay_xong DESC"
 
     cursor.execute(query, params)
 
@@ -310,14 +336,19 @@ def da_hoan_thanh():
     cols = [d[0] for d in cursor.description]
     return jsonify([dict(zip(cols, r)) for r in rows])
 
+
 @nhan_vien_bp.route('/lich-su', methods=['GET'])
 @can_access(['nhan_vien'])
 def lich_su():
     conn = get_db()
     cursor = conn.cursor()
 
-    cursor.execute("""
-        SELECT 
+    search = request.args.get('search', '').strip()
+    status = request.args.get('status', '').strip()
+    month = request.args.get('month', '').strip()
+
+    query = """
+        SELECT
             ls.*,
             bc.tieu_de,
             lsc.ten AS loai_su_co
@@ -325,10 +356,46 @@ def lich_su():
         JOIN bao_cao bc ON bc.bao_cao_id = ls.bao_cao_id
         JOIN loai_su_co lsc ON bc.loai_su_co_id = lsc.loai_su_co_id
         WHERE ls.nguoi_doi_id = ?
-        ORDER BY ls.ngay_doi DESC
-    """, (request.nguoi_dung_id,))
+    """
+    params = [request.nguoi_dung_id]
+
+    if search:
+        query += """
+            AND (
+                CAST(ls.bao_cao_id AS NVARCHAR(20)) LIKE ?
+                OR bc.tieu_de COLLATE Latin1_General_CI_AI LIKE ?
+                OR lsc.ten COLLATE Latin1_General_CI_AI LIKE ?
+                OR ISNULL(ls.ghi_chu, '') COLLATE Latin1_General_CI_AI LIKE ?
+            )
+        """
+        like_value = f"%{search}%"
+        params.extend([like_value, like_value, like_value, like_value])
+
+    if status:
+        if status == 'hoan_thanh':
+            query += " AND ls.trang_thai_moi = 'cho_nghiem_thu'"
+        elif status == 'tu_choi':
+            query += " AND ls.trang_thai_cu = 'da_phan_cong' AND ls.trang_thai_moi = 'da_duyet' AND ls.ghi_chu = N'Tu choi'"
+        else:
+            query += " AND ls.trang_thai_moi = ?"
+            params.append(status)
+
+    if month:
+        try:
+            month_start = datetime.strptime(month, '%Y-%m')
+            if month_start.month == 12:
+                month_end = month_start.replace(year=month_start.year + 1, month=1)
+            else:
+                month_end = month_start.replace(month=month_start.month + 1)
+            query += " AND ls.ngay_doi >= ? AND ls.ngay_doi < ?"
+            params.extend([month_start, month_end])
+        except ValueError:
+            return jsonify({'loi': 'Thang khong hop le'}), 400
+
+    query += " ORDER BY ls.ngay_doi DESC"
+
+    cursor.execute(query, params)
 
     rows = cursor.fetchall()
     cols = [d[0] for d in cursor.description]
     return jsonify([dict(zip(cols, r)) for r in rows])
-
