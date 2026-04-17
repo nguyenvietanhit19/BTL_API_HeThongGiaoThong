@@ -5,15 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GiaoThôngAn — Nhân viên</title>
 
+    <!-- CSS -->
     <link rel="stylesheet" href="/FrontEnd/css/nhanVien/nhanVien.css">
+    <link rel="stylesheet" href="/FrontEnd/css/nhanVien/profile.css">
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- JS -->
     <script src="/FrontEnd/js/NhanVien/nhanVien.js" defer></script>
     <script src="/FrontEnd/js/NhanVien/profileNV.js"></script>
-    <link rel="stylesheet" href="/FrontEnd/css/nhanVien/profile.css">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
+
 <body>
 
-<!-- TOPBAR -->
+<!-- ================= TOPBAR ================= -->
 <div class="topbar">
     <div class="left">
         <span id="btn-menu">☰</span>
@@ -29,24 +35,31 @@
     </div>
 </div>
 
-<!-- SIDEBAR -->
+<!-- ================= SIDEBAR ================= -->
 <div class="sidebar">
     <div class="menu-item active" data-page="viec-cua-toi">
-        <span class="dot green"></span> Việc của tôi (<span id="menu-count">0</span>)
+        <span class="dot green"></span>
+        Việc của tôi (<span id="menu-count">0</span>)
     </div>
+
     <div class="menu-item" data-page="da-hoan-thanh">
-        <span class="dot gray"></span> Đã hoàn thành
+        <span class="dot gray"></span>
+        Đã hoàn thành
     </div>
+
     <div class="menu-item" data-page="lich-su">
-        <span class="dot blue"></span> Lịch sử công việc
+        <span class="dot blue"></span>
+        Lịch sử công việc
     </div>
 </div>
 
-<!-- MAIN -->
+<!-- ================= MAIN ================= -->
 <div class="main-content">
 
-    <!-- PAGE 1 -->
+    <!-- ===== PAGE: VIỆC CỦA TÔI ===== -->
     <div class="page active" id="page-viec-cua-toi">
+
+        <!-- STATS -->
         <div class="stats-row">
             <div class="stat-card">
                 <div class="stat-num red" id="stat-moi">0</div>
@@ -58,134 +71,170 @@
             </div>
             <div class="stat-card">
                 <div class="stat-num green" id="stat-done">0</div>
-                <div class="stat-label">Đã hoàn thành</div>
+                <div class="stat-label">Chờ nghiệm thu</div>
             </div>
         </div>
 
         <div class="section-title">Việc được phân công</div>
-        <div id="task-list"></div>
+
+        <!-- CHƯA NHẬN -->
+        <div class="section" id="section-chua-nhan">
+            <h3>📥 Chưa nhận</h3>
+            <div id="list-chua-nhan"></div>
+        </div>
+
+        <!-- ĐANG LÀM -->
+        <div class="section" id="section-dang-lam">
+            <h3>⚙️ Đang xử lý</h3>
+            <div id="list-dang-lam"></div>
+        </div>
+
+        <!-- CHỜ NGHIỆM THU -->
+        <div class="section" id="section-da-xong">
+            <h3>⏳ Chờ nghiệm thu</h3>
+            <div id="list-da-xong"></div>
+        </div>
+
     </div>
 
-    <!-- PAGE 2 -->
+    <!-- ===== PAGE: ĐÃ HOÀN THÀNH ===== -->
     <div class="page" id="page-da-hoan-thanh">
         <div class="filter-row">
             <input type="month" id="filter-month-done">
         </div>
+
         <div class="table-wrap">
             <table>
                 <thead>
-                    <tr>
-                        <th>MÃ BC</th>
-                        <th>SỰ CỐ</th>
-                        <th>LOẠI</th>
-                        <th>NGÀY HOÀN THÀNH</th>
-                        <th>KẾT QUẢ</th>
-                    </tr>
+                <tr>
+                    <th>MÃ BC</th>
+                    <th>SỰ CỐ</th>
+                    <th>LOẠI</th>
+                    <th>NGÀY HOÀN THÀNH</th>
+                    <th>KẾT QUẢ</th>
+                </tr>
                 </thead>
                 <tbody id="done-table-body"></tbody>
             </table>
         </div>
     </div>
 
-    <!-- PAGE 3 -->
+    <!-- ===== PAGE: LỊCH SỬ ===== -->
     <div class="page" id="page-lich-su">
+
         <div class="filter-row">
             <input type="text" placeholder="Tìm kiếm..." id="search-history">
+
             <select id="filter-status">
-                <option value="">Tất cả trạng thái</option>
-                <option value="done">Hoàn thành</option>
-                <option value="reject">Bị trả lại</option>
+                <option value="">Tất cả</option>
+                <option value="hoan_thanh">Hoàn thành</option>
+                <option value="tu_choi">Từ chối</option>
             </select>
+
             <input type="month" id="filter-month-history">
         </div>
 
         <div class="table-wrap">
             <table>
                 <thead>
-                    <tr>
-                        <th>MÃ BC</th>
-                        <th>SỰ CỐ</th>
-                        <th>LOẠI</th>
-                        <th>THỜI GIAN</th>
-                        <th>KẾT QUẢ</th>
-                        <th>GHI CHÚ</th>
-                    </tr>
+                <tr>
+                    <th>MÃ BC</th>
+                    <th>SỰ CỐ</th>
+                    <th>LOẠI</th>
+                    <th>THỜI GIAN</th>
+                    <th>TRẠNG THÁI</th>
+                    <th>GHI CHÚ</th>
+                </tr>
                 </thead>
                 <tbody id="history-table-body"></tbody>
             </table>
         </div>
     </div>
-    <div class="page" id="page-profile"></div>
 
+    <!-- PROFILE -->
+    <div class="page" id="page-profile"></div>
 
 </div>
 
-<!-- MODAL NHẬN VIỆC -->
+<!-- ================= MODAL CHI TIẾT ================= -->
 <div class="modal-overlay" id="modal-nhan-viec">
     <div class="modal">
+
         <div class="modal-header">
             <span class="modal-title" id="mn-title"></span>
             <button class="modal-close" onclick="closeModal('modal-nhan-viec')">&times;</button>
         </div>
+
         <div class="modal-body">
-            <div class="alert alert-warning" id="mn-alert"></div>
 
-            <div class="info-row-modal"><span class="label">Địa chỉ</span><span id="mn-addr"></span></div>
-            <div class="info-row-modal"><span class="label">Loại</span><span id="mn-type"></span></div>
-            <div class="info-row-modal"><span class="label">Ưu tiên</span><span id="mn-priority"></span></div>
-            <div class="info-row-modal"><span class="label">Thời gian</span><span id="mn-time"></span></div>
-            <div class="info-row-modal"><span class="label">Lần</span><span id="mn-attempt"></span></div>
+            <div class="info-row-modal">
+                <span class="label">Địa chỉ:</span>
+                <span id="mn-addr"></span>
+            </div>
 
-            <div id="mn-map"></div>
+            <div class="info-row-modal">
+                <span class="label">Loại:</span>
+                <span id="mn-type"></span>
+            </div>
 
-            <div>Mô tả:</div>
-            <div id="mn-mota"></div>
+            <div class="info-row-modal">
+                <span class="label">Thời gian:</span>
+                <span id="mn-time"></span>
+            </div>
+
+            <div class="info-row-modal">
+                <span class="label">Lần:</span>
+                <span id="mn-attempt"></span>
+            </div>
+
+            <div style="margin-top:10px;font-weight:500">Mô tả:</div>
+            <div id="mn-mota" style="color:#555;margin-top:4px"></div>
+
         </div>
+
         <div class="modal-footer">
-            <button class="btn btn-secondary" onclick="closeModal('modal-nhan-viec')">Đóng</button>
             <button class="btn btn-primary" id="btn-confirm-nhan">Nhận việc</button>
+            <button class="btn" id="btn-tu-choi">Từ chối</button>
+            <button class="btn btn-primary" id="btn-open-hoan-thanh">Báo hoàn thành</button>
         </div>
+
     </div>
 </div>
 
-<!-- MODAL HOÀN THÀNH -->
+<!-- ================= MODAL HOÀN THÀNH ================= -->
 <div class="modal-overlay" id="modal-hoan-thanh">
     <div class="modal">
+
         <div class="modal-header">
             <span class="modal-title">Báo hoàn thành</span>
             <button class="modal-close" onclick="closeModal('modal-hoan-thanh')">&times;</button>
         </div>
+
         <div class="modal-body">
 
-            <input type="file" id="upload-after" multiple>
+            <div id="error-hoan-thanh"
+                style="color:red; display:none; margin-bottom:10px; font-size:14px;">
+            </div>
 
-            <textarea id="note-hoan-thanh" placeholder="Ghi chú..."></textarea>
+            <div style="margin-bottom:10px">
+                <input type="file" id="upload-after" multiple>
+            </div>
+
+            <textarea id="note-hoan-thanh"
+                      placeholder="Ghi chú xử lý..."
+                      style="width:100%;height:100px;border:1px solid #ddd;border-radius:8px;padding:8px"></textarea>
 
         </div>
+
         <div class="modal-footer">
-            <button class="btn btn-secondary" onclick="closeModal('modal-hoan-thanh')">Huỷ</button>
+            <button class="btn" onclick="closeModal('modal-hoan-thanh')">Huỷ</button>
             <button class="btn btn-primary" id="btn-confirm-hoan">Gửi</button>
         </div>
+
     </div>
 </div>
 
-<!-- MODAL GHI CHÚ -->
-<div class="modal-overlay" id="modal-ghi-chu">
-    <div class="modal">
-        <div class="modal-header">
-            <span class="modal-title">Cập nhật</span>
-            <button class="modal-close" onclick="closeModal('modal-ghi-chu')">&times;</button>
-        </div>
-        <div class="modal-body">
-            <input type="file" id="upload-note-img">
-            <textarea id="note-progress"></textarea>
-        </div>
-    </div>
-</div>
-
-
-
-<!-- TOAST -->
+<!-- ================= TOAST ================= -->
 <div class="toast" id="toast"></div>
 
 </body>

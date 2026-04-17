@@ -25,7 +25,7 @@ from routes.admin_get import admin_get_bp
 from routes.quan_ly_tai_khoan import quan_ly_bp
 
 # 5. ĐĂNG KÝ CÁC BLUEPRINTS VÀO APP
-app = Flask(__name__)
+
 
 
 # 2. CẤU HÌNH CORS (Thêm đúng đoạn này vào sau khi khởi tạo app)
