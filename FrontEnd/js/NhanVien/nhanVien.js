@@ -20,6 +20,7 @@ function authHeader() {
 
 // ============ INIT ============
 $(document).ready(function () {
+     // ← chỉ nhân viên mới vào được
 
     // --- Kiểm tra đăng nhập ---
     if (!localStorage.getItem('token')) {

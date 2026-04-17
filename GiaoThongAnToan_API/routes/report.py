@@ -1,7 +1,10 @@
+import cloudinary
 from flask import Blueprint, request, jsonify
 from middleware.auth_middleware import can_access
 from db import get_db
 import math
+
+from routes.upload import kiem_tra_vi_tri_anh
 
 bao_cao_bp = Blueprint('bao_cao', __name__)
 
@@ -27,69 +30,125 @@ def dict_fetchall(cursor):
     return [dict(zip(cols, row)) for row in rows]
 
 
-def tinh_khoang_cach_haversine(lat1, lon1, lat2, lon2):
-    """Tính khoảng cách đường chim bay (Km)"""
-    R = 6371.0
-    dlat = math.radians(lat2 - lat1)
-    dlon = math.radians(lon2 - lon1)
-    a = (math.sin(dlat / 2) ** 2
-         + math.cos(math.radians(lat1))
-         * math.cos(math.radians(lat2))
-         * math.sin(dlon / 2) ** 2)
-    c = 2 * math.asin(math.sqrt(a))
-    return R * c
+# ==========================================
+# 0. TẠO BÁO CÁO
+# ==========================================
+@bao_cao_bp.route('', methods=['POST'])
+@can_access()
+def tao_bao_cao():
+    conn = None
+    try:
+        # Đọc form-data
+        tieu_de       = request.form.get('tieu_de', '').strip()
+        mo_ta         = request.form.get('mo_ta', '')
+        dia_chi       = request.form.get('dia_chi', '')
+        loai_su_co_id = request.form.get('loai_su_co_id', type=int)
 
+        try:
+            vi_do   = float(request.form.get('vi_do'))
+            kinh_do = float(request.form.get('kinh_do'))
+        except (TypeError, ValueError):
+            return jsonify({'loi': 'vi_do và kinh_do phải là số'}), 400
+
+        if not tieu_de or not loai_su_co_id:
+            return jsonify({'loi': 'Thiếu tieu_de hoặc loai_su_co_id'}), 400
+
+        # Nhận nhiều ảnh cùng key 'anh'
+        files = [f for f in request.files.getlist('anh') if f.filename != '']
+
+        if not files:
+            return jsonify({'loi': 'Bắt buộc phải có ít nhất 1 ảnh hiện trường'}), 400
+
+        # Validate định dạng
+        ALLOWED = {'jpg', 'jpeg', 'png'}
+        for f in files:
+            ext = f.filename.rsplit('.', 1)[-1].lower()
+            if ext not in ALLOWED:
+                return jsonify({'loi': f'{f.filename}: chỉ chấp nhận jpg, jpeg, png'}), 400
+
+        # Kiểm tra GPS từng ảnh
+        for i, f in enumerate(files):
+            f.seek(0)
+            hop_le, thong_bao = kiem_tra_vi_tri_anh(f, vi_do, kinh_do)
+            if not hop_le:
+                return jsonify({'loi': f'Ảnh {i + 1}: {thong_bao}'}), 400
+
+        conn = get_db()
+        cursor = conn.cursor()
+
+        # Tạo báo cáo
+        cursor.execute(
+            """INSERT INTO bao_cao
+               (nguoi_dung_id, loai_su_co_id, tieu_de, mo_ta, dia_chi, vi_do, kinh_do, trang_thai)
+               OUTPUT INSERTED.bao_cao_id
+               VALUES (?, ?, ?, ?, ?, ?, ?, 'cho_duyet')""",
+            (request.nguoi_dung_id, loai_su_co_id, tieu_de, mo_ta, dia_chi, vi_do, kinh_do)
+        )
+        bao_cao_id = cursor.fetchone()[0]
+
+        # Upload từng ảnh lên Cloudinary → lưu DB
+        ds_url = []
+        for f in files:
+            f.seek(0)
+            ket_qua = cloudinary.uploader.upload(f, folder='giao_thong', resource_type='image')
+            url = ket_qua['secure_url']
+            ds_url.append(url)
+
+            cursor.execute(
+                """INSERT INTO anh (bao_cao_id, nguoi_upload_id, duong_dan_anh, loai_anh)
+                   VALUES (?, ?, ?, 'bao_cao')""",
+                (bao_cao_id, request.nguoi_dung_id, url)
+            )
+
+        conn.commit()
+
+        return jsonify({
+            'thong_bao': 'Tạo báo cáo thành công',
+            'bao_cao_id': bao_cao_id,
+            'so_anh': len(ds_url),
+            'anh': ds_url
+        }), 201
+
+    except Exception as e:
+        if conn: conn.rollback()
+        return jsonify({'loi': str(e)}), 500
+    finally:
+        if conn: conn.close()
 
 # ==========================================
-# 1. LẤY DANH SÁCH SỰ CỐ (Lọc bán kính 1km mặc định)
+# 1. LẤY DANH SÁCH SỰ CỐ
 # GET /bao-cao
 # ==========================================
 @bao_cao_bp.route('', methods=['GET'])
 def get_danh_sach_bao_cao():
     conn = None
     try:
-        vi_do   = request.args.get('vi_do',    type=float)
-        kinh_do = request.args.get('kinh_do',  type=float)
-        ban_kinh = request.args.get('ban_kinh', default=1.0, type=float)
-
-        # ✅ Fix: dùng loai_su_co_id thay vì loai_id
         loai_su_co_id = request.args.get('loai_su_co_id', type=int)
 
         conn = get_db()
         cursor = conn.cursor()
 
-        sql = "SELECT * FROM v_bao_cao_day_du WHERE trang_thai NOT IN ('tu_choi', 'da_xu_ly')"
-        params = []
-
+        # ✅ Thêm 'cho_duyet' vào NOT IN
         if loai_su_co_id:
-            sql = (
-                "SELECT v.* FROM v_bao_cao_day_du v "
-                "JOIN bao_cao b ON v.bao_cao_id = b.bao_cao_id "
-                "WHERE b.loai_su_co_id = ? AND v.trang_thai NOT IN ('tu_choi', 'da_xu_ly')"
+            sql = """
+                SELECT v.* FROM v_bao_cao_day_du v
+                JOIN bao_cao b ON v.bao_cao_id = b.bao_cao_id
+                WHERE b.loai_su_co_id = ?
+                AND v.trang_thai NOT IN ('tu_choi', 'da_xu_ly', 'cho_duyet')
+            """
+            cursor.execute(sql, [loai_su_co_id])
+        else:
+            cursor.execute(
+                "SELECT * FROM v_bao_cao_day_du WHERE trang_thai NOT IN ('tu_choi', 'da_xu_ly', 'cho_duyet')"
             )
-            params.append(loai_su_co_id)
 
-        cursor.execute(sql, params)
-        rows = dict_fetchall(cursor)
+        danh_sach = dict_fetchall(cursor)
 
-        danh_sach = []
-        for row in rows:
-            lat_bc = float(row['vi_do'])
-            lon_bc = float(row['kinh_do'])
-
-            if vi_do is not None and kinh_do is not None:
-                kc = tinh_khoang_cach_haversine(vi_do, kinh_do, lat_bc, lon_bc)
-                if kc <= ban_kinh:
-                    row['khoang_cach_m'] = round(kc * 10000, 0)
-                    danh_sach.append(row)
-            else:
-                row['khoang_cach_m'] = None
-                danh_sach.append(row)
-
-        if vi_do is not None and kinh_do is not None:
-            danh_sach.sort(key=lambda x: x['khoang_cach_m'] if x['khoang_cach_m'] is not None else float('inf'))
-
-        return jsonify({'thong_bao': 'Thành công', 'so_luong': len(danh_sach), 'data': danh_sach}), 200
+        return jsonify({
+            'thong_bao': 'Thành công',
+            'so_luong': len(danh_sach),
+            'data': danh_sach
+        }), 200
 
     except Exception as e:
         return jsonify({'loi': str(e)}), 500
@@ -199,45 +258,45 @@ def get_chi_tiet(bao_cao_id):
 # 4. GỬI BÁO CÁO MỚI
 # POST /bao-cao
 # ==========================================
-@bao_cao_bp.route('', methods=['POST'])
-@can_access()
-def tao_bao_cao():
-    conn = None
-    try:
-        data = request.get_json()
-        if not data:
-            return jsonify({'loi': 'Thiếu dữ liệu'}), 400
-
-        tieu_de      = data.get('tieu_de', '').strip()
-        mo_ta        = data.get('mo_ta', '')
-        dia_chi      = data.get('dia_chi', '')
-        vi_do        = data.get('vi_do')
-        kinh_do      = data.get('kinh_do')
-        # ✅ Fix: dùng loai_su_co_id thay vì loai_id
-        loai_su_co_id = data.get('loai_su_co_id')
-
-        if not tieu_de or vi_do is None or kinh_do is None or not loai_su_co_id:
-            return jsonify({'loi': 'Thiếu thông tin bắt buộc (tieu_de, vi_do, kinh_do, loai_su_co_id)'}), 400
-
-        conn = get_db()
-        cursor = conn.cursor()
-
-        sql = """
-            INSERT INTO bao_cao (nguoi_dung_id, loai_su_co_id, tieu_de, mo_ta, dia_chi, vi_do, kinh_do, trang_thai)
-            OUTPUT INSERTED.bao_cao_id
-            VALUES (?, ?, ?, ?, ?, ?, ?, 'cho_duyet')
-        """
-        cursor.execute(sql, (request.nguoi_dung_id, loai_su_co_id, tieu_de, mo_ta, dia_chi, vi_do, kinh_do))
-        new_id = cursor.fetchone()[0]
-
-        conn.commit()
-        return jsonify({'thong_bao': 'Tạo báo cáo thành công', 'bao_cao_id': new_id}), 201
-
-    except Exception as e:
-        if conn: conn.rollback()
-        return jsonify({'loi': str(e)}), 500
-    finally:
-        if conn: conn.close()
+# @bao_cao_bp.route('', methods=['POST'])
+# @can_access()
+# def tao_bao_cao():
+#     conn = None
+#     try:
+#         data = request.get_json()
+#         if not data:
+#             return jsonify({'loi': 'Thiếu dữ liệu'}), 400
+#
+#         tieu_de      = data.get('tieu_de', '').strip()
+#         mo_ta        = data.get('mo_ta', '')
+#         dia_chi      = data.get('dia_chi', '')
+#         vi_do        = data.get('vi_do')
+#         kinh_do      = data.get('kinh_do')
+#         # ✅ Fix: dùng loai_su_co_id thay vì loai_id
+#         loai_su_co_id = data.get('loai_su_co_id')
+#
+#         if not tieu_de or vi_do is None or kinh_do is None or not loai_su_co_id:
+#             return jsonify({'loi': 'Thiếu thông tin bắt buộc (tieu_de, vi_do, kinh_do, loai_su_co_id)'}), 400
+#
+#         conn = get_db()
+#         cursor = conn.cursor()
+#
+#         sql = """
+#             INSERT INTO bao_cao (nguoi_dung_id, loai_su_co_id, tieu_de, mo_ta, dia_chi, vi_do, kinh_do, trang_thai)
+#             OUTPUT INSERTED.bao_cao_id
+#             VALUES (?, ?, ?, ?, ?, ?, ?, 'cho_duyet')
+#         """
+#         cursor.execute(sql, (request.nguoi_dung_id, loai_su_co_id, tieu_de, mo_ta, dia_chi, vi_do, kinh_do))
+#         new_id = cursor.fetchone()[0]
+#
+#         conn.commit()
+#         return jsonify({'thong_bao': 'Tạo báo cáo thành công', 'bao_cao_id': new_id}), 201
+#
+#     except Exception as e:
+#         if conn: conn.rollback()
+#         return jsonify({'loi': str(e)}), 500
+#     finally:
+#         if conn: conn.close()
 
 
 # ==========================================
