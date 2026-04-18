@@ -139,6 +139,19 @@
         return $('<div/>').text(value || '').html();
     }
 
+    function getStatusLabel(status) {
+        const labels = {
+            cho_duyet: 'Chờ duyệt',
+            da_duyet: 'Đã duyệt',
+            tu_choi: 'Từ chối',
+            dang_xu_ly: 'Đang xử lý',
+            cho_nghiem_thu: 'Chờ nghiệm thu',
+            da_xu_ly: 'Đã xử lý',
+            da_phan_cong: 'Đã phân công'
+        };
+        return labels[status] || String(status || '').replace(/_/g, ' ');
+    }
+
     function buildThumbHtml(src) {
         return `
             <div class="report-thumb">
@@ -333,7 +346,7 @@
             $modal.find('#rd-nhan-vien').text(info.nhan_vien_phu_trach || 'Chưa có nhân viên');
             $modal.find('#rd-mo-ta').text(info.mo_ta || 'Không có mô tả chi tiết');
             $modal.find('#rd-trang-thai')
-                .text((info.trang_thai || 'cho_duyet').replace(/_/g, ' ').toUpperCase())
+                .text(getStatusLabel(info.trang_thai || 'cho_duyet'))
                 .attr('class', 'badge ' + (info.trang_thai || 'cho_duyet'));
 
             const $gridOriginal = $modal.find('#rd-grid-anh-goc').empty();
@@ -461,12 +474,20 @@
             badge: 'Nghiệm thu không đạt',
             title: 'Yêu cầu xử lý lại',
             message: 'Báo cáo #' + id + ' sẽ quay lại luồng xử lý để nhân viên tiếp tục khắc phục.',
+            requireReason: true,
+            minLength: 3,
+            label: 'Lý do không đạt',
+            hint: 'Tối thiểu 3 ký tự. Nêu rõ phần cần nhân viên xử lý lại.',
+            placeholder: 'Ví dụ: Ảnh sau xử lý chưa thể hiện rõ hiện trạng đã khắc phục.',
             confirmText: 'Trả về xử lý'
         });
         if (!result.confirmed) return;
 
         try {
-            await window.apiRequest('PUT', `/admin/bao-cao/${id}/nghiem-thu`, { ket_qua: 'khong_dat' });
+            await window.apiRequest('PUT', `/admin/bao-cao/${id}/nghiem-thu`, {
+                ket_qua: 'khong_dat',
+                ghi_chu: result.value
+            });
             window.showToast({
                 type: 'success',
                 title: 'Đã trả về xử lý',

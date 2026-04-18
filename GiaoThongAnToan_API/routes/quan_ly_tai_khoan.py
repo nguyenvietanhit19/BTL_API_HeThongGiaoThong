@@ -2,7 +2,6 @@ from flask import Blueprint, request, jsonify
 from middleware.auth_middleware import can_access
 from db import get_db
 from datetime import datetime
-from routes.suspension_utils import release_staff_assignments
 
 quan_ly_bp = Blueprint('quan_ly', __name__)
 
@@ -320,16 +319,16 @@ def go_dinh_chi(id):
         row = cursor.fetchone()
 
         if not row:
-            return jsonify({'loi': 'Khong tim thay nguoi dung'}), 404
+            return jsonify({'loi': 'Không tìm thấy người dùng'}), 404
 
         nguoi_dung_id, ho_ten, bi_dinh_chi, vai_tro = row
 
         if vai_tro != 'nhan_vien':
-            return jsonify({'loi': 'Chi co the dinh chi nhan vien'}), 400
+            return jsonify({'loi': 'Chỉ có thể đình chỉ nhân viên'}), 400
 
         if ly_do:
             if bi_dinh_chi:
-                return jsonify({'loi': f'{ho_ten} dang bi dinh chi roi'}), 400
+                return jsonify({'loi': f'{ho_ten} đang bị đình chỉ rồi'}), 400
 
             cursor.execute(
                 """
@@ -361,14 +360,14 @@ def go_dinh_chi(id):
                 cursor,
                 id,
                 request.nguoi_dung_id,
-                'Nhan vien bi dinh chi, bao cao duoc tra ve trang thai da duyet'
+                'Nhân viên bị đình chỉ: {ten_nhan_vien}, báo cáo được trả về trạng thái đã duyệt'
             )
 
             conn.commit()
-            return jsonify({'thong_bao': f'Da dinh chi nhan vien {ho_ten}'}), 200
+            return jsonify({'thong_bao': f'Đã đình chỉ nhân viên {ho_ten}'}), 200
 
         if not bi_dinh_chi:
-            return jsonify({'loi': f'{ho_ten} hien khong bi dinh chi'}), 400
+            return jsonify({'loi': f'{ho_ten} hiện không bị đình chỉ'}), 400
 
         cursor.execute(
             "UPDATE nguoi_dung SET bi_dinh_chi = 0, ly_do_dinh_chi = NULL WHERE nguoi_dung_id = ?",
@@ -383,7 +382,7 @@ def go_dinh_chi(id):
         )
 
         conn.commit()
-        return jsonify({'thong_bao': f'Da go dinh chi cho nhan vien {ho_ten}'}), 200
+        return jsonify({'thong_bao': f'Đã gỡ đình chỉ cho nhân viên {ho_ten}'}), 200
 
     except Exception as e:
         return jsonify({'loi': str(e)}), 500

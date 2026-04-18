@@ -1,10 +1,25 @@
 def release_staff_assignments(cursor, nhan_vien_id, actor_id, reason):
     cursor.execute(
         """
+        SELECT ho_ten
+        FROM nguoi_dung
+        WHERE nguoi_dung_id = ?
+        """,
+        (nhan_vien_id,)
+    )
+    staff_row = cursor.fetchone()
+    ten_nhan_vien = (staff_row[0] or '').strip() if staff_row else ''
+    if not ten_nhan_vien:
+        ten_nhan_vien = f'ID {nhan_vien_id}'
+
+    reason = reason.format(ten_nhan_vien=ten_nhan_vien)
+
+    cursor.execute(
+        """
         SELECT bao_cao_id, trang_thai
         FROM bao_cao
         WHERE nhan_vien_id = ?
-          AND trang_thai IN ('da_phan_cong', 'dang_xu_ly', 'cho_nghiem_thu')
+          AND trang_thai IN ('da_phan_cong', 'dang_xu_ly')
         """,
         (nhan_vien_id,)
     )

@@ -70,13 +70,13 @@ def nhan_viec(id):
         row = cursor.fetchone()
 
         if not row:
-            return jsonify({'loi': 'Khong ton tai'}), 404
+            return jsonify({'loi': 'Không tồn tại'}), 404
 
         if row[0] != 'da_phan_cong':
-            return jsonify({'loi': 'Khong the nhan viec nay'}), 400
+            return jsonify({'loi': 'Không thể nhận việc này'}), 400
 
         if row[1] != request.nguoi_dung_id:
-            return jsonify({'loi': 'Khong phai cua ban'}), 403
+            return jsonify({'loi': 'Không phải của bạn'}), 403
 
         cursor.execute("""
             SELECT COUNT(*)
@@ -89,7 +89,7 @@ def nhan_viec(id):
         dang_lam = cursor.fetchone()[0]
 
         if dang_lam > 0:
-            return jsonify({'loi': 'Ban dang co viec chua hoan thanh'}), 400
+            return jsonify({'loi': 'Bạn đang có việc chưa hoàn thành'}), 400
 
         cursor.execute("""
             UPDATE phan_cong
@@ -110,13 +110,23 @@ def nhan_viec(id):
         """, (id,))
 
         cursor.execute("""
+            SELECT ho_ten
+            FROM nguoi_dung
+            WHERE nguoi_dung_id = ?
+        """, (request.nguoi_dung_id,))
+        nv_row = cursor.fetchone()
+        ten_nhan_vien = (nv_row[0] or '').strip() if nv_row else ''
+        if not ten_nhan_vien:
+            ten_nhan_vien = f'ID {request.nguoi_dung_id}'
+
+        cursor.execute("""
             INSERT INTO lich_su_trang_thai
                 (bao_cao_id, nguoi_doi_id, trang_thai_cu, trang_thai_moi, ghi_chu)
-            VALUES (?, ?, 'da_phan_cong', 'dang_xu_ly', N'Nhan vien nhan viec')
-        """, (id, request.nguoi_dung_id))
+            VALUES (?, ?, 'da_phan_cong', 'dang_xu_ly', ?)
+        """, (id, request.nguoi_dung_id, f'Nhân viên nhận việc: {ten_nhan_vien}'))
 
         conn.commit()
-        return jsonify({'ok': True})
+        return jsonify({'thong_bao': 'Nhận việc thành công'})
     except Exception as e:
         conn.rollback()
         return jsonify({'loi': str(e)}), 500
@@ -132,6 +142,11 @@ def tu_choi(id):
 
     try:
         conn.autocommit = False
+        data = request.json or {}
+        ghi_chu = (data.get('ghi_chu') or '').strip()
+
+        if len(ghi_chu) < 3:
+            return jsonify({'loi': 'Thiếu lý do từ chối, tối thiểu 3 ký tự'}), 400
 
         cursor.execute("""
             SELECT trang_thai, nhan_vien_id
@@ -141,13 +156,13 @@ def tu_choi(id):
         row = cursor.fetchone()
 
         if not row:
-            return jsonify({'loi': 'Khong ton tai'}), 404
+            return jsonify({'loi': 'Không tồn tại'}), 404
 
         if row[1] != request.nguoi_dung_id:
-            return jsonify({'loi': 'Khong phai viec cua ban'}), 403
+            return jsonify({'loi': 'Không phải việc của bạn'}), 403
 
         if row[0] != 'da_phan_cong':
-            return jsonify({'loi': 'Chi tu choi khi chua xu ly'}), 400
+            return jsonify({'loi': 'Chỉ từ chối khi chưa xử lý'}), 400
 
         cursor.execute("""
             SELECT TOP 1 phan_cong_id, ISNULL(so_lan_tra_lai, 0)
@@ -158,7 +173,7 @@ def tu_choi(id):
         pc = cursor.fetchone()
 
         if not pc:
-            return jsonify({'loi': 'Khong tim thay phan cong hien tai'}), 404
+            return jsonify({'loi': 'Không tìm thấy phân công hiện tại'}), 404
 
         phan_cong_id, so_lan_tra_lai = pc
         so_lan_tra_lai_moi = so_lan_tra_lai + 1
@@ -177,6 +192,19 @@ def tu_choi(id):
         tong_so_lan_tu_choi = cursor.fetchone()[0]
 
         if tong_so_lan_tu_choi >= 2:
+            cursor.execute("""
+                UPDATE bao_cao
+                SET trang_thai = 'da_duyet',
+                    nhan_vien_id = NULL
+                WHERE bao_cao_id = ?
+            """, (id,))
+
+            cursor.execute("""
+                INSERT INTO lich_su_trang_thai
+                (bao_cao_id, nguoi_doi_id, trang_thai_cu, trang_thai_moi, ghi_chu)
+                VALUES (?, ?, 'da_phan_cong', 'da_duyet', ?)
+            """, (id, request.nguoi_dung_id, f'Từ chối nhận việc: {ghi_chu}'))
+
             cursor.execute(
                 """
                 UPDATE nguoi_dung
@@ -185,13 +213,13 @@ def tu_choi(id):
                 WHERE nguoi_dung_id = ?
                   AND vai_tro = 'nhan_vien'
                 """,
-                ('Bi dinh chi do co 2 lan tu choi nhan viec', request.nguoi_dung_id)
+                ('Bị đình chỉ do có 2 lần từ chối nhận việc', request.nguoi_dung_id)
             )
             release_staff_assignments(
                 cursor,
                 request.nguoi_dung_id,
                 request.nguoi_dung_id,
-                'Nhan vien bi dinh chi, bao cao duoc tra ve trang thai da duyet'
+                'Nhân viên bị đình chỉ: {ten_nhan_vien}, các báo cáo đang phụ trách được trả về trạng thái đã duyệt'
             )
         else:
             cursor.execute("""
@@ -204,11 +232,11 @@ def tu_choi(id):
             cursor.execute("""
                 INSERT INTO lich_su_trang_thai
                 (bao_cao_id, nguoi_doi_id, trang_thai_cu, trang_thai_moi, ghi_chu)
-                VALUES (?, ?, 'da_phan_cong', 'da_duyet', N'Tu choi')
-            """, (id, request.nguoi_dung_id))
+                VALUES (?, ?, 'da_phan_cong', 'da_duyet', ?)
+            """, (id, request.nguoi_dung_id, f'Từ chối nhận việc: {ghi_chu}'))
 
         conn.commit()
-        return jsonify({'ok': True})
+        return jsonify({'thong_bao': 'Từ chối công việc thành công'})
     except Exception as e:
         conn.rollback()
         return jsonify({'loi': str(e)}), 500
@@ -229,7 +257,7 @@ def hoan_thanh(id):
         files = request.files.getlist("images")
 
         if not files or all(f.filename == "" for f in files):
-            return jsonify({'loi': 'Can anh'}), 400
+            return jsonify({'loi': 'Cần ảnh'}), 400
 
         cursor.execute("""
             SELECT trang_thai, nhan_vien_id
@@ -239,13 +267,13 @@ def hoan_thanh(id):
         row = cursor.fetchone()
 
         if not row:
-            return jsonify({'loi': 'Khong ton tai'}), 404
+            return jsonify({'loi': 'Không tồn tại'}), 404
 
         if row[0] != 'dang_xu_ly':
-            return jsonify({'loi': 'Sai trang thai'}), 400
+            return jsonify({'loi': 'Sai trạng thái'}), 400
 
         if row[1] != request.nguoi_dung_id:
-            return jsonify({'loi': 'Khong phai cua ban'}), 403
+            return jsonify({'loi': 'Không phải của bạn'}), 403
 
         for f in files:
             if f.filename == "":
@@ -285,7 +313,7 @@ def hoan_thanh(id):
         """, (id, request.nguoi_dung_id, ghi_chu))
 
         conn.commit()
-        return jsonify({'ok': True})
+        return jsonify({'thong_bao': 'Hoàn thành báo cáo thành công'})
     except Exception as e:
         conn.rollback()
         return jsonify({'loi': str(e)}), 500
@@ -326,7 +354,7 @@ def da_hoan_thanh():
             query += " AND pc.ngay_xong >= ? AND pc.ngay_xong < ?"
             params.extend([month_start, month_end])
         except ValueError:
-            return jsonify({'loi': 'Thang khong hop le'}), 400
+            return jsonify({'loi': 'Tháng không hợp lệ'}), 400
 
     query += " ORDER BY pc.ngay_xong DESC"
 
@@ -375,7 +403,7 @@ def lich_su():
         if status == 'hoan_thanh':
             query += " AND ls.trang_thai_moi = 'cho_nghiem_thu'"
         elif status == 'tu_choi':
-            query += " AND ls.trang_thai_cu = 'da_phan_cong' AND ls.trang_thai_moi = 'da_duyet' AND ls.ghi_chu = N'Tu choi'"
+            query += " AND ls.trang_thai_cu = 'da_phan_cong' AND ls.trang_thai_moi = 'da_duyet' AND ls.ghi_chu LIKE N'Từ chối nhận việc:%'"
         else:
             query += " AND ls.trang_thai_moi = ?"
             params.append(status)
@@ -390,7 +418,7 @@ def lich_su():
             query += " AND ls.ngay_doi >= ? AND ls.ngay_doi < ?"
             params.extend([month_start, month_end])
         except ValueError:
-            return jsonify({'loi': 'Thang khong hop le'}), 400
+            return jsonify({'loi': 'Tháng không hợp lệ'}), 400
 
     query += " ORDER BY ls.ngay_doi DESC"
 

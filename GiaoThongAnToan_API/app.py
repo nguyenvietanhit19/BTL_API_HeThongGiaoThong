@@ -7,6 +7,8 @@ from flask_cors import CORS
 load_dotenv()
 
 app = Flask(__name__)
+app.config["JSON_AS_ASCII"] = False
+app.json.ensure_ascii = False
 CORS(app, resources={r"/*": {"origins": "*"}})
 
 from routes.admin import admin_bp

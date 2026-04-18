@@ -230,7 +230,11 @@
 
                 <div class="upload-field">
                     <label for="upload-after">Ảnh sau sửa chữa</label>
-                    <input type="file" id="upload-after" multiple>
+                    <input type="file" id="upload-after" multiple accept="image/*">
+                    <div class="upload-help-text">Có thể chọn nhiều ảnh, xem trước và bỏ từng ảnh trước khi gửi.</div>
+                    <div id="upload-after-preview" class="upload-preview-list">
+                        <div class="report-image-empty">Chưa chọn ảnh nào.</div>
+                    </div>
                 </div>
 
                 <div class="upload-field">

@@ -12,6 +12,7 @@ const API_BASE = "http://127.0.0.1:5000";
 // ============ STATE ============
 let currentTaskId = null;   // ID task đang thao tác trong modal
 let taskMap = {};            // cache toàn bộ task { bao_cao_id: taskObject }
+let completionFiles = [];
 
 // ============ AUTH HELPER ============
 function authHeader() {
@@ -110,6 +111,11 @@ $(document).ready(function () {
     // --- Filter: Đã hoàn thành ---
     $('#filter-month-done').on('change', loadDoneTasks);
 
+    $('#upload-after').on('change', handleCompletionFileSelection);
+    $(document).on('click', '.upload-preview-remove', function () {
+        removeCompletionFile(Number($(this).data('index')));
+    });
+
     // --- Filter: Lịch sử ---
     $('#search-history, #filter-status, #filter-month-history')
         .on('input change', loadHistory);
@@ -154,8 +160,7 @@ $(document).ready(function () {
             return;
         }
 
-        const files = $('#upload-after')[0].files;
-        if (!files || files.length === 0) {
+        if (!completionFiles.length) {
             showToast("Phải upload ít nhất 1 ảnh sau sửa chữa", true);
             return;
         }
@@ -278,6 +283,11 @@ async function apiTuChoi(id, callback) {
         badge: 'Từ chối công việc',
         title: 'Xác nhận từ chối nhận việc',
         message: 'Công việc này sẽ được trả lại hệ thống để admin phân công lại cho nhân viên khác.',
+        requireReason: true,
+        minLength: 3,
+        label: 'Lý do từ chối',
+        hint: 'Nêu rõ nguyên nhân để admin biết vì sao bạn không thể nhận việc này.',
+        placeholder: 'Ví dụ: Khu vực xử lý ngoài phạm vi phụ trách hoặc đang thiếu thiết bị.',
         confirmText: 'Xác nhận từ chối',
         cancelText: 'Hủy'
     });
@@ -287,6 +297,8 @@ async function apiTuChoi(id, callback) {
         url: `${API_BASE}/nhan-vien/bao-cao/${id}/tu-choi`,
         method: "PUT",
         headers: authHeader(),
+        contentType: 'application/json',
+        data: JSON.stringify({ ghi_chu: result.value }),
         success: function () {
             showToast("Đã từ chối, việc trả về hệ thống.");
             fetchTasks();
@@ -319,10 +331,9 @@ async function apiHoanThanh(id, onSuccess, onError) {
     const formData = new FormData();
     formData.append("ghi_chu", $('#note-hoan-thanh').val() || "");
 
-    const files = $('#upload-after')[0].files;
-    for (let i = 0; i < files.length; i++) {
-        formData.append("images", files[i]);
-    }
+    completionFiles.forEach(function (item) {
+        formData.append("images", item.file);
+    });
 
     $.ajax({
         url: `${API_BASE}/nhan-vien/bao-cao/${id}/hoan-thanh`,
@@ -582,6 +593,11 @@ function openModalHoanThanh(id) {
 function resetFormHoanThanh() {
     $('#note-hoan-thanh').val('');
     $('#upload-after').val('');
+    completionFiles.forEach(function (item) {
+        if (item.previewUrl) URL.revokeObjectURL(item.previewUrl);
+    });
+    completionFiles = [];
+    renderCompletionPreview();
 }
 
 
@@ -704,6 +720,12 @@ function ensureEmployeeUi() {
                     '<div class="admin-modal__badge" id="employee-modal-badge"></div>' +
                     '<h3 class="admin-modal__title" id="employee-modal-title"></h3>' +
                     '<p class="admin-modal__message" id="employee-modal-message"></p>' +
+                    '<div id="employee-modal-reason-wrap" style="display:none; margin-top:16px;">' +
+                        '<label for="employee-modal-reason" id="employee-modal-reason-label" style="display:block; margin-bottom:8px; font-size:12px; font-weight:700; letter-spacing:0.04em; text-transform:uppercase; color:#6d8f8a;"></label>' +
+                        '<textarea id="employee-modal-reason" rows="4" style="width:100%; border:1px solid #d5e6e2; border-radius:12px; padding:12px 14px; font-size:14px; color:#1f4f4a; background:#fff; resize:vertical;"></textarea>' +
+                        '<div id="employee-modal-reason-hint" style="margin-top:8px; font-size:13px; color:#6d8f8a;"></div>' +
+                        '<div id="employee-modal-reason-error" style="display:none; margin-top:8px; font-size:13px; color:#be123c;"></div>' +
+                    '</div>' +
                     '<div class="admin-modal__actions">' +
                         '<button type="button" class="btn-action btn-secondary" id="employee-modal-cancel">Hủy</button>' +
                         '<button type="button" class="btn-action primary" id="employee-modal-confirm">Xác nhận</button>' +
@@ -723,6 +745,11 @@ function openEmployeeActionModal(options) {
     const cancelText = options.cancelText || 'Hủy';
     const $modal = $('#employee-action-modal');
     const $confirm = $('#employee-modal-confirm');
+    const requireReason = !!options.requireReason;
+    const minLength = Number(options.minLength || 0);
+    const $reasonWrap = $('#employee-modal-reason-wrap');
+    const $reasonInput = $('#employee-modal-reason');
+    const $reasonError = $('#employee-modal-reason-error');
 
     $('#employee-modal-title').text(options.title || '');
     $('#employee-modal-message').text(options.message || '');
@@ -731,6 +758,11 @@ function openEmployeeActionModal(options) {
         .text(options.badge || '');
     $('#employee-modal-cancel').text(cancelText);
     $confirm.text(confirmText).attr('class', 'btn-action ' + (type === 'danger' ? 'danger' : 'primary'));
+    $('#employee-modal-reason-label').text(options.label || 'Lý do');
+    $('#employee-modal-reason-hint').text(options.hint || '');
+    $reasonInput.val(options.value || '').attr('placeholder', options.placeholder || '');
+    $reasonError.hide().text('');
+    $reasonWrap.toggle(requireReason);
 
     $modal.stop(true, true).fadeIn(150).attr('aria-hidden', 'false');
 
@@ -755,7 +787,16 @@ function openEmployeeActionModal(options) {
             });
 
         $('#employee-modal-confirm').on('click.employeeActionModal', function() {
-            closeWith({ confirmed: true });
+            const value = ($reasonInput.val() || '').trim();
+
+            if (requireReason && value.length < minLength) {
+                $reasonError.text(`Vui lòng nhập ít nhất ${minLength} ký tự.`).show();
+                $reasonInput.trigger('focus');
+                return;
+            }
+
+            $reasonError.hide().text('');
+            closeWith({ confirmed: true, value: value });
         });
 
         $(document).on('keydown.employeeActionModal', function(e) {
@@ -763,7 +804,11 @@ function openEmployeeActionModal(options) {
         });
 
         setTimeout(function() {
-            $confirm.trigger('focus');
+            if (requireReason) {
+                $reasonInput.trigger('focus');
+            } else {
+                $confirm.trigger('focus');
+            }
         }, 30);
     });
 }
@@ -829,4 +874,91 @@ function escapeHtmlAttr(value) {
         .replace(/"/g, '&quot;')
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;');
+}
+
+function handleCompletionFileSelection(event) {
+    const files = Array.from((event.target && event.target.files) || []);
+
+    if (!files.length) {
+        syncCompletionInput();
+        return;
+    }
+
+    files.forEach(function (file) {
+        if (!file || !String(file.type || '').startsWith('image/')) return;
+
+        const duplicate = completionFiles.some(function (item) {
+            return item.file.name === file.name
+                && item.file.size === file.size
+                && item.file.lastModified === file.lastModified;
+        });
+        if (duplicate) return;
+
+        completionFiles.push({
+            file: file,
+            previewUrl: URL.createObjectURL(file)
+        });
+    });
+
+    syncCompletionInput();
+    renderCompletionPreview();
+}
+
+function removeCompletionFile(index) {
+    if (index < 0 || index >= completionFiles.length) return;
+
+    const removed = completionFiles.splice(index, 1)[0];
+    if (removed && removed.previewUrl) {
+        URL.revokeObjectURL(removed.previewUrl);
+    }
+
+    syncCompletionInput();
+    renderCompletionPreview();
+}
+
+function syncCompletionInput() {
+    const input = document.getElementById('upload-after');
+    if (!input) return;
+
+    const dataTransfer = new DataTransfer();
+    completionFiles.forEach(function (item) {
+        dataTransfer.items.add(item.file);
+    });
+    input.files = dataTransfer.files;
+}
+
+function renderCompletionPreview() {
+    const $preview = $('#upload-after-preview');
+    if (!$preview.length) return;
+
+    if (!completionFiles.length) {
+        $preview.html('<div class="report-image-empty">Chưa chọn ảnh nào.</div>');
+        return;
+    }
+
+    const html = completionFiles.map(function (item, index) {
+        const src = escapeHtmlAttr(item.previewUrl);
+        const name = escapeHtmlAttr(item.file.name);
+        const size = formatFileSize(item.file.size);
+
+        return `
+            <div class="upload-preview-card">
+                <button type="button" class="upload-preview-remove" data-index="${index}" aria-label="Bỏ ảnh">&times;</button>
+                <img src="${src}" alt="${name}">
+                <div class="upload-preview-meta">
+                    <span class="upload-preview-name" title="${name}">${name}</span>
+                    <span class="upload-preview-size">${size}</span>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    $preview.html(html);
+}
+
+function formatFileSize(bytes) {
+    const value = Number(bytes) || 0;
+    if (value < 1024) return value + ' B';
+    if (value < 1024 * 1024) return (value / 1024).toFixed(1) + ' KB';
+    return (value / (1024 * 1024)).toFixed(1) + ' MB';
 }
