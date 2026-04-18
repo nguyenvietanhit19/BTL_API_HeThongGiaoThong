@@ -114,6 +114,12 @@ $(document).ready(function () {
         });
     });
 
+    $(document).on("click", "#btn-open-map", function (e) {
+        e.preventDefault();
+        closeSidebar();
+        window.location.href = "../user/ban_do2.html?source=admin";
+    });
+
     $(window).on("resize", function () {
         if (window.innerWidth > 992) {
             closeSidebar();

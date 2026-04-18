@@ -51,6 +51,16 @@
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
+.employee-app .topbar-map-link {
+    background: rgba(255, 255, 255, 0.14);
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.employee-app .topbar-map-link:hover {
+    background: rgba(255, 255, 255, 0.24);
+}
+
 .employee-app .admin-badge:hover {
     background: rgba(255, 255, 255, 0.24);
 }
@@ -271,6 +281,12 @@
 
 .btn-secondary-light:hover {
     background: #dcefeb;
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    box-shadow: none;
 }
 
 .badge-waiting {
@@ -637,6 +653,11 @@
         font-size: 13px;
     }
 
+    .employee-app .topbar-map-link {
+        padding: 8px 14px;
+        font-size: 13px;
+    }
+
     .detail-grid {
         grid-template-columns: 1fr;
     }
@@ -656,5 +677,25 @@
 
     .modal-footer .btn {
         width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .employee-app .topbar-left {
+        gap: 10px;
+    }
+
+    .employee-topbar__eyebrow {
+        display: none;
+    }
+
+    .employee-app #topbar-title {
+        font-size: 15px;
+    }
+
+    .employee-app .topbar-map-link,
+    .employee-app .admin-badge {
+        padding: 7px 10px;
+        font-size: 12px;
     }
 }

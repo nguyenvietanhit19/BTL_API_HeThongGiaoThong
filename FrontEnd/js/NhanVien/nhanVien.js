@@ -13,6 +13,7 @@ const API_BASE = "http://127.0.0.1:5000";
 let currentTaskId = null;   // ID task đang thao tác trong modal
 let taskMap = {};            // cache toàn bộ task { bao_cao_id: taskObject }
 let completionFiles = [];
+let currentTaskLocation = null;
 
 // ============ AUTH HELPER ============
 function authHeader() {
@@ -78,6 +79,11 @@ $(document).ready(function () {
     $('#btn-profile').click(function (e) {
         e.preventDefault();
         window.location.href = 'profileNV.html';
+    });
+
+    $('#btn-open-map').click(function (e) {
+        e.preventDefault();
+        window.location.href = '../user/ban_do2.html?source=nhan_vien';
     });
 
     // --- Logout ---
@@ -220,6 +226,12 @@ $(document).ready(function () {
         const src = $(this).data('src') || $(this).attr('src');
         if (!src) return;
         openImageViewer(src);
+    });
+
+    $('#btn-chi-duong').off('click').on('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        openDirectionsForCurrentTask();
     });
 });
 
@@ -545,6 +557,9 @@ function openTaskDetail(id) {
     $('#mn-attempt').text(task.lan_thu || 1);
     $('#mn-mota').text(task.mo_ta || '—');
     $('#mn-images').html('<div class="report-image-empty">Đang tải ảnh hiện trạng...</div>');
+    $('#mn-completion-images').html('<div class="report-image-empty">Đang tải ảnh sau xử lý...</div>');
+    currentTaskLocation = getTaskCoordinates(task);
+    updateDirectionsButtonState();
 
     // Reset tất cả nút trước
     $('#btn-confirm-nhan, #btn-tu-choi, #btn-open-hoan-thanh').hide();
@@ -834,13 +849,60 @@ function loadTaskImages(id) {
         headers: authHeader(),
         success: function (res) {
             const payload = res && res.data ? res.data : {};
+            currentTaskLocation = getTaskCoordinates(payload.thong_tin) || currentTaskLocation;
+            updateDirectionsButtonState();
             const images = Array.isArray(payload.hinh_anh) ? payload.hinh_anh : [];
             renderTaskImages(id, images);
         },
         error: function () {
+            updateDirectionsButtonState();
             renderTaskImages(id, []);
         }
     });
+}
+
+function getTaskCoordinates(task) {
+    if (!task) return null;
+
+    const lat = Number(task.vi_do);
+    const lng = Number(task.kinh_do);
+
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+
+    return { lat, lng };
+}
+
+function updateDirectionsButtonState() {
+    const hasLocation = !!(currentTaskLocation && Number.isFinite(currentTaskLocation.lat) && Number.isFinite(currentTaskLocation.lng));
+    $('#btn-chi-duong')
+        .prop('disabled', !hasLocation)
+        .attr('title', hasLocation ? 'Mở bản đồ chỉ đường đến vị trí báo cáo' : 'Báo cáo này chưa có tọa độ để chỉ đường');
+}
+
+function openDirectionsForCurrentTask() {
+    if (!currentTaskId) {
+        showToast('Không xác định được báo cáo để chỉ đường', true);
+        return;
+    }
+
+    const location = currentTaskLocation || getTaskCoordinates(taskMap[currentTaskId]);
+    if (!location) {
+        showToast('Báo cáo này chưa có tọa độ để chỉ đường', true);
+        return;
+    }
+
+    const task = taskMap[currentTaskId] || {};
+    const params = new URLSearchParams({
+        lat: String(location.lat),
+        lng: String(location.lng),
+        route: '1',
+        reportId: String(currentTaskId),
+        source: 'nhan_vien'
+    });
+
+    if (task.tieu_de) params.set('title', task.tieu_de);
+
+    window.location.href = `../user/ban_do2.html?${params.toString()}`;
 }
 
 function renderTaskImages(id, images) {
@@ -849,18 +911,32 @@ function renderTaskImages(id, images) {
     const originals = images.filter(function (img) {
         return img && img.loai_anh === 'bao_cao' && img.duong_dan_anh;
     });
+    const completions = images.filter(function (img) {
+        return img && img.loai_anh === 'sau_sua_chua' && img.duong_dan_anh;
+    });
 
     if (!originals.length) {
         $('#mn-images').html('<div class="report-image-empty">Không có ảnh hiện trạng từ người báo cáo.</div>');
+    } else {
+        const originalsHtml = originals.map(function (img, index) {
+            const src = escapeHtmlAttr(img.duong_dan_anh);
+            return `<img class="report-image-thumb" src="${src}" data-src="${src}" alt="Ảnh hiện trạng ${index + 1}">`;
+        }).join('');
+
+        $('#mn-images').html(originalsHtml);
+    }
+
+    if (!completions.length) {
+        $('#mn-completion-images').html('<div class="report-image-empty">Chưa có ảnh sau xử lý từ nhân viên.</div>');
         return;
     }
 
-    const html = originals.map(function (img, index) {
+    const completionHtml = completions.map(function (img, index) {
         const src = escapeHtmlAttr(img.duong_dan_anh);
-        return `<img class="report-image-thumb" src="${src}" data-src="${src}" alt="Ảnh hiện trạng ${index + 1}">`;
+        return `<img class="report-image-thumb" src="${src}" data-src="${src}" alt="Ảnh sau xử lý ${index + 1}">`;
     }).join('');
 
-    $('#mn-images').html(html);
+    $('#mn-completion-images').html(completionHtml);
 }
 
 function openImageViewer(src) {
