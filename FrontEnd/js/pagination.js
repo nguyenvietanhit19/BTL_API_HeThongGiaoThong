@@ -214,14 +214,14 @@
         $root.show().html(`
             <div class="shared-pagination-info"></div>
             <div class="shared-pagination-controls">
-                <button type="button" class="pagination-prev">Truoc</button>
+                <button type="button" class="pagination-prev">Trước</button>
                 <div class="shared-pagination-pages"></div>
                 <button type="button" class="pagination-next">Sau</button>
             </div>
         `);
 
         $root.find('.shared-pagination-info').text(
-            'Hien thi ' + startItem + '-' + endItem + ' / ' + totalItems + ' ban ghi'
+            'Hiển thị ' + startItem + '-' + endItem + ' / ' + totalItems + ' bản ghi'
         );
         $root.find('.pagination-size').val(String(pageSize));
         $root.find('.pagination-prev').prop('disabled', currentPage <= 1);

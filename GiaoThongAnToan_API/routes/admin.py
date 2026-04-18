@@ -1,7 +1,8 @@
 from flask import Blueprint, request, jsonify
 from db import get_db
 import pyodbc
-from .auth import can_access
+from middleware.auth_middleware import can_access
+from routes.suspension_utils import release_staff_assignments
 
 admin_bp = Blueprint('admin_bp', __name__)
 
@@ -202,7 +203,7 @@ def phan_cong(id):
 
         # kiểm tra nhân viên
         cursor.execute(
-            "SELECT vai_tro, bi_dinh_chi FROM nguoi_dung WHERE nguoi_dung_id = ?",
+            "SELECT vai_tro, bi_dinh_chi, ho_ten FROM nguoi_dung WHERE nguoi_dung_id = ?",
             (nhan_vien_id,)
         )
 
@@ -216,6 +217,10 @@ def phan_cong(id):
 
         if nv[1]:
             return jsonify({"error": "Nhân viên bị đình chỉ"}), 403
+
+        ten_nhan_vien = (nv[2] or '').strip()
+        if not ten_nhan_vien:
+            ten_nhan_vien = f'ID {nhan_vien_id}'
 
         # số lần phân công
         cursor.execute(
@@ -246,9 +251,9 @@ def phan_cong(id):
             """
             INSERT INTO lich_su_trang_thai
             (bao_cao_id, nguoi_doi_id, trang_thai_cu, trang_thai_moi, ghi_chu)
-            VALUES (?, ?, 'da_duyet', 'da_phan_cong', N'Phân công nhân viên')
+            VALUES (?, ?, 'da_duyet', 'da_phan_cong', ?)
             """,
-            (id, admin_id)
+            (id, admin_id, f'Phân công cho nhân viên: {ten_nhan_vien}')
         )
 
         conn.commit()
@@ -276,11 +281,14 @@ def nghiem_thu(id):
 
     data = request.json
     ket_qua = data.get('ket_qua')
+    ghi_chu = (data.get('ghi_chu') or '').strip()
 
     admin_id = request.nguoi_dung_id
 
     if ket_qua not in ['dat', 'khong_dat']:
         return jsonify({"error": "ket_qua phải là dat hoặc khong_dat"}), 400
+    if ket_qua == 'khong_dat' and len(ghi_chu) < 3:
+        return jsonify({"error": "Thiếu lý do không đạt (ghi_chu), tối thiểu 3 ký tự"}), 400
 
     conn = get_db()
     cursor = conn.cursor()
@@ -319,6 +327,26 @@ def nghiem_thu(id):
 
         # không đạt
         else:
+            cursor.execute("""
+                SELECT TOP 1 phan_cong_id, nhan_vien_id, ISNULL(so_lan_tra_lai, 0)
+                FROM phan_cong
+                WHERE bao_cao_id = ?
+                ORDER BY lan_thu DESC, phan_cong_id DESC
+            """, (id,))
+            phan_cong = cursor.fetchone()
+
+            if not phan_cong:
+                return jsonify({"error": "Không tìm thấy phân công hiện tại"}), 404
+
+            phan_cong_id, nhan_vien_id, so_lan_tra_lai = phan_cong
+            so_lan_tra_lai_moi = so_lan_tra_lai + 1
+
+            cursor.execute("""
+                UPDATE phan_cong
+                SET trang_thai = 'dang_lam',
+                    so_lan_tra_lai = ?
+                WHERE phan_cong_id = ?
+            """, (so_lan_tra_lai_moi, phan_cong_id))
 
             cursor.execute(
                 "UPDATE bao_cao SET trang_thai = 'dang_xu_ly' WHERE bao_cao_id = ?",
@@ -329,11 +357,28 @@ def nghiem_thu(id):
                 """
                 INSERT INTO lich_su_trang_thai
                 (bao_cao_id, nguoi_doi_id, trang_thai_cu, trang_thai_moi, ghi_chu)
-                VALUES (?, ?, 'cho_nghiem_thu', 'dang_xu_ly', N'Nghiệm thu không đạt')
+                VALUES (?, ?, 'cho_nghiem_thu', 'dang_xu_ly', ?)
                 """,
-                (id, admin_id)
+                (id, admin_id, f'Từ chối nghiệm thu: {ghi_chu}')
             )
 
+            if so_lan_tra_lai_moi >= 2 and nhan_vien_id:
+                cursor.execute(
+                    """
+                    UPDATE nguoi_dung
+                    SET bi_dinh_chi = 1,
+                        ly_do_dinh_chi = ?
+                    WHERE nguoi_dung_id = ?
+                      AND vai_tro = 'nhan_vien'
+                    """,
+                    ('Bị đình chỉ do có 2 lần báo hoàn thành không đạt nghiệm thu', nhan_vien_id)
+                )
+                release_staff_assignments(
+                    cursor,
+                    nhan_vien_id,
+                    admin_id,
+                    'Nhân viên bị đình chỉ: {ten_nhan_vien}, báo cáo được trả về trạng thái đã duyệt'
+                )
         conn.commit()
 
         return jsonify({"message": "Nghiệm thu thành công"})

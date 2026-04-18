@@ -96,12 +96,15 @@ $(document).ready(function () {
         }
     });
 
-    $(document).on("click", "#logout-btn", function (e) {
+    $(document).on("click", "#logout-btn", async function (e) {
         e.preventDefault();
-        if (confirm("Bạn có chắc chắn muốn đăng xuất không?")) {
-            window.setToken(null);
-            window.location.href = "/FrontEnd/html/dang_nhap/dang_nhap.html";
-        }
+        $("#admin-dropdown").removeClass("show");
+        await window.confirmLogout({
+            badge: "Đăng xuất",
+            title: "Xác nhận đăng xuất",
+            message: "Bạn sẽ cần đăng nhập lại để tiếp tục sử dụng hệ thống. Bạn có chắc chắn muốn đăng xuất không?",
+            confirmText: "Đăng xuất",
+        });
     });
 
     $(window).on("resize", function () {

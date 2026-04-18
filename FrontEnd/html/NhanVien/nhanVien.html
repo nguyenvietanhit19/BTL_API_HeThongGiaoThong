@@ -3,239 +3,267 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GiaoThôngAn — Nhân viên</title>
-
-    <!-- CSS -->
+    <title>GiaoThongAn - Nhân viên xử lý</title>
+    <link rel="stylesheet" href="/FrontEnd/css/common.css">
+    <link rel="stylesheet" href="/FrontEnd/css/admin/admin.css">
     <link rel="stylesheet" href="/FrontEnd/css/nhanVien/nhanVien.css">
     <link rel="stylesheet" href="/FrontEnd/css/nhanVien/profile.css">
-
-    <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-    <!-- JS -->
-    <script src="/FrontEnd/js/NhanVien/nhanVien.js" defer></script>
+    <script src="/FrontEnd/js/api.js"></script>
     <script src="/FrontEnd/js/NhanVien/profileNV.js"></script>
+    <script src="/FrontEnd/js/NhanVien/nhanVien.js" defer></script>
 </head>
-
-<body>
-
-<!-- ================= TOPBAR ================= -->
-<div class="topbar">
-    <div class="left">
-        <span id="btn-menu">☰</span>
-        <span class="topbar-title">Giao Thông An Toàn</span>
-    </div>
-
-    <div class="user-badge">
-        <span id="user-name">Nhân viên</span>
-        <div class="user-dropdown">
-            <a href="#" id="btn-profile">Thông tin</a>
-            <a href="#" id="logout-btn">Đăng xuất</a>
-        </div>
-    </div>
-</div>
-
-<!-- ================= SIDEBAR ================= -->
-<div class="sidebar">
-    <div class="menu-item active" data-page="viec-cua-toi">
-        <span class="dot green"></span>
-        Việc của tôi (<span id="menu-count">0</span>)
-    </div>
-
-    <div class="menu-item" data-page="da-hoan-thanh">
-        <span class="dot gray"></span>
-        Đã hoàn thành
-    </div>
-
-    <div class="menu-item" data-page="lich-su">
-        <span class="dot blue"></span>
-        Lịch sử công việc
-    </div>
-</div>
-
-<!-- ================= MAIN ================= -->
-<div class="main-content">
-
-    <!-- ===== PAGE: VIỆC CỦA TÔI ===== -->
-    <div class="page active" id="page-viec-cua-toi">
-
-        <!-- STATS -->
-        <div class="stats-row">
-            <div class="stat-card">
-                <div class="stat-num red" id="stat-moi">0</div>
-                <div class="stat-label">Mới được giao</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-num blue" id="stat-dang">0</div>
-                <div class="stat-label">Đang xử lý</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-num green" id="stat-done">0</div>
-                <div class="stat-label">Chờ nghiệm thu</div>
+<body class="employee-app">
+    <div class="topbar">
+        <div class="topbar-left">
+            <button class="sidebar-toggle" id="sidebar-toggle-btn" type="button" aria-label="Mở menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <div class="employee-topbar__brand">
+                <span class="employee-topbar__eyebrow">Nhân viên hiện trường</span>
+                <h1 id="topbar-title">Bảng điều phối</h1>
             </div>
         </div>
 
-        <div class="section-title">Việc được phân công</div>
-
-        <!-- CHƯA NHẬN -->
-        <div class="section" id="section-chua-nhan">
-            <h3>📥 Chưa nhận</h3>
-            <div id="list-chua-nhan"></div>
-        </div>
-
-        <!-- ĐANG LÀM -->
-        <div class="section" id="section-dang-lam">
-            <h3>⚙️ Đang xử lý</h3>
-            <div id="list-dang-lam"></div>
-        </div>
-
-        <!-- CHỜ NGHIỆM THU -->
-        <div class="section" id="section-da-xong">
-            <h3>⏳ Chờ nghiệm thu</h3>
-            <div id="list-da-xong"></div>
-        </div>
-
-    </div>
-
-    <!-- ===== PAGE: ĐÃ HOÀN THÀNH ===== -->
-    <div class="page" id="page-da-hoan-thanh">
-        <div class="filter-row">
-            <input type="month" id="filter-month-done">
-        </div>
-
-        <div class="table-wrap">
-            <table>
-                <thead>
-                <tr>
-                    <th>MÃ BC</th>
-                    <th>SỰ CỐ</th>
-                    <th>LOẠI</th>
-                    <th>NGÀY HOÀN THÀNH</th>
-                    <th>KẾT QUẢ</th>
-                </tr>
-                </thead>
-                <tbody id="done-table-body"></tbody>
-            </table>
+        <div class="admin-dropdown-container">
+            <button class="admin-badge" id="admin-menu-btn">Tài khoản ▾</button>
+            <div class="admin-dropdown-menu" id="admin-dropdown">
+                <a href="#" id="btn-profile">Thông tin tài khoản</a>
+                <a href="#" id="logout-btn">Đăng xuất</a>
+            </div>
         </div>
     </div>
 
-    <!-- ===== PAGE: LỊCH SỬ ===== -->
-    <div class="page" id="page-lich-su">
-
-        <div class="filter-row">
-            <input type="text" placeholder="Tìm kiếm..." id="search-history">
-
-            <select id="filter-status">
-                <option value="">Tất cả</option>
-                <option value="hoan_thanh">Hoàn thành</option>
-                <option value="tu_choi">Từ chối</option>
-            </select>
-
-            <input type="month" id="filter-month-history">
+    <div class="sidebar">
+        <div class="menu-item active" data-page="viec-cua-toi">
+            <span class="dot purple"></span>
+            <span class="menu-item__label">Công việc của tôi (<span id="menu-count">0</span>)</span>
         </div>
-
-        <div class="table-wrap">
-            <table>
-                <thead>
-                <tr>
-                    <th>MÃ BC</th>
-                    <th>SỰ CỐ</th>
-                    <th>LOẠI</th>
-                    <th>THỜI GIAN</th>
-                    <th>TRẠNG THÁI</th>
-                    <th>GHI CHÚ</th>
-                </tr>
-                </thead>
-                <tbody id="history-table-body"></tbody>
-            </table>
+        <div class="menu-item" data-page="da-hoan-thanh">
+            <span class="dot green"></span>
+            <span class="menu-item__label">Đã hoàn thành</span>
+        </div>
+        <div class="menu-item" data-page="lich-su">
+            <span class="dot blue"></span>
+            <span class="menu-item__label">Lịch sử công việc</span>
         </div>
     </div>
 
-    <!-- PROFILE -->
-    <div class="page" id="page-profile"></div>
+    <div id="sidebar-backdrop" class="sidebar-backdrop" aria-hidden="true"></div>
 
-</div>
+    <div class="main-content">
+        <div class="page active" id="page-viec-cua-toi">
+            <div class="page-header">
+                <div>
+                    <h2>Điều phối công việc</h2>
+                    <p class="page-subtitle">Theo dõi các báo cáo đã được giao, xử lý hiện trường và gửi nghiệm thu.</p>
+                </div>
+            </div>
 
-<!-- ================= MODAL CHI TIẾT ================= -->
-<div class="modal-overlay" id="modal-nhan-viec">
-    <div class="modal">
+            <div class="stats-container">
+                <div class="card red">
+                    <h3 id="stat-moi">0</h3>
+                    <p>Mới được giao</p>
+                </div>
+                <div class="card blue">
+                    <h3 id="stat-dang">0</h3>
+                    <p>Đang xử lý</p>
+                </div>
+                <div class="card green">
+                    <h3 id="stat-done">0</h3>
+                    <p>Chờ nghiệm thu</p>
+                </div>
+            </div>
 
-        <div class="modal-header">
-            <span class="modal-title" id="mn-title"></span>
-            <button class="modal-close" onclick="closeModal('modal-nhan-viec')">&times;</button>
+            <div class="task-columns">
+                <section class="task-section" id="section-chua-nhan">
+                    <div class="section-header">
+                        <h3>Chưa nhận</h3>
+                        <span class="badge badge-assigned">Cần xác nhận</span>
+                    </div>
+                    <div class="task-list" id="list-chua-nhan"></div>
+                </section>
+
+                <section class="task-section" id="section-dang-lam">
+                    <div class="section-header">
+                        <h3>Đang xử lý</h3>
+                        <span class="badge badge-processing">Đang thi công</span>
+                    </div>
+                    <div class="task-list" id="list-dang-lam"></div>
+                </section>
+
+                <section class="task-section" id="section-da-xong">
+                    <div class="section-header">
+                        <h3>Chờ nghiệm thu</h3>
+                        <span class="badge badge-success">Đã gửi báo cáo</span>
+                    </div>
+                    <div class="task-list" id="list-da-xong"></div>
+                </section>
+            </div>
         </div>
 
-        <div class="modal-body">
-
-            <div class="info-row-modal">
-                <span class="label">Địa chỉ:</span>
-                <span id="mn-addr"></span>
+        <div class="page" id="page-da-hoan-thanh">
+            <div class="page-header">
+                <div>
+                    <h2>Danh sách đã hoàn thành</h2>
+                    <p class="page-subtitle">Các công việc đã xử lý xong và được ghi nhận theo tháng.</p>
+                </div>
+                <div class="filters">
+                    <input type="month" id="filter-month-done">
+                </div>
             </div>
 
-            <div class="info-row-modal">
-                <span class="label">Loại:</span>
-                <span id="mn-type"></span>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Mã báo cáo</th>
+                            <th>Sự cố</th>
+                            <th>Loại</th>
+                            <th>Ngày hoàn thành</th>
+                            <th>Kết quả</th>
+                        </tr>
+                    </thead>
+                    <tbody id="done-table-body"></tbody>
+                </table>
             </div>
-
-            <div class="info-row-modal">
-                <span class="label">Thời gian:</span>
-                <span id="mn-time"></span>
-            </div>
-
-            <div class="info-row-modal">
-                <span class="label">Lần:</span>
-                <span id="mn-attempt"></span>
-            </div>
-
-            <div style="margin-top:10px;font-weight:500">Mô tả:</div>
-            <div id="mn-mota" style="color:#555;margin-top:4px"></div>
-
         </div>
 
-        <div class="modal-footer">
-            <button class="btn btn-primary" id="btn-confirm-nhan">Nhận việc</button>
-            <button class="btn" id="btn-tu-choi">Từ chối</button>
-            <button class="btn btn-primary" id="btn-open-hoan-thanh">Báo hoàn thành</button>
+        <div class="page" id="page-lich-su">
+            <div class="page-header">
+                <div>
+                    <h2>Lịch sử công việc</h2>
+                    <p class="page-subtitle">Tra cứu các mốc thay đổi trạng thái trong quá trình xử lý.</p>
+                </div>
+                <div class="filters">
+                    <input type="text" placeholder="Tìm kiếm..." id="search-history">
+                    <select id="filter-status">
+                        <option value="">Tất cả</option>
+                        <option value="hoan_thanh">Hoàn thành</option>
+                        <option value="tu_choi">Từ chối</option>
+                    </select>
+                    <input type="month" id="filter-month-history">
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Mã báo cáo</th>
+                            <th>Sự cố</th>
+                            <th>Loại</th>
+                            <th>Thời gian</th>
+                            <th>Trạng thái</th>
+                            <th>Ghi chú</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-table-body"></tbody>
+                </table>
+            </div>
         </div>
 
+        <div class="page" id="page-profile"></div>
     </div>
-</div>
 
-<!-- ================= MODAL HOÀN THÀNH ================= -->
-<div class="modal-overlay" id="modal-hoan-thanh">
-    <div class="modal">
-
-        <div class="modal-header">
-            <span class="modal-title">Báo hoàn thành</span>
-            <button class="modal-close" onclick="closeModal('modal-hoan-thanh')">&times;</button>
-        </div>
-
-        <div class="modal-body">
-
-            <div id="error-hoan-thanh"
-                style="color:red; display:none; margin-bottom:10px; font-size:14px;">
+    <div class="modal-overlay" id="modal-nhan-viec">
+        <div class="modal">
+            <div class="modal-header">
+                <span class="modal-title" id="mn-title"></span>
+                <button class="modal-close" onclick="closeModal('modal-nhan-viec')">&times;</button>
             </div>
 
-            <div style="margin-bottom:10px">
-                <input type="file" id="upload-after" multiple>
+            <div class="modal-body">
+                <div class="detail-grid">
+                    <div class="info-row-modal">
+                        <span class="label">Địa chỉ</span>
+                        <span id="mn-addr"></span>
+                    </div>
+                    <div class="info-row-modal">
+                        <span class="label">Loại</span>
+                        <span id="mn-type"></span>
+                    </div>
+                    <div class="info-row-modal">
+                        <span class="label">Thời gian</span>
+                        <span id="mn-time"></span>
+                    </div>
+                    <div class="info-row-modal">
+                        <span class="label">Lần phân công</span>
+                        <span id="mn-attempt"></span>
+                    </div>
+                </div>
+
+                <div class="detail-block">
+                    <div class="detail-block__label">Mô tả</div>
+                    <div class="detail-block__content" id="mn-mota"></div>
+                </div>
+
+                <div class="detail-block">
+                    <div class="detail-block__label">Ảnh hiện trạng</div>
+                    <div class="detail-block__content">
+                        <div class="report-image-grid" id="mn-images">
+                            <div class="report-image-empty">Đang tải ảnh hiện trạng...</div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <textarea id="note-hoan-thanh"
-                      placeholder="Ghi chú xử lý..."
-                      style="width:100%;height:100px;border:1px solid #ddd;border-radius:8px;padding:8px"></textarea>
-
+            <div class="modal-footer">
+                <button class="btn btn-primary" id="btn-confirm-nhan">Nhận việc</button>
+                <button class="btn btn-secondary-light" id="btn-tu-choi">Từ chối</button>
+                <button class="btn btn-primary" id="btn-open-hoan-thanh">Báo hoàn thành</button>
+            </div>
         </div>
-
-        <div class="modal-footer">
-            <button class="btn" onclick="closeModal('modal-hoan-thanh')">Huỷ</button>
-            <button class="btn btn-primary" id="btn-confirm-hoan">Gửi</button>
-        </div>
-
     </div>
-</div>
 
-<!-- ================= TOAST ================= -->
-<div class="toast" id="toast"></div>
+    <div class="modal-overlay" id="modal-hoan-thanh">
+        <div class="modal">
+            <div class="modal-header">
+                <span class="modal-title">Báo hoàn thành</span>
+                <button class="modal-close" onclick="closeModal('modal-hoan-thanh')">&times;</button>
+            </div>
 
+            <div class="modal-body">
+                <div id="error-hoan-thanh" class="form-error" style="display:none;"></div>
+
+                <div class="upload-field">
+                    <label for="upload-after">Ảnh sau sửa chữa</label>
+                    <input type="file" id="upload-after" multiple accept="image/*">
+                    <div class="upload-help-text">Có thể chọn nhiều ảnh, xem trước và bỏ từng ảnh trước khi gửi.</div>
+                    <div id="upload-after-preview" class="upload-preview-list">
+                        <div class="report-image-empty">Chưa chọn ảnh nào.</div>
+                    </div>
+                </div>
+
+                <div class="upload-field">
+                    <label for="note-hoan-thanh">Ghi chú xử lý</label>
+                    <textarea id="note-hoan-thanh" placeholder="Nêu tóm tắt hạng mục đã xử lý..."></textarea>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary-light" onclick="closeModal('modal-hoan-thanh')">Huỷ</button>
+                <button class="btn btn-primary" id="btn-confirm-hoan">Gửi</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <div class="modal-overlay" id="modal-image-viewer">
+        <div class="modal modal-image-viewer">
+            <div class="modal-header">
+                <span class="modal-title">Ảnh hiện trạng</span>
+                <button class="modal-close" onclick="closeModal('modal-image-viewer')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="image-viewer-stage">
+                    <img id="image-viewer-src" src="" alt="Ảnh hiện trạng báo cáo">
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
