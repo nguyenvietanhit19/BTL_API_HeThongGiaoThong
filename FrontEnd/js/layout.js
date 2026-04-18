@@ -1,4 +1,11 @@
 $(document).ready(function () {
+    const _token = localStorage.getItem('token');
+    const _vaiTro = localStorage.getItem('vai_tro');
+    if (!_token || _vaiTro !== 'admin') {
+        window.location.href = '../dang_nhap/dang_nhap.html';
+        return;
+    }
+
     function ensureSidebarBackdrop() {
         if ($("#sidebar-backdrop").length === 0) {
             $("body").append('<div id="sidebar-backdrop" class="sidebar-backdrop" aria-hidden="true"></div>');

@@ -1,69 +1,145 @@
-<div class="profile-page">
-    <section class="profile-hero">
-        <div class="profile-hero__avatar" id="profile-avatar">N</div>
-        <div class="profile-hero__content">
-            <p class="profile-hero__eyebrow">Tài khoản nhân viên</p>
-            <h2 id="display-name">Đang tải...</h2>
-            <div class="profile-hero__meta">
-                <span class="profile-role-badge" id="profile-role">Nhân viên</span>
-                <span id="profile-date">Thành viên từ --/--/----</span>
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thông tin tài khoản - Nhân viên</title>
+    <link rel="stylesheet" href="/FrontEnd/css/common.css">
+    <link rel="stylesheet" href="/FrontEnd/css/admin/admin.css">
+    <link rel="stylesheet" href="/FrontEnd/css/nhanVien/nhanVien.css">
+    <link rel="stylesheet" href="/FrontEnd/css/nhanVien/profile.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="/FrontEnd/js/api.js"></script>
+    <script src="/FrontEnd/js/NhanVien/profileNV.js"></script>
+    <script src="/FrontEnd/js/NhanVien/nhanVien.js" defer></script>
+</head>
+<body class="employee-app">
+    <div class="topbar">
+        <div class="topbar-left">
+            <button class="sidebar-toggle" id="sidebar-toggle-btn" type="button" aria-label="Mở menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <div class="employee-topbar__brand">
+                <span class="employee-topbar__eyebrow">Nhân viên hiện trường</span>
+                <h1 id="topbar-title">Thông tin tài khoản</h1>
             </div>
         </div>
-    </section>
 
-    <div class="profile-grid">
-        <section class="profile-card">
-            <div class="profile-card__header">
-                <div>
-                    <h3>Thông tin cá nhân</h3>
-                    <p>Dữ liệu tài khoản hiện tại của bạn.</p>
-                </div>
+        <div class="admin-dropdown-container">
+            <button class="admin-badge" id="admin-menu-btn">Tài khoản ▾</button>
+            <div class="admin-dropdown-menu" id="admin-dropdown">
+                <a href="profileNV.html" id="btn-profile">Thông tin tài khoản</a>
+                <a href="#" id="logout-btn">Đăng xuất</a>
             </div>
-
-            <div class="profile-info-list">
-                <div class="profile-info-row">
-                    <span class="profile-info-row__label">Họ và tên</span>
-                    <span class="profile-info-row__value" id="profile-name-text">--</span>
-                </div>
-                <div class="profile-info-row">
-                    <span class="profile-info-row__label">Email</span>
-                    <span class="profile-info-row__value" id="profile-email">--</span>
-                </div>
-                <div class="profile-info-row">
-                    <span class="profile-info-row__label">Vai trò</span>
-                    <span class="profile-info-row__value" id="profile-role-text">--</span>
-                </div>
-                <div class="profile-info-row">
-                    <span class="profile-info-row__label">Mã người dùng</span>
-                    <span class="profile-info-row__value" id="profile-user-id">--</span>
-                </div>
-            </div>
-        </section>
-
-        <section class="profile-card">
-            <div class="profile-card__header">
-                <div>
-                    <h3>Cập nhật thông tin</h3>
-                    <p>Bạn có thể thay đổi tên hiển thị dùng trong hệ thống.</p>
-                </div>
-            </div>
-
-            <form id="form-update-profile" class="profile-form">
-                <div class="profile-field">
-                    <label for="full-name">Họ và tên</label>
-                    <input type="text" id="full-name" placeholder="Nhập họ và tên">
-                </div>
-
-                <div class="profile-field">
-                    <label for="profile-email-readonly">Email</label>
-                    <input type="text" id="profile-email-readonly" readonly>
-                </div>
-
-                <div class="profile-actions">
-                    <button type="submit" class="profile-btn profile-btn--primary">Lưu thay đổi</button>
-                </div>
-            </form>
-        </section>
+        </div>
     </div>
 
-</div>
+    <div class="sidebar">
+        <div class="menu-item" data-page="viec-cua-toi" onclick="window.location.href='nhanVien.html'">
+            <span class="dot purple"></span>
+            <span class="menu-item__label">Công việc của tôi</span>
+        </div>
+        <div class="menu-item" data-page="da-hoan-thanh" onclick="window.location.href='nhanVien.html'">
+            <span class="dot green"></span>
+            <span class="menu-item__label">Đã hoàn thành</span>
+        </div>
+        <div class="menu-item" data-page="lich-su" onclick="window.location.href='nhanVien.html'">
+            <span class="dot blue"></span>
+            <span class="menu-item__label">Lịch sử công việc</span>
+        </div>
+    </div>
+
+    <div id="sidebar-backdrop" class="sidebar-backdrop" aria-hidden="true"></div>
+
+    <div class="main-content">
+        <div class="page active" id="page-profile">
+            <div class="profile-page">
+                <section class="profile-hero">
+                    <div class="profile-hero__avatar" id="profile-avatar">N</div>
+                    <div class="profile-hero__content">
+                        <p class="profile-hero__eyebrow">Tài khoản nhân viên</p>
+                        <h2 id="display-name">Đang tải...</h2>
+                        <div class="profile-hero__meta">
+                            <span class="profile-role-badge" id="profile-role">Nhân viên</span>
+                            <span id="profile-date">Thành viên từ --/--/----</span>
+                        </div>
+                    </div>
+                </section>
+
+                <div class="profile-grid">
+                    <section class="profile-card">
+                        <div class="profile-card__header">
+                            <div>
+                                <h3>Thông tin cá nhân</h3>
+                                <p>Dữ liệu tài khoản hiện tại của bạn.</p>
+                            </div>
+                        </div>
+
+                        <div class="profile-info-list">
+                            <div class="profile-info-row">
+                                <span class="profile-info-row__label">Họ và tên</span>
+                                <span class="profile-info-row__value" id="profile-name-text">--</span>
+                            </div>
+                            <div class="profile-info-row">
+                                <span class="profile-info-row__label">Email</span>
+                                <span class="profile-info-row__value" id="profile-email">--</span>
+                            </div>
+                            <div class="profile-info-row">
+                                <span class="profile-info-row__label">Vai trò</span>
+                                <span class="profile-info-row__value" id="profile-role-text">--</span>
+                            </div>
+                            <div class="profile-info-row">
+                                <span class="profile-info-row__label">Mã người dùng</span>
+                                <span class="profile-info-row__value" id="profile-user-id">--</span>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="profile-card">
+                        <div class="profile-card__header">
+                            <div>
+                                <h3>Cập nhật thông tin</h3>
+                                <p>Bạn có thể thay đổi tên hiển thị dùng trong hệ thống.</p>
+                            </div>
+                        </div>
+
+                        <form id="form-update-profile" class="profile-form">
+                            <div class="profile-field">
+                                <label for="full-name">Họ và tên</label>
+                                <input type="text" id="full-name" placeholder="Nhập họ và tên">
+                            </div>
+
+                            <div class="profile-field">
+                                <label for="profile-email-readonly">Email</label>
+                                <input type="text" id="profile-email-readonly" readonly>
+                            </div>
+
+                            <div class="profile-actions">
+                                <button type="submit" class="profile-btn profile-btn--primary">Lưu thay đổi</button>
+                            </div>
+                        </form>
+                    </section>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            if (typeof initProfilePage === 'function') initProfilePage();
+
+            $('#sidebar-toggle-btn').click(function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                $('body').toggleClass('sidebar-open');
+            });
+
+            $('#sidebar-backdrop').click(function () {
+                $('body').removeClass('sidebar-open');
+            });
+        });
+    </script>
+</body>
+</html>

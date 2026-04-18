@@ -20,11 +20,11 @@ function authHeader() {
 
 // ============ INIT ============
 $(document).ready(function () {
-     // ← chỉ nhân viên mới vào được
-
-    // --- Kiểm tra đăng nhập ---
-    if (!localStorage.getItem('token')) {
-        showToast("Chưa đăng nhập", true);
+    // --- Kiểm tra đăng nhập và quyền nhân viên ---
+    const _token = localStorage.getItem('token');
+    const _vaiTro = localStorage.getItem('vai_tro');
+    if (!_token || _vaiTro !== 'nhan_vien') {
+        window.location.href = '../dang_nhap/dang_nhap.html';
         return;
     }
 
@@ -73,15 +73,10 @@ $(document).ready(function () {
         $('body').removeClass('sidebar-open');
     });
 
-    // --- Profile (AJAX load) ---
+    // --- Profile ---
     $('#btn-profile').click(function (e) {
         e.preventDefault();
-        $('.page').removeClass('active');
-        $('#page-profile').load('/FrontEnd/html/NhanVien/profileNV.html .profile-page', function () {
-            $('#page-profile').addClass('active');
-            if (typeof initProfilePage === "function") initProfilePage();
-        });
-        $('body').removeClass('sidebar-open');
+        window.location.href = 'profileNV.html';
     });
 
     // --- Logout ---
