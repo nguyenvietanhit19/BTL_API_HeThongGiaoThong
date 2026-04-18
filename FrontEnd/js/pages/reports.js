@@ -315,6 +315,11 @@
                                     <div id="rd-mo-ta" style="font-size:14px;line-height:1.5;color:#444;"></div>
                                 </div>
                             </div>
+                            <div style="display:flex;justify-content:flex-end;margin:-4px 0 20px;">
+                                <button type="button" id="rd-chi-duong" style="border:none;background:#2563eb;color:#fff;padding:10px 16px;border-radius:8px;font-weight:700;cursor:pointer;">
+                                    Chỉ đường
+                                </button>
+                            </div>
                             <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
                                 <div class="image-section">
                                     <h4 style="border-left:4px solid #007bff;padding-left:10px;color:#007bff;">ẢNH HIỆN TRƯỜNG</h4>
@@ -348,6 +353,34 @@
             $modal.find('#rd-trang-thai')
                 .text(getStatusLabel(info.trang_thai || 'cho_duyet'))
                 .attr('class', 'badge ' + (info.trang_thai || 'cho_duyet'));
+
+            const lat = Number(info.vi_do);
+            const lng = Number(info.kinh_do);
+            const hasCoordinates = Number.isFinite(lat) && Number.isFinite(lng);
+
+            $modal.find('#rd-chi-duong')
+                .prop('disabled', !hasCoordinates)
+                .css({
+                    opacity: hasCoordinates ? '1' : '0.55',
+                    cursor: hasCoordinates ? 'pointer' : 'not-allowed'
+                })
+                .attr('title', hasCoordinates ? 'Má»Ÿ báº£n Ä‘á»“ chá»‰ Ä‘Æ°á»ng Ä‘áº¿n vá»‹ trÃ­ bÃ¡o cÃ¡o' : 'BÃ¡o cÃ¡o nÃ y chÆ°a cÃ³ tá»a Ä‘á»™ Ä‘á»ƒ chá»‰ Ä‘Æ°á»ng')
+                .off('click')
+                .on('click', function() {
+                    if (!hasCoordinates) return;
+
+                    const params = new URLSearchParams({
+                        lat: String(lat),
+                        lng: String(lng),
+                        route: '1',
+                        reportId: String(id),
+                        source: 'admin'
+                    });
+
+                    if (info.tieu_de) params.set('title', info.tieu_de);
+
+                    window.location.href = `../user/ban_do2.html?${params.toString()}`;
+                });
 
             const $gridOriginal = $modal.find('#rd-grid-anh-goc').empty();
             const $gridDone = $modal.find('#rd-grid-anh-xuly').empty();

@@ -27,11 +27,14 @@
             </div>
         </div>
 
-        <div class="admin-dropdown-container">
+        <div class="topbar-actions">
+            <button class="topbar-map-link" id="btn-open-map" type="button">🗺️ Bản đồ</button>
+            <div class="admin-dropdown-container">
             <button class="admin-badge" id="admin-menu-btn">Tài khoản ▾</button>
             <div class="admin-dropdown-menu" id="admin-dropdown">
                 <a href="#" id="btn-profile">Thông tin tài khoản</a>
                 <a href="#" id="logout-btn">Đăng xuất</a>
+            </div>
             </div>
         </div>
     </div>
@@ -208,9 +211,19 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="detail-block">
+                    <div class="detail-block__label">Ảnh sau xử lý</div>
+                    <div class="detail-block__content">
+                        <div class="report-image-grid" id="mn-completion-images">
+                            <div class="report-image-empty">Chưa có ảnh sau xử lý từ nhân viên.</div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div class="modal-footer">
+                <button class="btn btn-secondary-light" id="btn-chi-duong">Chỉ đường</button>
                 <button class="btn btn-primary" id="btn-confirm-nhan">Nhận việc</button>
                 <button class="btn btn-secondary-light" id="btn-tu-choi">Từ chối</button>
                 <button class="btn btn-primary" id="btn-open-hoan-thanh">Báo hoàn thành</button>

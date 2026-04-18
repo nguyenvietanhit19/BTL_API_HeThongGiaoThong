@@ -36,6 +36,23 @@ body { display: flex; height: 100vh; background-color: #f8f9fc; color: #333; ove
    ========================================= */
 .topbar { position: absolute; top: 0; left: 0; right: 0; height: 60px; background-color: #8b7ed6; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; color: white; z-index: 10; }
 .topbar h1 { font-size: 18px; font-weight: 600; letter-spacing: 0.5px; }
+.topbar-actions { display: flex; align-items: center; gap: 12px; }
+.topbar-map-link {
+    background: rgba(255, 255, 255, 0.16);
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.24);
+    border-radius: 999px;
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s;
+}
+.topbar-map-link:hover { background: rgba(255, 255, 255, 0.28); }
+.topbar-actions,
+.admin-dropdown-container,
+.topbar-map-link,
+.admin-badge { flex-shrink: 0; }
 
 /* Menu Dropdown Admin */
 .admin-dropdown-container { position: relative; display: inline-block; }
@@ -156,6 +173,11 @@ body.sidebar-open .sidebar-backdrop {
         font-size: 16px;
     }
 
+    .topbar-actions {
+        gap: 10px;
+    }
+
+    .topbar-map-link,
     .admin-badge {
         padding: 6px 12px;
         font-size: 13px;
@@ -194,7 +216,17 @@ body.sidebar-open .sidebar-backdrop {
 
     .topbar-left {
         gap: 10px;
-        max-width: calc(100% - 120px);
+        max-width: calc(100% - 170px);
+    }
+
+    .topbar-actions {
+        gap: 8px;
+    }
+
+    .topbar-map-link,
+    .admin-badge {
+        padding: 6px 10px;
+        font-size: 12px;
     }
 
     .main-content {
@@ -204,5 +236,25 @@ body.sidebar-open .sidebar-backdrop {
     .sidebar {
         width: min(86vw, 280px);
         min-width: min(86vw, 280px);
+    }
+}
+
+@media (max-width: 480px) {
+    .topbar {
+        padding: 0 10px;
+    }
+
+    .topbar-left {
+        max-width: calc(100% - 156px);
+    }
+
+    .topbar-actions {
+        gap: 6px;
+    }
+
+    .topbar-map-link,
+    .admin-badge {
+        padding: 6px 9px;
+        font-size: 11px;
     }
 }

@@ -20,6 +20,9 @@ let currentFilter = 0;          // 0 = tất cả
 let selectedFiles = [];
 let selectedLoaiId = null;
 let activePopup = null;
+let pendingDirectionsRequest = null;
+let openedFromEmployeePage = false;
+let openedFromAdminPage = false;
 
 /* ---------- LOẠI SỰ CỐ ---------- */
 const LOAI_CONFIG = {
@@ -65,6 +68,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Gọi API lấy thông tin user để có ID
   taiThongTinUser();
+  openedFromEmployeePage = isOpenedFromEmployeePage();    //từ nhân viên
+  openedFromAdminPage = isOpenedFromAdminPage();
+  pendingDirectionsRequest = readPendingDirectionsRequest();   //từ nhân viên
+  setupEmployeeBackButton();
 
   initMap();
   getUserLocation();
@@ -220,6 +227,10 @@ function initMap() {
   map.on('click', () => {
     if (activePopup) { activePopup.remove(); activePopup = null; }
   });
+
+  map.on('load', () => {
+    applyPendingDirections();
+  });
 }
 
 /* ============================================================
@@ -229,6 +240,7 @@ function getUserLocation() {
   if (!navigator.geolocation) {
     document.getElementById('location-text').textContent = 'Trình duyệt không hỗ trợ GPS';
     loadReportsNearby();
+    applyPendingDirections();
     return;
   }
 
@@ -266,11 +278,13 @@ function getUserLocation() {
       document.getElementById('kinh-do').value = currentLng;
 
       loadReportsNearby();
+      applyPendingDirections();
     },
     err => {
       document.getElementById('location-text').textContent = 'Không lấy được vị trí, hiển thị toàn bộ';
       document.getElementById('gps-text').textContent = 'Không lấy được GPS — nhập thủ công';
       loadReportsNearby();
+      applyPendingDirections();
     },
     { enableHighAccuracy: true, timeout: 8000 }
   );
@@ -853,6 +867,96 @@ function formatDate(dateStr) {
   if (!dateStr) return '';
   const d = new Date(dateStr);
   return d.toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+
+function readPendingDirectionsRequest() {
+  const params = new URLSearchParams(window.location.search);
+  const lat = Number(params.get('lat'));
+  const lng = Number(params.get('lng'));
+
+  if (params.get('route') !== '1' || !Number.isFinite(lat) || !Number.isFinite(lng)) {
+    return null;
+  }
+
+  return {
+    lat: lat,
+    lng: lng,
+    reportId: params.get('reportId') || '',
+    title: params.get('title') || ''
+  };
+}
+
+function isOpenedFromEmployeePage() {
+  const params = new URLSearchParams(window.location.search);
+  const hasEmployeeSource = params.get('source') === 'nhan_vien';
+  const isEmployeeAccount = localStorage.getItem('vai_tro') === 'nhan_vien';
+  const isDirectionsMode = params.get('route') === '1';
+
+  return hasEmployeeSource || (isEmployeeAccount && isDirectionsMode);
+}
+
+function isOpenedFromAdminPage() {
+  const params = new URLSearchParams(window.location.search);
+  const hasAdminSource = params.get('source') === 'admin';
+  const isAdminAccount = localStorage.getItem('vai_tro') === 'admin';
+  const isDirectionsMode = params.get('route') === '1';
+
+  return hasAdminSource || (isAdminAccount && isDirectionsMode);
+}
+
+function setupEmployeeBackButton() {
+  const btn = document.getElementById('btn-back-employee');
+  if (!btn) return;
+
+  if (openedFromAdminPage) {
+    btn.hidden = false;
+    btn.textContent = '← Admin';
+    return;
+  }
+
+  if (openedFromEmployeePage) {
+    btn.hidden = false;
+    btn.textContent = '← Nhân viên';
+    return;
+  }
+
+  btn.hidden = true;
+}
+
+function goBackToEmployeePage() {
+  const fallbackUrl = openedFromAdminPage
+    ? '../admin/tong-quan.html'
+    : '../NhanVien/nhanVien.html';
+
+  if ((openedFromEmployeePage || openedFromAdminPage) && window.history.length > 1) {
+    window.history.back();
+    return;
+  }
+
+  window.location.href = fallbackUrl;
+}
+
+function applyPendingDirections() {
+  if (!pendingDirectionsRequest || !map || !window.directionsControl) return;
+
+  switchTab('map');
+
+  if (!Number.isFinite(currentLat) || !Number.isFinite(currentLng)) return;
+
+  window.directionsControl.setOrigin([currentLng, currentLat]);
+
+  window.directionsControl.setDestination([pendingDirectionsRequest.lng, pendingDirectionsRequest.lat]);
+  map.flyTo({ center: [pendingDirectionsRequest.lng, pendingDirectionsRequest.lat], zoom: 15, duration: 1200 });
+
+  const btn = document.getElementById('btn-toggle-directions');
+  const ctrlLeft = document.querySelector('.mapboxgl-ctrl-top-left');
+  if (btn && ctrlLeft) {
+    ctrlLeft.classList.add('show-directions');
+    btn.classList.add('active');
+    btn.textContent = '✕';
+  }
+
+  pendingDirectionsRequest = null;
 }
 
 function chiDuong(lat, lng) {

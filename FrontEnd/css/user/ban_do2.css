@@ -67,6 +67,38 @@ body {
   box-shadow: 0 2px 16px rgba(0,0,0,.35);
 }
 
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex-shrink: 1;
+}
+
+.btn-back-employee {
+  border: 1px solid rgba(255,255,255,.18);
+  background: rgba(255,255,255,.08);
+  color: #fff;
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-family: 'Be Vietnam Pro', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .18s ease, border-color .18s ease, transform .18s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.btn-back-employee:hover {
+  background: rgba(255,255,255,.14);
+  border-color: rgba(255,255,255,.3);
+}
+
+.btn-back-employee:active {
+  transform: translateY(1px);
+}
+
 .logo {
   display: flex;
   align-items: center;
@@ -1231,6 +1263,21 @@ body {
     :root { --header-h: 52px; --filter-h: 44px; }
 
     /* Header */
+    .header {
+      padding: 0 10px;
+      gap: 8px;
+    }
+    .header-left {
+      gap: 6px;
+      max-width: calc(100% - 180px);
+    }
+    .btn-back-employee {
+      padding: 6px 8px;
+      font-size: 11px;
+      max-width: 84px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
     .logo-text { display: none; }
     .logo-icon  { font-size: 20px; }
 
@@ -1276,6 +1323,17 @@ body {
 /* ---- TABLET 481px – 768px ---- */
 @media (min-width: 481px) and (max-width: 768px) {
 
+    .header {
+      padding: 0 12px;
+      gap: 10px;
+    }
+    .header-left {
+      max-width: calc(100% - 210px);
+    }
+    .btn-back-employee {
+      padding: 7px 10px;
+      font-size: 11px;
+    }
     .tab-btn { padding: 6px 14px; }
 
     .mapboxgl-ctrl-top-left .mapboxgl-ctrl-directions {
@@ -1323,6 +1381,13 @@ body {
 
 /* ---- USER BUTTON — ẩn trên mobile nhỏ ---- */
 @media (max-width: 380px) {
+    .header-left {
+        max-width: calc(100% - 132px);
+    }
+    .btn-back-employee {
+        max-width: 58px;
+        padding: 6px 7px;
+    }
     .user-btn-info { display: none; }
     .user-btn-arrow { display: none; }
 }
