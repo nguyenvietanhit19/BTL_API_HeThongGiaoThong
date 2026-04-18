@@ -7,7 +7,7 @@
 
 /* ---------- CONFIG ---------- */
 const API_BASE = 'http://localhost:5000';         // Sửa thành URL deploy nếu cần
-const MAPBOX_TOKEN = 'my_mapbox_token_here'; // ← thay bằng token của bạn
+const MAPBOX_TOKEN = 'mytoken'; // ← thay bằng token của bạn
 const BAN_KINH_KM = 10;
 
 /* ---------- STATE ---------- */
@@ -895,6 +895,21 @@ function xoaBaoCao(id) {
     },
     error: xhr => showToast('❌ ' + (xhr.responseJSON?.loi || 'Xóa thất bại'), 'error')
   });
+}
+
+
+function toggleDirections() {
+    const btn = document.getElementById('btn-toggle-directions');
+    const ctrlLeft = document.querySelector('.mapboxgl-ctrl-top-left');
+
+    const isShowing = ctrlLeft.classList.toggle('show-directions');
+    btn.classList.toggle('active', isShowing);
+    btn.textContent = isShowing ? '✕' : '🚘';
+
+    // Nếu tắt thì xóa origin/destination để directions sạch
+    if (!isShowing) {
+        window.directionsControl.removeRoutes();
+    }
 }
 
 // function xoaBuocDi() {

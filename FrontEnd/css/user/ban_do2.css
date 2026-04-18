@@ -1263,6 +1263,14 @@ body {
 
     /* Toast */
     .toast { bottom: 80px; font-size: 13px; }
+
+    .mapboxgl-ctrl-top-left .mapboxgl-ctrl-directions {
+        width: calc(100vw - 16px) !important;
+        max-width: unset !important;
+        font-size: 12px !important;
+        transform: scale(0.85);
+        transform-origin: top left;
+    }
 }
 
 /* ---- TABLET 481px – 768px ---- */
@@ -1461,4 +1469,49 @@ body {
 }
 .btn-delete-report:hover {
   background: #FEF2F2;
+}
+
+
+/* CSS bật tắt để hiện chỉ đường */
+.btn-toggle-directions {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .btn-toggle-directions {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: fixed;
+        bottom: 175px;
+        left: 10px;      /* ← cùng phía với ctrl-icon mobile */
+        right: auto;
+        top: auto;
+        z-index: 20;
+        width: 32px;
+        height: 32px;
+        border-radius: 4px;
+        background: #fff;
+        color: var(--navy);
+        border: none;
+        font-size: 16px;
+        cursor: pointer;
+        box-shadow: 0 0 0 2px rgba(0,0,0,.15);
+        padding: 0;
+    }
+
+    .btn-toggle-directions.active {
+        background: var(--primary);
+        color: #fff;
+    }
+
+    /* Ẩn directions mặc định trên mobile */
+    .mapboxgl-ctrl-top-left .mapboxgl-ctrl-directions {
+        display: none !important;
+    }
+
+    /* Hiện khi toggle */
+    .mapboxgl-ctrl-top-left.show-directions .mapboxgl-ctrl-directions {
+        display: block !important;
+    }
 }
