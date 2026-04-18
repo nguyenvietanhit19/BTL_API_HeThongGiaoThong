@@ -2,7 +2,6 @@ from flask import Blueprint, request, jsonify
 from middleware.auth_middleware import can_access
 from db import get_db
 from datetime import datetime
-from routes.suspension_utils import release_staff_assignments
 
 quan_ly_bp = Blueprint('quan_ly', __name__)
 
