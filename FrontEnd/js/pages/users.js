@@ -57,7 +57,7 @@
             const matchesRole = !filters.role || roleMeta.role === filters.role;
             const matchesStatus = !filters.status
                 || (filters.status === 'active' && !statusMeta.isSuspended && statusMeta.isActive)
-                || (filters.status === 'locked' && (statusMeta.isSuspended || !statusMeta.isActive))
+                || (filters.status === 'locked' && !statusMeta.isSuspended && !statusMeta.isActive)
                 || (filters.status === 'suspended' && statusMeta.isSuspended);
 
             return matchesKeyword && matchesRole && matchesStatus;
@@ -99,6 +99,105 @@
             action: 'deactivate',
             label: 'Khóa tài khoản',
             style: 'background:#dc3545;color:white;border:none;padding:8px 16px;border-radius:4px;cursor:pointer;'
+        };
+    }
+
+    function getRoleOptions(selectedRole) {
+        const current = getRoleMeta(selectedRole).role;
+        const options = [
+            { value: 'user', label: 'User' },
+            { value: 'nhan_vien', label: 'Nhân viên' },
+            { value: 'admin', label: 'Admin' }
+        ];
+
+        return options.map(function(option) {
+            return `<option value="${option.value}" ${current === option.value ? 'selected' : ''}>${option.label}</option>`;
+        }).join('');
+    }
+
+    function ensureRoleModal() {
+        if ($('#roleAssignModal').length) return;
+
+        $(document.body).append(`
+            <div id="roleAssignModal" class="admin-modal" style="display:none;" aria-hidden="true">
+                <div class="admin-modal__overlay"></div>
+                <div class="admin-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="role-modal-title">
+                    <button type="button" class="admin-modal__close" id="role-modal-close" aria-label="Đóng">&times;</button>
+                    <div class="admin-modal__badge admin-modal__badge--info">Phân quyền tài khoản</div>
+                    <h3 class="admin-modal__title" id="role-modal-title">Cập nhật vai trò người dùng</h3>
+                    <p class="admin-modal__message" id="role-modal-message"></p>
+                    <div class="admin-modal__field" style="display:block;">
+                        <label class="admin-modal__label" for="role-modal-select">Vai trò mới</label>
+                        <select id="role-modal-select" class="admin-modal__textarea" style="min-height:auto;height:46px;padding:10px 12px;"></select>
+                        <div class="admin-modal__hint">Admin có toàn quyền, nhân viên xử lý báo cáo, user là tài khoản người dùng thường.</div>
+                    </div>
+                    <div class="admin-modal__actions">
+                        <button type="button" class="btn-action btn-secondary" id="role-modal-cancel">Hủy</button>
+                        <button type="button" class="btn-action primary" id="role-modal-confirm">Cập nhật vai trò</button>
+                    </div>
+                </div>
+            </div>
+        `);
+    }
+
+    function openRoleAssignmentModal(user) {
+        ensureRoleModal();
+
+        const roleMeta = getRoleMeta(user.vai_tro);
+        const $modal = $('#roleAssignModal');
+
+        $('#role-modal-message').text(`Chọn vai trò mới cho ${user.ho_ten || user.email || 'tài khoản này'}. Vai trò hiện tại: ${roleMeta.label}.`);
+        $('#role-modal-select').html(getRoleOptions(user.vai_tro));
+
+        $modal.stop(true, true).fadeIn(150).attr('aria-hidden', 'false');
+
+        return new Promise(function(resolve) {
+            const cleanup = function() {
+                $(document).off('keydown.roleAssignModal');
+                $('#role-modal-cancel, #role-modal-close, #roleAssignModal .admin-modal__overlay').off('.roleAssignModal');
+                $('#role-modal-confirm').off('.roleAssignModal');
+                $modal.stop(true, true).fadeOut(150, function() {
+                    $modal.attr('aria-hidden', 'true');
+                });
+            };
+
+            const closeWith = function(result) {
+                cleanup();
+                resolve(result);
+            };
+
+            $('#role-modal-cancel, #role-modal-close, #roleAssignModal .admin-modal__overlay')
+                .on('click.roleAssignModal', function() {
+                    closeWith({ confirmed: false, value: '' });
+                });
+
+            $('#role-modal-confirm').on('click.roleAssignModal', function() {
+                closeWith({ confirmed: true, value: $('#role-modal-select').val() });
+            });
+
+            $(document).on('keydown.roleAssignModal', function(e) {
+                if (e.key === 'Escape') closeWith({ confirmed: false, value: '' });
+            });
+
+            setTimeout(function() {
+                $('#role-modal-select').trigger('focus');
+            }, 30);
+        });
+    }
+
+    async function resolveRoleUpdateRequest(user) {
+        const modalResult = await openRoleAssignmentModal(user);
+        if (!modalResult.confirmed) return null;
+
+        return {
+            method: 'PUT',
+            path: `/admin/nguoi-dung/${user.nguoi_dung_id || user.id}/vai-tro`,
+            data: { vai_tro: modalResult.value },
+            toast: {
+                type: 'success',
+                title: 'Đã cập nhật vai trò',
+                message: `Vai trò của ${user.ho_ten || user.email || 'tài khoản'} đã được thay đổi.`
+            }
         };
     }
 
@@ -397,8 +496,8 @@
                 const statusMeta = getStatusMeta(user);
 
                 if (roleMeta.role === 'admin') adminCount += 1;
-                if (statusMeta.isSuspended || !statusMeta.isActive) lockedCount += 1;
-                else activeCount += 1;
+                if (!statusMeta.isSuspended && !statusMeta.isActive) lockedCount += 1;
+                else if (!statusMeta.isSuspended && statusMeta.isActive) activeCount += 1;
             });
 
             $('#stat-total').text(filteredUsers.length);
@@ -577,6 +676,10 @@
                 $actions.append(`<button class="btn-action user-action-btn" data-id="${id}" data-action="${actionConfig.action}" style="${actionConfig.style}">${actionConfig.label}</button>`);
             }
 
+            if (!(currentUser && String(currentUser.nguoi_dung_id) === String(mergedUser.nguoi_dung_id))) {
+                $modal.find('#ud-actions').prepend(`<button class="btn-action user-role-btn" data-id="${id}" style="background:#2563eb;color:white;border:none;padding:8px 16px;border-radius:4px;cursor:pointer;margin-right:8px;">Phân quyền</button>`);
+            }
+
             $modal.fadeIn(150);
         } catch (err) {
             window.showApiError(err);
@@ -593,6 +696,39 @@
         const $button = $(this);
         const requestConfig = await resolveUserActionRequest(action, id);
 
+        if (!requestConfig) return;
+
+        $button.prop('disabled', true);
+
+        try {
+            await window.apiRequest(requestConfig.method, requestConfig.path, requestConfig.data);
+            window.showToast(requestConfig.toast);
+            $('#userDetailModal').fadeOut(100);
+            await refreshUsersCurrentPage();
+        } catch (err) {
+            $button.prop('disabled', false);
+            window.showApiError(err);
+        }
+    });
+
+    $(document).off('click', '.user-role-btn').on('click', '.user-role-btn', async function() {
+        const id = $(this).data('id');
+        const $button = $(this);
+        const cachedUsers = window.currentUsersList || [];
+        const user = cachedUsers.find(function(item) {
+            return String(item.nguoi_dung_id || item.id) === String(id);
+        });
+
+        if (!user) {
+            window.showToast({
+                type: 'error',
+                title: 'Không tìm thấy tài khoản',
+                message: 'Không tải được dữ liệu để cập nhật vai trò.'
+            });
+            return;
+        }
+
+        const requestConfig = await resolveRoleUpdateRequest(user);
         if (!requestConfig) return;
 
         $button.prop('disabled', true);

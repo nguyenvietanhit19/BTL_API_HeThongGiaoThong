@@ -1,41 +1,46 @@
-// ============ CONFIG ============
-const TOKEN = localStorage.getItem("token");
+let currentProfileData = null;
+
 function initProfilePage() {
-
+    bindProfileEvents();
     loadProfile();
+}
 
-    // UPDATE PROFILE
-    $('#form-update-profile').on('submit', function (e) {
+function bindProfileEvents() {
+    $('#form-update-profile').off('submit').on('submit', function (e) {
         e.preventDefault();
 
-        const fullName = $('#full-name').val();
-
+        const fullName = $('#full-name').val().trim();
         if (!fullName) {
-            showToast("Không được để trống", true);
+            showToast("Họ tên không được để trống", true);
             return;
         }
 
+        const $btn = $(this).find('button[type="submit"]');
+        $btn.prop('disabled', true).text('Đang lưu...');
+
         $.ajax({
-            url: `${API_BASE}/nhan-vien/cap-nhat-thong-tin`,
+            url: `${API_BASE}/auth/toi`,
             method: "PUT",
-            headers: {
-                Authorization: `Bearer ${localStorage.getItem('token')}`
-            },
+            headers: authHeader(),
             contentType: "application/json",
-            data: JSON.stringify({ ten: fullName }),
+            data: JSON.stringify({ ho_ten: fullName }),
             success: function () {
-                showToast("Cập nhật thành công");
-                $('#display-name').text(fullName);
+                showToast("Cập nhật thông tin thành công");
+                localStorage.setItem("ho_ten", fullName);
                 localStorage.setItem("user_name", fullName);
+                $('#admin-menu-btn').text(`${fullName} ▾`);
+                loadProfile();
             },
-            error: function () {
-                showToast("Lỗi server", true);
+            error: function (xhr) {
+                showToast(xhr.responseJSON?.loi || "Không thể cập nhật thông tin", true);
+            },
+            complete: function () {
+                $btn.prop('disabled', false).text('Lưu thay đổi');
             }
         });
     });
 
-    // CHANGE PASSWORD
-    $('#form-change-password').on('submit', function (e) {
+    $('#form-change-password').off('submit').on('submit', function (e) {
         e.preventDefault();
 
         const oldPass = $('#old-pass').val();
@@ -43,26 +48,27 @@ function initProfilePage() {
         const confirmPass = $('#confirm-pass').val();
 
         if (!oldPass || !newPass || !confirmPass) {
-            showToast("Nhập đầy đủ mật khẩu", true);
+            showToast("Vui lòng nhập đầy đủ thông tin mật khẩu", true);
             return;
         }
 
-        if (newPass.length < 8) {
-            showToast("Mật khẩu >= 8 ký tự", true);
+        if (newPass.length < 6) {
+            showToast("Mật khẩu mới phải có ít nhất 6 ký tự", true);
             return;
         }
 
         if (newPass !== confirmPass) {
-            showToast("Xác nhận mật khẩu sai", true);
+            showToast("Xác nhận mật khẩu không khớp", true);
             return;
         }
 
+        const $btn = $(this).find('button[type="submit"]');
+        $btn.prop('disabled', true).text('Đang cập nhật...');
+
         $.ajax({
-            url: `${API_BASE}/nhan-vien/doi-mat-khau`,
+            url: `${API_BASE}/auth/doi-mat-khau`,
             method: "PUT",
-            headers: {
-                Authorization: `Bearer ${localStorage.getItem('token')}`
-            },
+            headers: authHeader(),
             contentType: "application/json",
             data: JSON.stringify({
                 mat_khau_cu: oldPass,
@@ -72,53 +78,56 @@ function initProfilePage() {
                 showToast("Đổi mật khẩu thành công");
                 $('#form-change-password')[0].reset();
             },
-            error: function () {
-                showToast("Lỗi server", true);
+            error: function (xhr) {
+                showToast(xhr.responseJSON?.loi || "Không thể đổi mật khẩu", true);
+            },
+            complete: function () {
+                $btn.prop('disabled', false).text('Cập nhật mật khẩu');
             }
         });
     });
+
+    $('#btn-back').off('click').on('click', function () {
+        $('.menu-item[data-page="viec-cua-toi"]').trigger('click');
+    });
 }
 
-// ============ LOAD PROFILE ============
 function loadProfile() {
-    fetch(`${API_BASE}/auth/toi`, {
-        headers: {
-            "Authorization": `Bearer ${TOKEN}`
+    $.ajax({
+        url: `${API_BASE}/auth/toi`,
+        method: "GET",
+        headers: authHeader(),
+        success: function (data) {
+            currentProfileData = data || {};
+            renderProfile(currentProfileData);
+        },
+        error: function (xhr) {
+            showToast(xhr.responseJSON?.loi || "Không tải được thông tin tài khoản", true);
         }
-    })
-    .then(res => {
-        if (!res.ok) throw new Error("Token lỗi");
-        return res.json();
-    })
-    .then(data => {
-        console.log(data);
-
-        // HIỂN THỊ
-        $('#display-name').text(data.ho_ten || '');
-        $('#profile-email').text(data.email || '');
-
-        // map role cho đẹp
-        const roleMap = {
-            admin: "Quản trị viên",
-            nhan_vien: "Nhân viên",
-            user: "Người dùng"
-        };
-        $('#profile-role').text(roleMap[data.vai_tro] || data.vai_tro);
-
-        // format ngày
-        if (data.ngay_tao) {
-            const d = new Date(data.ngay_tao);
-            $('#profile-date').text(d.toLocaleString());
-        }
-
-        // fill form
-        $('#full-name').val(data.ho_ten || '');
-
-        // lưu
-        localStorage.setItem("user_name", data.ho_ten || '');
-    })
-    .catch(err => {
-        console.error(err);
-        alert("Không tải được thông tin");
     });
+}
+
+function renderProfile(data) {
+    const roleMap = {
+        admin: "Quản trị viên",
+        nhan_vien: "Nhân viên xử lý",
+        user: "Người dùng"
+    };
+
+    const roleText = roleMap[data.vai_tro] || (data.vai_tro || 'Chưa xác định');
+    const dateText = data.ngay_tao
+        ? new Date(data.ngay_tao).toLocaleDateString('vi-VN')
+        : '--/--/----';
+    const displayName = data.ho_ten || 'Nhân viên';
+
+    $('#display-name').text(displayName);
+    $('#profile-name-text').text(displayName);
+    $('#profile-email').text(data.email || '--');
+    $('#profile-role').text(roleText);
+    $('#profile-role-text').text(roleText);
+    $('#profile-date').text(`Thành viên từ ${dateText}`);
+    $('#profile-user-id').text(data.nguoi_dung_id || '--');
+    $('#full-name').val(displayName);
+    $('#profile-email-readonly').val(data.email || '');
+    $('#profile-avatar').text(displayName.charAt(0).toUpperCase());
 }

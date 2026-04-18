@@ -209,7 +209,7 @@
                         $tr.append($('<td/>').text(nhanVien || 'Chưa rõ'));
                         $tr.append($('<td/>').text(fmtDate(item.ngay_trang_thai || item.ngay_tao)));
                         $tr.append($('<td/>').html(`
-                            <button class="btn-action btn-approve btn-accept" data-id="${id}">Duyệt đạt</button>
+                            <button class="btn-action btn-accept" data-id="${id}">Duyệt đạt</button>
                             <button class="btn-action btn-reject-nt" data-id="${id}">Không đạt</button>
                             <button class="btn-action btn-view" data-id="${id}">Xem</button>
                         `));

@@ -1,7 +1,8 @@
 from flask import Blueprint, request, jsonify
 from db import get_db
 import pyodbc
-from .auth import can_access
+from middleware.auth_middleware import can_access
+from routes.suspension_utils import release_staff_assignments
 
 admin_bp = Blueprint('admin_bp', __name__)
 
@@ -319,6 +320,26 @@ def nghiem_thu(id):
 
         # không đạt
         else:
+            cursor.execute("""
+                SELECT TOP 1 phan_cong_id, nhan_vien_id, ISNULL(so_lan_tra_lai, 0)
+                FROM phan_cong
+                WHERE bao_cao_id = ?
+                ORDER BY lan_thu DESC, phan_cong_id DESC
+            """, (id,))
+            phan_cong = cursor.fetchone()
+
+            if not phan_cong:
+                return jsonify({"error": "Không tìm thấy phân công hiện tại"}), 404
+
+            phan_cong_id, nhan_vien_id, so_lan_tra_lai = phan_cong
+            so_lan_tra_lai_moi = so_lan_tra_lai + 1
+
+            cursor.execute("""
+                UPDATE phan_cong
+                SET trang_thai = 'dang_lam',
+                    so_lan_tra_lai = ?
+                WHERE phan_cong_id = ?
+            """, (so_lan_tra_lai_moi, phan_cong_id))
 
             cursor.execute(
                 "UPDATE bao_cao SET trang_thai = 'dang_xu_ly' WHERE bao_cao_id = ?",
@@ -334,6 +355,23 @@ def nghiem_thu(id):
                 (id, admin_id)
             )
 
+            if so_lan_tra_lai_moi >= 2 and nhan_vien_id:
+                cursor.execute(
+                    """
+                    UPDATE nguoi_dung
+                    SET bi_dinh_chi = 1,
+                        ly_do_dinh_chi = ?
+                    WHERE nguoi_dung_id = ?
+                      AND vai_tro = 'nhan_vien'
+                    """,
+                    ('Bi dinh chi do co 2 lan bao hoan thanh khong dat nghiem thu', nhan_vien_id)
+                )
+                release_staff_assignments(
+                    cursor,
+                    nhan_vien_id,
+                    admin_id,
+                    'Nhan vien bi dinh chi, bao cao duoc tra ve trang thai da duyet'
+                )
         conn.commit()
 
         return jsonify({"message": "Nghiệm thu thành công"})

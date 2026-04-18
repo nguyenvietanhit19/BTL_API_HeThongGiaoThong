@@ -1,10 +1,11 @@
+import datetime
+import os
 import random
 
-from flask import Blueprint, request, jsonify
 import bcrypt
 import jwt
-import os
-import datetime
+from flask import Blueprint, jsonify, request
+
 from db import get_db
 from middleware.auth_middleware import can_access
 from routes.quen_mat_khau import gui_mail
@@ -18,10 +19,10 @@ auth_bp = Blueprint('auth', __name__)
 # ==========================================
 @auth_bp.route('/gui-ma-dang-ky', methods=['POST'])
 def gui_ma_dang_ky():
-    data     = request.get_json()
-    email    = data.get('email', '').strip()
+    data = request.get_json()
+    email = data.get('email', '').strip()
     mat_khau = data.get('mat_khau', '')
-    ho_ten   = data.get('ho_ten', '').strip()
+    ho_ten = data.get('ho_ten', '').strip()
 
     if not email or not mat_khau or not ho_ten:
         return jsonify({'loi': 'Thiếu thông tin (email, mat_khau, ho_ten)'}), 400
@@ -34,7 +35,6 @@ def gui_ma_dang_ky():
         conn = get_db()
         cursor = conn.cursor()
 
-        # Kiểm tra email đã tồn tại và đã kích hoạt chưa
         cursor.execute(
             "SELECT nguoi_dung_id, dang_hoat_dong, da_xac_nhan FROM nguoi_dung WHERE email = ?",
             (email,)
@@ -44,11 +44,9 @@ def gui_ma_dang_ky():
         if row:
             nguoi_dung_id, dang_hoat_dong, da_xac_nhan = row
 
-            # Tài khoản đã xác nhận rồi (dù đang bị khóa hay không)
             if da_xac_nhan:
                 return jsonify({'loi': 'Email đã được đăng ký'}), 409
 
-            # Email tồn tại nhưng chưa xác nhận → cập nhật lại thông tin + gửi mã mới
             ma = str(random.randint(100000, 999999))
             het_han = datetime.datetime.now() + datetime.timedelta(minutes=1)
             hash_mk = bcrypt.hashpw(mat_khau.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
@@ -61,7 +59,6 @@ def gui_ma_dang_ky():
             )
             conn.commit()
         else:
-            # Tạo tài khoản mới với da_xac_nhan = 0 (chưa kích hoạt)
             ma = str(random.randint(100000, 999999))
             het_han = datetime.datetime.now() + datetime.timedelta(minutes=10)
             hash_mk = bcrypt.hashpw(mat_khau.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
@@ -74,7 +71,6 @@ def gui_ma_dang_ky():
             )
             conn.commit()
 
-        # Gửi mail xác nhận
         thanh_cong = gui_mail(email, ma, tieu_de='Mã xác nhận đăng ký tài khoản')
         if not thanh_cong:
             return jsonify({'loi': 'Không thể gửi email, thử lại sau'}), 500
@@ -87,14 +83,15 @@ def gui_ma_dang_ky():
         if conn:
             conn.close()
 
+
 # ==========================================
-# BƯỚC 2: XÁC NHẬN MÃ → KÍCH HOẠT TÀI KHOẢN
+# BƯỚC 2: XÁC NHẬN MÃ -> KÍCH HOẠT TÀI KHOẢN
 # POST /auth/dang-ky
 # ==========================================
 @auth_bp.route('/dang-ky', methods=['POST'])
 def dang_ky():
-    data        = request.get_json()
-    email       = data.get('email', '').strip()
+    data = request.get_json()
+    email = data.get('email', '').strip()
     ma_xac_nhan = data.get('ma_xac_nhan', '').strip()
 
     if not email or not ma_xac_nhan:
@@ -133,7 +130,6 @@ def dang_ky():
             conn.commit()
             return jsonify({'loi': 'Mã đã hết hạn, vui lòng yêu cầu mã mới'}), 400
 
-        # Kích hoạt tài khoản
         cursor.execute(
             """UPDATE nguoi_dung
                SET dang_hoat_dong = 1, da_xac_nhan = 1,
@@ -156,7 +152,7 @@ def dang_ky():
 @auth_bp.route('/dang-nhap', methods=['POST'])
 def dang_nhap():
     data = request.get_json()
-    email    = data.get('email', '')
+    email = data.get('email', '')
     mat_khau = data.get('mat_khau', '')
 
     conn = None
@@ -164,32 +160,37 @@ def dang_nhap():
         conn = get_db()
         cursor = conn.cursor()
         cursor.execute(
-            # Fix: dùng nguoi_dung_id thay vì id
-            "SELECT nguoi_dung_id, mat_khau, ho_ten, vai_tro, dang_hoat_dong, da_xac_nhan FROM nguoi_dung WHERE email = ?",
+            """
+            SELECT nguoi_dung_id, mat_khau, ho_ten, vai_tro,
+                   dang_hoat_dong, da_xac_nhan, ISNULL(bi_dinh_chi, 0)
+            FROM nguoi_dung
+            WHERE email = ?
+            """,
             (email,)
         )
-        row = cursor.fetchone()  #lấy kết quả dòng đầu tiên
+        row = cursor.fetchone()
 
         if not row:
             return jsonify({'loi': 'Email hoặc mật khẩu sai'}), 401
 
-        nguoi_dung_id, hash_mk, ho_ten, vai_tro, dang_hoat_dong, da_xac_nhan = row
+        nguoi_dung_id, hash_mk, ho_ten, vai_tro, dang_hoat_dong, da_xac_nhan, bi_dinh_chi = row
 
         if not da_xac_nhan:
             return jsonify({'loi': 'Tài khoản chưa xác nhận'}), 403
 
         if not dang_hoat_dong:
-            return jsonify({'loi': 'Tài khoản đã bị khoá'}), 403
+            return jsonify({'loi': 'Tài khoản đã bị khóa'}), 403
+
+        if vai_tro == 'nhan_vien' and bi_dinh_chi:
+            return jsonify({'loi': 'Tài khoản nhân viên đang bị đình chỉ'}), 403
 
         if not bcrypt.checkpw(mat_khau.encode('utf-8'), hash_mk.encode('utf-8')):
             return jsonify({'loi': 'Email hoặc mật khẩu sai'}), 401
 
-
-
         token = jwt.encode({
             'nguoi_dung_id': nguoi_dung_id,
             'vai_tro': vai_tro,
-            'exp': datetime.datetime.utcnow() + datetime.timedelta(days=7)  #bắt buộc thời hạn phải để exp để khi giải mã token jwt nó sẽ tự check, nếu để tên khác thì khi giải mã phải viết kiểu khac
+            'exp': datetime.datetime.utcnow() + datetime.timedelta(days=7)
         }, os.getenv('JWT_SECRET_KEY'), algorithm='HS256')
 
         return jsonify({
@@ -214,7 +215,6 @@ def xem_thong_tin():
         conn = get_db()
         cursor = conn.cursor()
         cursor.execute(
-            # Fix: dùng nguoi_dung_id
             "SELECT nguoi_dung_id, email, ho_ten, vai_tro, ngay_tao FROM nguoi_dung WHERE nguoi_dung_id = ?",
             (request.nguoi_dung_id,)
         )
@@ -243,12 +243,56 @@ def cap_nhat_thong_tin():
         conn = get_db()
         cursor = conn.cursor()
         cursor.execute(
-            # Fix: dùng nguoi_dung_id
             "UPDATE nguoi_dung SET ho_ten = ? WHERE nguoi_dung_id = ?",
             (ho_ten, request.nguoi_dung_id)
         )
         conn.commit()
         return jsonify({'thong_bao': 'Cập nhật thành công'}), 200
+    except Exception as e:
+        return jsonify({'loi': str(e)}), 500
+    finally:
+        if conn:
+            conn.close()
+
+
+# PUT /auth/doi-mat-khau
+@auth_bp.route('/doi-mat-khau', methods=['PUT'])
+@can_access()
+def doi_mat_khau():
+    data = request.get_json() or {}
+    mat_khau_cu = data.get('mat_khau_cu', '')
+    mat_khau_moi = data.get('mat_khau_moi', '')
+
+    if not mat_khau_cu or not mat_khau_moi:
+        return jsonify({'loi': 'Thiếu mật khẩu cũ hoặc mật khẩu mới'}), 400
+
+    if len(mat_khau_moi) < 6:
+        return jsonify({'loi': 'Mật khẩu mới phải có ít nhất 6 ký tự'}), 400
+
+    conn = None
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT mat_khau FROM nguoi_dung WHERE nguoi_dung_id = ?",
+            (request.nguoi_dung_id,)
+        )
+        row = cursor.fetchone()
+
+        if not row:
+            return jsonify({'loi': 'Không tìm thấy tài khoản'}), 404
+
+        hash_mk = row[0]
+        if not bcrypt.checkpw(mat_khau_cu.encode('utf-8'), hash_mk.encode('utf-8')):
+            return jsonify({'loi': 'Mật khẩu cũ không đúng'}), 400
+
+        hash_moi = bcrypt.hashpw(mat_khau_moi.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+        cursor.execute(
+            "UPDATE nguoi_dung SET mat_khau = ? WHERE nguoi_dung_id = ?",
+            (hash_moi, request.nguoi_dung_id)
+        )
+        conn.commit()
+        return jsonify({'thong_bao': 'Đổi mật khẩu thành công'}), 200
     except Exception as e:
         return jsonify({'loi': str(e)}), 500
     finally:

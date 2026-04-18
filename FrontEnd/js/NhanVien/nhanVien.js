@@ -32,22 +32,30 @@ $(document).ready(function () {
     fetchTasks();
 
     // --- Hiển thị tên nhân viên ---
-    const name = localStorage.getItem("user_name");
-    if (name) $('#user-name').text(name);
+    const name = localStorage.getItem("ho_ten") || localStorage.getItem("user_name");
+    if (name) $('#admin-menu-btn').text(`${name} ▾`);
 
     // --- User dropdown ---
-    $('.user-badge').click(function (e) {
+    $('#admin-menu-btn').click(function (e) {
         e.stopPropagation();
-        $('.user-dropdown').toggleClass('show');
+        $('#admin-dropdown').toggleClass('show');
     });
-    $(document).click(function () {
-        $('.user-dropdown').removeClass('show');
-    });
-    $('.user-dropdown').click(function (e) { e.stopPropagation(); });
 
     // --- Mobile menu ---
-    $('#btn-menu').click(function () {
-        $('.sidebar').toggleClass('open');
+    $('#sidebar-toggle-btn').click(function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        $('body').toggleClass('sidebar-open');
+    });
+
+    $('#sidebar-backdrop').click(function () {
+        $('body').removeClass('sidebar-open');
+    });
+
+    $('.modal-overlay').on('click', function (e) {
+        if (e.target === this) {
+            closeModal(this.id);
+        }
     });
 
     // --- Sidebar navigation ---
@@ -62,24 +70,46 @@ $(document).ready(function () {
         if (page === 'da-hoan-thanh') loadDoneTasks();
         if (page === 'lich-su')       loadHistory();
 
-        $('.sidebar').removeClass('open');
+        $('body').removeClass('sidebar-open');
     });
 
     // --- Profile (AJAX load) ---
     $('#btn-profile').click(function (e) {
         e.preventDefault();
         $('.page').removeClass('active');
-        $('#page-profile').load('/FrontEnd/html/NhanVien/profileNV.html .container', function () {
+        $('#page-profile').load('/FrontEnd/html/NhanVien/profileNV.html .profile-page', function () {
             $('#page-profile').addClass('active');
             if (typeof initProfilePage === "function") initProfilePage();
         });
-        $('.sidebar').removeClass('open');
+        $('body').removeClass('sidebar-open');
     });
 
     // --- Logout ---
-    $('#logout-btn').click(function () {
-        localStorage.removeItem("token");
-        window.location.href = "/FrontEnd/html/login.html";
+    $('#logout-btn').click(async function (e) {
+        e.preventDefault();
+        $('#admin-dropdown').removeClass('show');
+        await window.confirmLogout({
+            badge: 'Đang xuất',
+            title: 'Xác nhận đăng xuất',
+            message: 'Bạn sẽ cần đăng nhập lại để tiếp tục sử dụng hệ thống. Bạn có chắc chắn muốn đăng xuất không?',
+            confirmText: 'Đăng xuất'
+        });
+    });
+
+    $(document).click(function (e) {
+        if (!$(e.target).closest('.admin-dropdown-container').length) {
+            $('#admin-dropdown').removeClass('show');
+        }
+
+        if ($('body').hasClass('sidebar-open') && !$(e.target).closest('.sidebar, #sidebar-toggle-btn').length) {
+            $('body').removeClass('sidebar-open');
+        }
+    });
+
+    $(window).on('resize', function () {
+        if (window.innerWidth > 992) {
+            $('body').removeClass('sidebar-open');
+        }
     });
 
     // --- Filter: Đã hoàn thành ---
@@ -100,7 +130,9 @@ $(document).ready(function () {
     });
 
     // Nút "Từ chối" trong modal chi tiết
-    $('#btn-tu-choi').off('click').on('click', function () {
+    $('#btn-tu-choi').off('click').on('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
         if (!currentTaskId) return;
         apiTuChoi(currentTaskId, function () {
             closeModal('modal-nhan-viec');
@@ -111,7 +143,9 @@ $(document).ready(function () {
     $('#btn-open-hoan-thanh').off('click').on('click', function () {
         if (!currentTaskId) return;
         closeModal('modal-nhan-viec');
-        openModalHoanThanh(currentTaskId);
+        setTimeout(function () {
+            openModalHoanThanh(currentTaskId);
+        }, 120);
     });
 
     // ================================================================
@@ -165,10 +199,27 @@ $(document).ready(function () {
     //  DELEGATE – nút "Từ chối" trực tiếp trên task card
     // ================================================================
     $(document).on('click', '.btn-tu-choi-card', function (e) {
+        e.preventDefault();
         e.stopPropagation();
         const id = $(this).closest('.task-card').data('id');
         if (!id) return;
         apiTuChoi(id);
+    });
+
+    // Mở modal chi tiết khi bấm vào card, nhưng bỏ qua các nút thao tác bên trong.
+    $(document).on('click', '.task-card', function (e) {
+        if ($(e.target).closest('.card-actions, button').length) return;
+        const id = $(this).data('id');
+        if (!id) return;
+        openTaskDetail(id);
+    });
+
+    $(document).on('click', '.report-image-thumb', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const src = $(this).data('src') || $(this).attr('src');
+        if (!src) return;
+        openImageViewer(src);
     });
 });
 
@@ -187,6 +238,7 @@ function fetchTasks() {
             renderTasks(data);   // đúng format backend
         },
         error: function (xhr) {
+            closeModal('modal-nhan-viec');
             showToast(xhr.responseJSON?.loi || "Lỗi tải dữ liệu", true);
         }
     });
@@ -196,7 +248,16 @@ function fetchTasks() {
  * Bước 1 – Nhận việc
  * Trạng thái: da_phan_cong → dang_xu_ly
  */
-function apiNhanViec(id) {
+async function apiNhanViec(id) {
+    const result = await openEmployeeActionModal({
+        type: 'success',
+        badge: 'Nhận công việc',
+        title: 'Xác nhận nhận việc',
+        message: 'Công việc này sẽ được chuyển sang trạng thái đang xử lý và ghi nhận là bạn đã nhận việc.',
+        confirmText: 'Xác nhận nhận'
+    });
+    if (!result.confirmed) return;
+
     $.ajax({
         url: `${API_BASE}/nhan-vien/bao-cao/${id}/nhan-viec`,
         method: "PUT",
@@ -216,8 +277,16 @@ function apiNhanViec(id) {
  * Bước 1 – Từ chối việc
  * Trạng thái: da_phan_cong → quay về hệ thống
  */
-function apiTuChoi(id, callback) {
-    if (!confirm("Bạn chắc chắn muốn từ chối việc này?")) return;
+async function apiTuChoi(id, callback) {
+    const result = await openEmployeeActionModal({
+        type: 'danger',
+        badge: 'Từ chối công việc',
+        title: 'Xác nhận từ chối nhận việc',
+        message: 'Công việc này sẽ được trả lại hệ thống để admin phân công lại cho nhân viên khác.',
+        confirmText: 'Xác nhận từ chối',
+        cancelText: 'Hủy'
+    });
+    if (!result.confirmed) return;
 
     $.ajax({
         url: `${API_BASE}/nhan-vien/bao-cao/${id}/tu-choi`,
@@ -239,7 +308,19 @@ function apiTuChoi(id, callback) {
  * Upload ảnh (bắt buộc) + ghi chú
  * Trạng thái: dang_xu_ly → cho_nghiem_thu
  */
-function apiHoanThanh(id, onSuccess, onError) {
+async function apiHoanThanh(id, onSuccess, onError) {
+    const result = await openEmployeeActionModal({
+        type: 'success',
+        badge: 'Gửi nghiệm thu',
+        title: 'Xác nhận gửi nghiệm thu',
+        message: 'Báo cáo xử lý này sẽ được gửi cho admin để nghiệm thu kết quả.',
+        confirmText: 'Xác nhận gửi'
+    });
+    if (!result.confirmed) {
+        if (typeof onError === "function") onError();
+        return;
+    }
+
     const formData = new FormData();
     formData.append("ghi_chu", $('#note-hoan-thanh').val() || "");
 
@@ -298,7 +379,7 @@ function loadDoneTasks() {
                         <td>${item.bao_cao_id}</td>
                         <td>${item.tieu_de}</td>
                         <td>${item.loai_su_co}</td>
-                        <td>${item.ngay_xong || '—'}</td>
+                        <td>${formatDateTime(item.ngay_xong) || '—'}</td>
                         <td><span class="badge badge-done">Hoàn thành</span></td>
                     </tr>
                 `);
@@ -333,7 +414,7 @@ function loadHistory() {
                         <td>${item.bao_cao_id}</td>
                         <td>${item.tieu_de}</td>
                         <td>${item.loai_su_co}</td>
-                        <td>${item.ngay_doi}</td>
+                        <td>${formatDateTime(item.ngay_doi) || '—'}</td>
                         <td>${formatTrangThai(item.trang_thai_moi)}</td>
                         <td>${item.ghi_chu || '—'}</td>
                     </tr>
@@ -386,10 +467,19 @@ function renderTasks(tasks) {
         }
 
         const html = `
-            <div class="task-card" data-id="${id}" onclick="openTaskDetail(${id})">
-                <div class="task-title">${task.tieu_de}</div>
-                <div class="task-meta">${task.dia_chi}</div>
-                <div class="task-meta">${task.loai_su_co}</div>
+            <div class="task-card" data-id="${id}">
+                <div class="task-card__head">
+                    <h4 class="task-title">${task.tieu_de}</h4>
+                    <span class="task-card__id">#${id}</span>
+                </div>
+                <div class="task-meta">
+                    <span class="task-meta__icon">●</span>
+                    <span>${task.dia_chi || 'Chưa có địa chỉ'}</span>
+                </div>
+                <div class="task-meta">
+                    <span class="task-meta__icon">●</span>
+                    <span>${task.loai_su_co || 'Chưa phân loại'}</span>
+                </div>
                 ${actions}
             </div>`;
 
@@ -413,7 +503,15 @@ function renderTasks(tasks) {
 }
 
 function toggleSection(selector, count) {
-    $(selector)[count > 0 ? 'show' : 'hide']();
+    const $section = $(selector);
+    const $list = $section.find('.task-list');
+
+    $section.show();
+
+    if (count === 0) {
+        const emptyLabel = $section.find('.section-header h3').text() || 'danh sách';
+        $list.html(`<div class="empty-state">Không có công việc trong mục ${emptyLabel.toLowerCase()}.</div>`);
+    }
 }
 
 
@@ -437,9 +535,10 @@ function openTaskDetail(id) {
     $('#mn-title').text(task.tieu_de);
     $('#mn-addr').text(task.dia_chi);
     $('#mn-type').text(task.loai_su_co);
-    $('#mn-time').text(task.ngay_tao);
+    $('#mn-time').text(formatDateTime(task.ngay_tao) || '—');
     $('#mn-attempt').text(task.lan_thu || 1);
     $('#mn-mota').text(task.mo_ta || '—');
+    $('#mn-images').html('<div class="report-image-empty">Đang tải ảnh hiện trạng...</div>');
 
     // Reset tất cả nút trước
     $('#btn-confirm-nhan, #btn-tu-choi, #btn-open-hoan-thanh').hide();
@@ -463,6 +562,7 @@ function openTaskDetail(id) {
 
     openModal('modal-nhan-viec');
     document.querySelector('#modal-nhan-viec .modal')?.scrollTo(0, 0);
+    loadTaskImages(task.bao_cao_id);
 }
 
 
@@ -472,6 +572,8 @@ function openTaskDetail(id) {
 
 function openModalHoanThanh(id) {
     currentTaskId = id;
+
+    closeModal('modal-nhan-viec');
 
     resetFormHoanThanh();
 
@@ -496,7 +598,7 @@ function formatTrangThai(status) {
     const map = {
         'da_phan_cong':    'Được giao',
         'dang_xu_ly':      'Đang xử lý',
-        'cho_nghiem_thu':  'Chờ nghiệm thu',
+        'cho_nghiem_thu':  'Hoàn thành',
         'hoan_thanh':      'Hoàn thành',
         'tu_choi':         'Đã từ chối',
         'da_xu_ly':        'Đã xử lý',
@@ -505,18 +607,231 @@ function formatTrangThai(status) {
     return map[status] || status;
 }
 
+function formatDateTime(value) {
+    if (!value) return '';
+
+    let date = null;
+
+    if (value instanceof Date) {
+        date = value;
+    } else if (typeof value === 'string') {
+        const raw = value.trim();
+        const match = raw.match(/^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{2}):(\d{2})(?::(\d{2}))?)?$/);
+
+        if (match) {
+            date = new Date(
+                Number(match[1]),
+                Number(match[2]) - 1,
+                Number(match[3]),
+                Number(match[4] || 0),
+                Number(match[5] || 0),
+                Number(match[6] || 0)
+            );
+        } else if (/GMT$/i.test(raw) || /^[A-Za-z]{3},\s/.test(raw)) {
+            const parsed = new Date(raw);
+            if (!Number.isNaN(parsed.getTime())) {
+                date = new Date(
+                    parsed.getUTCFullYear(),
+                    parsed.getUTCMonth(),
+                    parsed.getUTCDate(),
+                    parsed.getUTCHours(),
+                    parsed.getUTCMinutes(),
+                    parsed.getUTCSeconds()
+                );
+            } else {
+                date = parsed;
+            }
+        } else {
+            date = new Date(raw);
+        }
+    } else {
+        date = new Date(value);
+    }
+
+    if (Number.isNaN(date.getTime())) return String(value);
+
+    return date.toLocaleString('vi-VN', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+}
+
 function showToast(msg, isError = false) {
-    const t = document.getElementById('toast');
-    t.textContent = msg;
-    t.className = 'toast' + (isError ? ' error' : '');
-    t.classList.add('show');
-    setTimeout(() => t.classList.remove('show'), 600);
+    ensureEmployeeUi();
+
+    const type = isError ? 'error' : 'success';
+    const title = isError ? 'Thao tác không thành công' : 'Thành công';
+    const duration = isError ? 4200 : 3200;
+    const toastId = 'nv-toast-' + Date.now() + '-' + Math.random().toString(16).slice(2, 8);
+    const icon = type === 'success' ? '✓' : '!';
+    const $toast = $(
+        '<div class="admin-toast admin-toast--' + type + '" id="' + toastId + '">' +
+            '<div class="admin-toast__icon">' + icon + '</div>' +
+            '<div class="admin-toast__body">' +
+                '<div class="admin-toast__title"></div>' +
+                '<div class="admin-toast__message"></div>' +
+            '</div>' +
+            '<button type="button" class="admin-toast__close" aria-label="Đóng">&times;</button>' +
+        '</div>'
+    );
+
+    $toast.find('.admin-toast__title').text(title);
+    $toast.find('.admin-toast__message').text(msg);
+    $('#admin-toast-root').append($toast);
+
+    requestAnimationFrame(function() {
+        $toast.addClass('is-visible');
+    });
+
+    const removeToast = function() {
+        $toast.removeClass('is-visible');
+        setTimeout(function() { $toast.remove(); }, 180);
+    };
+
+    $toast.find('.admin-toast__close').on('click', removeToast);
+    setTimeout(removeToast, duration);
+}
+
+function ensureEmployeeUi() {
+    if ($('#admin-toast-root').length === 0) {
+        $(document.body).append('<div id="admin-toast-root" class="admin-toast-root" aria-live="polite" aria-atomic="true"></div>');
+    }
+
+    if ($('#employee-action-modal').length === 0) {
+        $(document.body).append(
+            '<div id="employee-action-modal" class="admin-modal" style="display:none;" aria-hidden="true">' +
+                '<div class="admin-modal__overlay"></div>' +
+                '<div class="admin-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="employee-modal-title">' +
+                    '<button type="button" class="admin-modal__close" id="employee-modal-close" aria-label="Đóng">&times;</button>' +
+                    '<div class="admin-modal__badge" id="employee-modal-badge"></div>' +
+                    '<h3 class="admin-modal__title" id="employee-modal-title"></h3>' +
+                    '<p class="admin-modal__message" id="employee-modal-message"></p>' +
+                    '<div class="admin-modal__actions">' +
+                        '<button type="button" class="btn-action btn-secondary" id="employee-modal-cancel">Hủy</button>' +
+                        '<button type="button" class="btn-action primary" id="employee-modal-confirm">Xác nhận</button>' +
+                    '</div>' +
+                '</div>' +
+            '</div>'
+        );
+    }
+}
+
+function openEmployeeActionModal(options) {
+    ensureEmployeeUi();
+    options = options || {};
+
+    const type = options.type || 'info';
+    const confirmText = options.confirmText || 'Xác nhận';
+    const cancelText = options.cancelText || 'Hủy';
+    const $modal = $('#employee-action-modal');
+    const $confirm = $('#employee-modal-confirm');
+
+    $('#employee-modal-title').text(options.title || '');
+    $('#employee-modal-message').text(options.message || '');
+    $('#employee-modal-badge')
+        .attr('class', 'admin-modal__badge admin-modal__badge--' + type)
+        .text(options.badge || '');
+    $('#employee-modal-cancel').text(cancelText);
+    $confirm.text(confirmText).attr('class', 'btn-action ' + (type === 'danger' ? 'danger' : 'primary'));
+
+    $modal.stop(true, true).fadeIn(150).attr('aria-hidden', 'false');
+
+    return new Promise(function(resolve) {
+        const cleanup = function() {
+            $(document).off('keydown.employeeActionModal');
+            $('#employee-modal-cancel, #employee-modal-close, #employee-action-modal .admin-modal__overlay').off('.employeeActionModal');
+            $('#employee-modal-confirm').off('.employeeActionModal');
+            $modal.stop(true, true).fadeOut(150, function() {
+                $modal.attr('aria-hidden', 'true');
+            });
+        };
+
+        const closeWith = function(result) {
+            cleanup();
+            resolve(result);
+        };
+
+        $('#employee-modal-cancel, #employee-modal-close, #employee-action-modal .admin-modal__overlay')
+            .on('click.employeeActionModal', function() {
+                closeWith({ confirmed: false });
+            });
+
+        $('#employee-modal-confirm').on('click.employeeActionModal', function() {
+            closeWith({ confirmed: true });
+        });
+
+        $(document).on('keydown.employeeActionModal', function(e) {
+            if (e.key === 'Escape') closeWith({ confirmed: false });
+        });
+
+        setTimeout(function() {
+            $confirm.trigger('focus');
+        }, 30);
+    });
 }
 
 function openModal(id) {
+    document.querySelectorAll('.modal-overlay.open').forEach(function (modal) {
+        if (modal.id !== id) {
+            modal.classList.remove('open');
+        }
+    });
+
     document.getElementById(id)?.classList.add('open');
 }
 
 function closeModal(id) {
     document.getElementById(id)?.classList.remove('open');
+}
+
+function loadTaskImages(id) {
+    $.ajax({
+        url: `${API_BASE}/bao-cao/${id}`,
+        method: "GET",
+        headers: authHeader(),
+        success: function (res) {
+            const payload = res && res.data ? res.data : {};
+            const images = Array.isArray(payload.hinh_anh) ? payload.hinh_anh : [];
+            renderTaskImages(id, images);
+        },
+        error: function () {
+            renderTaskImages(id, []);
+        }
+    });
+}
+
+function renderTaskImages(id, images) {
+    if (currentTaskId !== id) return;
+
+    const originals = images.filter(function (img) {
+        return img && img.loai_anh === 'bao_cao' && img.duong_dan_anh;
+    });
+
+    if (!originals.length) {
+        $('#mn-images').html('<div class="report-image-empty">Không có ảnh hiện trạng từ người báo cáo.</div>');
+        return;
+    }
+
+    const html = originals.map(function (img, index) {
+        const src = escapeHtmlAttr(img.duong_dan_anh);
+        return `<img class="report-image-thumb" src="${src}" data-src="${src}" alt="Ảnh hiện trạng ${index + 1}">`;
+    }).join('');
+
+    $('#mn-images').html(html);
+}
+
+function openImageViewer(src) {
+    $('#image-viewer-src').attr('src', src || '');
+    openModal('modal-image-viewer');
+}
+
+function escapeHtmlAttr(value) {
+    return String(value || '')
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
 }
