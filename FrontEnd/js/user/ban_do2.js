@@ -42,6 +42,10 @@ const TRANG_THAI_CONFIG = {
   tu_choi: { label: 'Bị từ chối', color: '#EF4444', step: 0, emoji: '❌' },
 };
 
+let allMyReports = [];
+let currentMyFilter = 'all';
+let currentMyLoai = 0; // thêm cạnh currentMyFilter
+
 /* ============================================================
    INIT
    ============================================================ */
@@ -98,29 +102,73 @@ function moThongTin() {
   const ngayTao = localStorage.getItem('ngay_tao') || '';
 
   $('#thong-tin-content').html(`
-        <div class="profile-avatar-lg">${hoTen.charAt(0).toUpperCase()}</div>
+    <div class="profile-avatar-lg">${hoTen.charAt(0).toUpperCase()}</div>
 
-        <div class="profile-info-row">
-            <span class="profile-info-label">Họ tên</span>
-            <span class="profile-info-value">${hoTen}</span>
-        </div>
-        <div class="profile-info-row">
-            <span class="profile-info-label">Mã người dùng</span>
-            <span class="profile-info-value">#${String(id).padStart(4, '0')}</span>
-        </div>
-        <div class="profile-info-row">
-            <span class="profile-info-label">Email</span>
-            <span class="profile-info-value">${email}</span>
-        </div>
-        <div class="profile-info-row">
-            <span class="profile-info-label">Vai trò</span>
-            <span class="profile-info-value">${vaiTroLabel(vaiTro)}</span>
-        </div>
-        <div class="profile-info-row">
-            <span class="profile-info-label">Ngày tham gia</span>
-            <span class="profile-info-value">${ngayTao ? formatDate(ngayTao) : '—'}</span>
-        </div>
-    `);
+    <div class="profile-info-row">
+      <span class="profile-info-label">Họ tên</span>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span class="profile-info-value" id="display-ho-ten">${hoTen}</span>
+        <button class="btn-edit-name" onclick="batDauSuaTen()">✏️</button>
+      </div>
+    </div>
+
+    <div class="profile-edit-row" id="edit-ten-row" style="display:none">
+      <input type="text" id="input-ho-ten" value="${hoTen}" maxlength="100"
+        placeholder="Nhập họ tên mới..." />
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button class="btn-secondary" style="flex:1;padding:8px" onclick="huyDoiTen()">Huỷ</button>
+        <button class="btn-primary" style="flex:1;padding:8px" onclick="luuDoiTen()">Lưu</button>
+      </div>
+    </div>
+
+    <div class="profile-info-row">
+      <span class="profile-info-label">Mã người dùng</span>
+      <span class="profile-info-value">#${String(id).padStart(4, '0')}</span>
+    </div>
+    <div class="profile-info-row">
+      <span class="profile-info-label">Email</span>
+      <span class="profile-info-value">${email}</span>
+    </div>
+    <div class="profile-info-row">
+      <span class="profile-info-label">Vai trò</span>
+      <span class="profile-info-value">${vaiTroLabel(vaiTro)}</span>
+    </div>
+    <div class="profile-info-row">
+      <span class="profile-info-label">Ngày tham gia</span>
+      <span class="profile-info-value">${ngayTao ? formatDate(ngayTao) : '—'}</span>
+    </div>
+  `);
+}
+
+function batDauSuaTen() {
+  $('#edit-ten-row').show();
+  $('#input-ho-ten').focus();
+}
+
+function huyDoiTen() {
+  $('#edit-ten-row').hide();
+}
+
+function luuDoiTen() {
+  const hoTenMoi = $('#input-ho-ten').val().trim();
+  if (!hoTenMoi) { showToast('Họ tên không được để trống', 'error'); return; }
+
+  const token = localStorage.getItem('token');
+  $.ajax({
+    url: API_BASE + '/auth/toi',
+    method: 'PUT',
+    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+    data: JSON.stringify({ ho_ten: hoTenMoi }),
+    success: () => {
+      localStorage.setItem('ho_ten', hoTenMoi);
+      $('#display-ho-ten').text(hoTenMoi);
+      $('#user-name-display').text(hoTenMoi);
+      $('#avatar-text').text(hoTenMoi.charAt(0).toUpperCase());
+      $('#edit-ten-row').hide();
+      showToast('✅ Cập nhật tên thành công!', 'success');
+    },
+    error: xhr => showToast('❌ ' + (xhr.responseJSON?.loi || 'Cập nhật thất bại'), 'error')
+  });
 }
 
 function dongThongTin() {
@@ -155,6 +203,9 @@ function initMap() {
     language: 'vi',
     controls: { profileSwitcher: true, inputs: true }
   });
+
+  // ✅ THÊM DÒNG NÀY
+  map.addControl(window.directionsControl, 'top-left');
 
   map.addControl(
     new mapboxgl.GeolocateControl({
@@ -369,37 +420,77 @@ function loadMyReports() {
     method: 'GET',
     headers: { 'Authorization': `Bearer ${token}` },
     success: res => {
-      const reports = res.data || [];
+      allMyReports = res.data || [];
       const badge = document.getElementById('badge-count');
-
-      if (reports.length > 0) {
-        badge.textContent = reports.length;
+      if (allMyReports.length > 0) {
+        badge.textContent = allMyReports.length;
         badge.style.display = 'flex';
       } else {
         badge.style.display = 'none';
       }
-
-      if (reports.length === 0) {
-        list.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-state-icon">📭</div>
-                        <h3>Chưa có báo cáo nào</h3>
-                        <p>Hãy gửi báo cáo đầu tiên của bạn!</p>
-                    </div>`;
-        return;
-      }
-
-      list.innerHTML = reports.map(r => reportCard(r)).join('');
+      filterMyReports();
     },
     error: xhr => {
       list.innerHTML = `
-                <div class="empty-state">
-                    <div class="empty-state-icon">⚠️</div>
-                    <h3>Không tải được dữ liệu</h3>
-                    <p>${xhr.responseJSON?.loi || 'Lỗi không xác định'}</p>
-                </div>`;
+        <div class="empty-state">
+          <div class="empty-state-icon">⚠️</div>
+          <h3>Không tải được dữ liệu</h3>
+          <p>${xhr.responseJSON?.loi || 'Lỗi không xác định'}</p>
+        </div>`;
     }
   });
+}
+
+function selectMyFilter(tt, btn) {
+  currentMyFilter = tt;
+  document.querySelectorAll('.my-filter-chips .chip').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  filterMyReports();
+}
+
+function selectMyLoai(loaiId, btn) {
+  currentMyLoai = loaiId;
+  document.querySelectorAll('#my-loai-chips .chip').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  filterMyReports();
+}
+
+function filterMyReports() {
+  const keyword = (document.getElementById('search-my-reports')?.value || '').toLowerCase().trim();
+  const list = document.getElementById('my-reports-list');
+  const loaiNames = { 'Ổ gà': 1, 'Ngập nước': 2, 'Đèn tín hiệu hỏng': 3, 'Tai nạn': 4, 'Vật cản': 5, 'Khác': 6 };
+
+  let filtered = allMyReports;
+
+  // Lọc theo trạng thái
+  if (currentMyFilter !== 'all') {
+    filtered = filtered.filter(r => r.trang_thai === currentMyFilter);
+  }
+
+  // Lọc theo loại sự cố
+  if (currentMyLoai !== 0) {
+    filtered = filtered.filter(r => (loaiNames[r.loai_su_co] || 6) === currentMyLoai);
+  }
+
+  // Lọc theo từ khóa
+  if (keyword) {
+    filtered = filtered.filter(r =>
+      (r.tieu_de || '').toLowerCase().includes(keyword) ||
+      (r.dia_chi || '').toLowerCase().includes(keyword)
+    );
+  }
+
+  if (filtered.length === 0) {
+    list.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-state-icon">🔍</div>
+        <h3>Không tìm thấy</h3>
+        <p>Thử thay đổi bộ lọc hoặc từ khóa</p>
+      </div>`;
+    return;
+  }
+
+  list.innerHTML = filtered.map(r => reportCard(r)).join('');
 }
 
 function reportCard(r) {
@@ -449,6 +540,14 @@ function reportCard(r) {
         <div class="progress-labels">${labelsHtml}</div>
       </div>` : `
       <div style="font-size:12px;color:#EF4444;margin-top:4px">❌ Báo cáo đã bị từ chối</div>`}
+
+      ${(r.trang_thai === 'cho_duyet' || r.trang_thai === 'tu_choi') ? `
+      <div style="margin-top:10px;text-align:right">
+        <button class="btn-delete-report"
+          onclick="event.stopPropagation(); xoaBaoCao(${r.bao_cao_id})">
+          🗑️ Xóa báo cáo
+        </button>
+      </div>` : ''}
     </div>`;
 }
 
@@ -512,6 +611,7 @@ function openDetailPanel(baoCapId) {
                     <span class="meta-item">👤 ${t.ten_nguoi_gui || ''}</span>
                     ${t.ten_nhan_vien ? `<span class="meta-item">👷 ${t.ten_nhan_vien}</span>` : ''}
                     <span class="meta-item">🏷️ ${t.loai_su_co || ''}</span>
+                    <span class="meta-item">📅 ${formatDate(t.ngay_tao)}</span>
                 </div>
                 ${t.mo_ta ? `
                 <div class="panel-section">
@@ -610,7 +710,7 @@ function previewImages(e) {
 
   renderPreview();
 
-  // Reset input để có thể chọn lại cùng file nếu muốn
+  // Reset input để có thể chọn lại cùng file nếu muốn (chọn 2 ảnh giống nhau vẫn được)
   e.target.value = '';
 }
 
@@ -642,14 +742,20 @@ function submitReport(e) {
   if (!selectedLoaiId) { showToast('Vui lòng chọn loại sự cố', 'error'); return; }
   if (selectedFiles.length === 0) { showToast('Vui lòng chọn ít nhất 1 ảnh', 'error'); return; }
 
+  //lấy ra vĩ độ, kinh độ từ <input type="hidden" id="vi-do" /> (và nó được chuyền dữ liệu từ js từ hàm getUserLocation)
   const viDo = document.getElementById('vi-do').value;
   const kinhDo = document.getElementById('kinh-do').value;
   if (!viDo || !kinhDo) { showToast('Chưa lấy được vị trí GPS', 'error'); return; }
 
-  const btn = document.getElementById('submit-btn');
+  const diaChi = document.getElementById('dia-chi').value.trim();
+  if (!diaChi) { showToast('Vui lòng nhập địa chỉ', 'error'); return; }
+
+
+  //chặn ko cho ng dùng bấm gửi nhiều lần
+  const btn = document.getElementById('submit-btn'); //lấy ra nút submit và disable nó để k ấn được nhiều lần
   const txt = document.getElementById('submit-text');
   btn.disabled = true;
-  txt.textContent = '⏳ Đang gửi...';
+  txt.textContent = '⏳ Đang gửi...'; //đỏi text của nút gửi
 
   const token = localStorage.getItem('token');
   const fd = new FormData();
@@ -669,7 +775,7 @@ function submitReport(e) {
     processData: false,
     contentType: false,
     success: res => {
-      showToast('🎉 Gửi báo cáo thành công!', 'success');
+      showToast('🎉 Cảm ơn đóng góp báo cáo của bạn!', 'success');
       closeReportModal();
       loadReportsNearby();
     },
@@ -775,16 +881,33 @@ function chiDuong(lat, lng) {
   }, 300);
 }
 
-function xoaBuocDi() {
-  // Xóa tất cả element chứa danh sách bước đi
-  const selectors = [
-    '.directions-control-instructions',
-    '.mapbox-directions-steps',
-    '.mapbox-directions-route-summary',
-    '.directions-route-summary'
-  ];
+function xoaBaoCao(id) {
+  if (!confirm('Bạn có chắc muốn xóa báo cáo này không?')) return;
 
-  selectors.forEach(sel => {
-    document.querySelectorAll(sel).forEach(el => el.remove());
+  const token = localStorage.getItem('token');
+  $.ajax({
+    url: `${API_BASE}/bao-cao/${id}`,
+    method: 'DELETE',
+    headers: { 'Authorization': `Bearer ${token}` },
+    success: () => {
+      showToast('🗑️ Đã xóa báo cáo', 'success');
+      loadMyReports();
+    },
+    error: xhr => showToast('❌ ' + (xhr.responseJSON?.loi || 'Xóa thất bại'), 'error')
   });
 }
+
+// function xoaBuocDi() {
+//   // Xóa tất cả element chứa danh sách bước đi
+//   const selectors = [
+//     '.directions-control-instructions',
+//     '.mapbox-directions-steps',
+//     '.mapbox-directions-route-summary',
+//     '.directions-route-summary'
+//   ];
+
+//   selectors.forEach(sel => {
+//     document.querySelectorAll(sel).forEach(el => el.remove());
+//   });
+// }
+
