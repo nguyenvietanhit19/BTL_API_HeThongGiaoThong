@@ -321,10 +321,10 @@ def xoa_bao_cao(id):
         if bc[0] != request.nguoi_dung_id:
             return jsonify({'loi': 'Bạn không có quyền xoá báo cáo này'}), 403
 
-        if bc[1] != 'cho_duyet':
-            return jsonify({'loi': 'Chỉ có thể xoá báo cáo khi đang ở trạng thái chờ duyệt'}), 400
+        if bc[1] not in ('cho_duyet', 'tu_choi'):
+            return jsonify({'loi': 'Chỉ có thể xoá báo cáo đang chờ duyệt hoặc bị từ chối'}), 400
 
-        # Đã cập nhật khóa chính là bao_cao_id
+
         cursor.execute("DELETE FROM bao_cao WHERE bao_cao_id = ?", (id,))
         conn.commit()
 

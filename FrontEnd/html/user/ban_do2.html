@@ -23,8 +23,10 @@
   <!-- Đọc EXIF GPS từ ảnh ở frontend -->
   <script src="https://cdn.jsdelivr.net/npm/exifr/dist/full.umd.cjs"></script>
 
-  <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.3.1/mapbox-gl-directions.js"></script>
-  <link href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.3.1/mapbox-gl-directions.css" rel="stylesheet">
+  <script
+    src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.3.1/mapbox-gl-directions.js"></script>
+  <link href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.3.1/mapbox-gl-directions.css"
+    rel="stylesheet">
 
 </head>
 
@@ -50,7 +52,7 @@
       </button>
     </div>
 
-   
+
     <div class="header-right">
       <!-- User button -->
       <div class="user-btn-wrap" id="user-btn-wrap" onclick="toggleUserMenu()">
@@ -87,7 +89,7 @@
         </div>
       </div>
     </div>
-    
+
 
   </header>
 
@@ -114,6 +116,7 @@
       <span id="location-text">Đang xác định vị trí...</span>
     </div>
 
+
     <!-- FAB: Báo cáo mới -->
     <button class="fab" id="fab-report" onclick="openReportModal()" title="Gửi báo cáo mới">
       <span class="fab-icon">＋</span>
@@ -129,6 +132,40 @@
         <h2>Báo cáo của tôi</h2>
         <button class="btn-refresh" onclick="loadMyReports()">↻ Làm mới</button>
       </div>
+
+      <!-- THÊM MỚI -->
+      <div class="my-reports-toolbar">
+        <input type="text" id="search-my-reports" placeholder="🔍 Tìm theo tiêu đề, địa chỉ..."
+          oninput="filterMyReports()" />
+
+        <!-- Lọc trạng thái -->
+        <div class="my-filter-label">Trạng thái</div>
+        <div class="my-filter-chips">
+          <button class="chip active" data-tt="all" onclick="selectMyFilter('all', this)">🔍 Tất cả</button>
+          <button class="chip" data-tt="cho_duyet" onclick="selectMyFilter('cho_duyet', this)">⏳ Chờ duyệt</button>
+          <button class="chip" data-tt="da_duyet" onclick="selectMyFilter('da_duyet', this)">✅ Đã duyệt</button>
+          <button class="chip" data-tt="da_phan_cong" onclick="selectMyFilter('da_phan_cong', this)">👷 Đã phân
+            công</button>
+          <button class="chip" data-tt="dang_xu_ly" onclick="selectMyFilter('dang_xu_ly', this)">🔧 Đang xử lý</button>
+          <button class="chip" data-tt="cho_nghiem_thu" onclick="selectMyFilter('cho_nghiem_thu', this)">🔍 Chờ nghiệm
+            thu</button>
+          <button class="chip" data-tt="da_xu_ly" onclick="selectMyFilter('da_xu_ly', this)">🎉 Đã xử lý</button>
+          <button class="chip" data-tt="tu_choi" onclick="selectMyFilter('tu_choi', this)">❌ Từ chối</button>
+        </div>
+
+        <!-- Lọc loại sự cố -->
+        <div class="my-filter-label">Loại sự cố</div>
+        <div class="my-filter-chips" id="my-loai-chips">
+          <button class="chip active" data-loai="0" onclick="selectMyLoai(0, this)">🔍 Tất cả</button>
+          <button class="chip" data-loai="1" onclick="selectMyLoai(1, this)">🕳️ Ổ gà</button>
+          <button class="chip" data-loai="2" onclick="selectMyLoai(2, this)">💧 Ngập nước</button>
+          <button class="chip" data-loai="3" onclick="selectMyLoai(3, this)">🚦 Đèn hỏng</button>
+          <button class="chip" data-loai="4" onclick="selectMyLoai(4, this)">⚠️ Tai nạn</button>
+          <button class="chip" data-loai="5" onclick="selectMyLoai(5, this)">🚧 Vật cản</button>
+          <button class="chip" data-loai="6" onclick="selectMyLoai(6, this)">❓ Khác</button>
+        </div>
+      </div>
+
       <div id="my-reports-list">
         <div class="loading-state">
           <div class="spinner"></div>
@@ -154,6 +191,9 @@
     <div class="modal-header">
       <h3>📍 Gửi báo cáo sự cố</h3>
       <button class="modal-close" onclick="closeReportModal()">✕</button>
+    </div>
+    <div class="modal-notice">
+      💡 Để giúp ích cho cộng đồng, vui lòng báo cáo sự cố đúng sự thật
     </div>
     <div class="modal-body">
       <form id="report-form" onsubmit="submitReport(event)">
@@ -182,7 +222,7 @@
         </div>
 
         <div class="form-group">
-          <label for="dia-chi">Địa chỉ</label>
+          <label for="dia-chi">Địa chỉ <span class="required">*</span></label>
           <input type="text" id="dia-chi" placeholder="Ví dụ: 123 Đường Cầu Giấy, Hà Nội" />
         </div>
 
@@ -201,7 +241,7 @@
           <div class="upload-area" id="upload-area" onclick="document.getElementById('anh-input').click()">
             <span class="upload-icon">📷</span>
             <span>Nhấn để chọn ảnh</span>
-            <span class="upload-hint">JPG, PNG — tối đa 5MB</span>
+            <span class="upload-hint">JPG, PNG — tối đa 10MB/Ảnh</span>
           </div>
           <input type="file" id="anh-input" accept="image/jpeg,image/png" multiple style="display:none"
             onchange="previewImages(event)" />

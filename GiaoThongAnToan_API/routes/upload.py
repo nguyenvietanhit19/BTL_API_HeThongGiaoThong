@@ -27,7 +27,7 @@ def doc_gps_exif(file):
             return None
 
         from PIL.ExifTags import TAGS, GPSTAGS
-        gps_info = {}
+        gps_info = {}   #lưu thông tin của gps như vĩ độ, kinh độ
         for tag_id, value in exif_data.items():
             tag = TAGS.get(tag_id)
             if tag == "GPSInfo":
@@ -37,11 +37,11 @@ def doc_gps_exif(file):
         if not gps_info:
             return None
 
-        def to_decimal(d, m, s):
+        def to_decimal(d, m, s):            # để chuyển đổi từ (độ,phút,giây) sang số để làm việc
             return d + m / 60 + s / 3600
 
-        lat = to_decimal(*gps_info["GPSLatitude"])
-        lon = to_decimal(*gps_info["GPSLongitude"])
+        lat = to_decimal(*gps_info["GPSLatitude"])     #vĩ đỗ   (dấu sao là để tháo tuple)  vì
+        lon = to_decimal(*gps_info["GPSLongitude"])     #kinh độ
         if gps_info.get("GPSLatitudeRef") == "S":
             lat = -lat
         if gps_info.get("GPSLongitudeRef") == "W":
