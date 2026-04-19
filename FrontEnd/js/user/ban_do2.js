@@ -6,7 +6,7 @@
 'use strict';
 
 /* ---------- CONFIG ---------- */
-const API_BASE = 'http://localhost:5000';         // Sửa thành URL deploy nếu cần
+const API_BASE = 'http://127.0.0.1:5000';         // Sửa thành URL deploy nếu cần
 const MAPBOX_TOKEN = 'mytoken'; // ← thay bằng token của bạn
 const BAN_KINH_KM = 10;
 
@@ -14,7 +14,7 @@ const BAN_KINH_KM = 10;
 let currentLat = null;
 let currentLng = null;
 let map = null;
-let markers = {};           // { bao_cao_id: mapboxMarker }
+let markers = {};           // { bao_cao_id: mapboxMarker } 
 let allReports = [];
 let currentFilter = 0;          // 0 = tất cả
 let selectedFiles = [];

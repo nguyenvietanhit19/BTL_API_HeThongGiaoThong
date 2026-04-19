@@ -20,6 +20,11 @@
     min-height: min-content;
 }
 
+#page-profile .profile-back-btn {
+    align-self: flex-start;
+    margin-bottom: -4px;
+}
+
 #page-profile .profile-hero {
     display: flex;
     align-items: center;
