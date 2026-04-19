@@ -682,10 +682,19 @@ table tbody tr.state-row-locked:hover {
         padding: 12px 14px;
     }
 
-.shared-pagination button,
-.shared-pagination select {
-    width: 100%;
-}
+    .shared-pagination button,
+    .shared-pagination select {
+        width: auto;
+        max-width: 100%;
+    }
+
+    .shared-pagination-controls {
+        width: 100%;
+    }
+
+    .shared-pagination-pages {
+        width: 100%;
+    }
 }
 
 .admin-toast-root {

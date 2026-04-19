@@ -14,7 +14,7 @@ const BAN_KINH_KM = 10;
 let currentLat = null;
 let currentLng = null;
 let map = null;
-let markers = {};           // { bao_cao_id: mapboxMarker }
+let markers = {};           // { bao_cao_id: mapboxMarker } 
 let allReports = [];
 let currentFilter = 0;          // 0 = tất cả
 let selectedFiles = [];

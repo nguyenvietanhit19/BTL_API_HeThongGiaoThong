@@ -5,6 +5,15 @@ function initProfilePage() {
     loadProfile();
 }
 
+function goBackFromEmployeeProfile() {
+    if (window.history.length > 1) {
+        window.history.back();
+        return;
+    }
+
+    window.location.href = 'nhanVien.html';
+}
+
 function bindProfileEvents() {
     $('#form-update-profile').off('submit').on('submit', function (e) {
         e.preventDefault();
@@ -88,7 +97,7 @@ function bindProfileEvents() {
     });
 
     $('#btn-back').off('click').on('click', function () {
-        $('.menu-item[data-page="viec-cua-toi"]').trigger('click');
+        goBackFromEmployeeProfile();
     });
 }
 

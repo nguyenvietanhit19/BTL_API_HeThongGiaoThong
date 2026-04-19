@@ -22,18 +22,28 @@
             .shared-pagination-info {
                 color: #667085;
                 font-size: 14px;
+                flex: 1 1 220px;
+                min-width: 0;
             }
             .shared-pagination-controls {
                 display: flex;
                 align-items: center;
                 gap: 8px;
                 flex-wrap: wrap;
+                justify-content: flex-end;
+                flex: 1 1 320px;
+                min-width: 0;
             }
             .shared-pagination-pages {
                 display: flex;
                 align-items: center;
                 gap: 6px;
-                flex-wrap: wrap;
+                flex-wrap: nowrap;
+                min-width: 0;
+                overflow-x: auto;
+                overflow-y: hidden;
+                scrollbar-width: thin;
+                padding-bottom: 2px;
             }
             .shared-pagination button,
             .shared-pagination select {
@@ -66,6 +76,46 @@
                 gap: 8px;
                 color: #667085;
                 font-size: 14px;
+            }
+            .shared-pagination-pages::-webkit-scrollbar {
+                height: 6px;
+            }
+            .shared-pagination-pages::-webkit-scrollbar-thumb {
+                background: #d0d5dd;
+                border-radius: 999px;
+            }
+            @media (max-width: 640px) {
+                .shared-pagination {
+                    align-items: stretch;
+                    gap: 10px;
+                    padding: 12px 0 4px;
+                }
+                .shared-pagination-info,
+                .shared-pagination-controls {
+                    flex-basis: 100%;
+                }
+                .shared-pagination-controls {
+                    justify-content: space-between;
+                    gap: 6px;
+                }
+                .shared-pagination-pages {
+                    order: 3;
+                    flex: 1 0 100%;
+                    width: 100%;
+                }
+                .shared-pagination button,
+                .shared-pagination select {
+                    min-width: 36px;
+                    height: 36px;
+                    padding: 0 10px;
+                    font-size: 13px;
+                    white-space: nowrap;
+                    flex: 0 0 auto;
+                }
+                .shared-pagination .pagination-prev,
+                .shared-pagination .pagination-next {
+                    flex: 0 1 auto;
+                }
             }
         `;
         document.head.appendChild(style);

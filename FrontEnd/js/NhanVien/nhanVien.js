@@ -228,6 +228,16 @@ $(document).ready(function () {
         openImageViewer(src);
     });
 
+    $(document).on('click', '.btn-view-report', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const id = $(this).data('id');
+        if (!id) return;
+
+        openEmployeeReportDetail(id);
+    });
+
     $('#btn-chi-duong').off('click').on('click', function (e) {
         e.preventDefault();
         e.stopPropagation();
@@ -388,17 +398,18 @@ function loadDoneTasks() {
         success: function (data) {
             const tbody = $('#done-table-body').empty();
             if (!data.length) {
-                tbody.append('<tr><td colspan="5" style="text-align:center;color:#999">Chưa có dữ liệu</td></tr>');
+                tbody.append('<tr><td colspan="6" style="text-align:center;color:#999">Chưa có dữ liệu</td></tr>');
                 return;
             }
             data.forEach(item => {
                 tbody.append(`
                     <tr>
                         <td>${item.bao_cao_id}</td>
-                        <td>${item.tieu_de}</td>
-                        <td>${item.loai_su_co}</td>
+                        <td>${escapeHtml(item.tieu_de)}</td>
+                        <td>${escapeHtml(item.loai_su_co)}</td>
                         <td>${formatDateTime(item.ngay_xong) || '—'}</td>
                         <td><span class="badge badge-done">Hoàn thành</span></td>
+                        <td><button type="button" class="btn btn-secondary-light btn-view-report" data-id="${item.bao_cao_id}">Xem</button></td>
                     </tr>
                 `);
             });
@@ -423,18 +434,19 @@ function loadHistory() {
         success: function (data) {
             const tbody = $('#history-table-body').empty();
             if (!data.length) {
-                tbody.append('<tr><td colspan="6" style="text-align:center;color:#999">Không có lịch sử</td></tr>');
+                tbody.append('<tr><td colspan="7" style="text-align:center;color:#999">Không có lịch sử</td></tr>');
                 return;
             }
             data.forEach(item => {
                 tbody.append(`
                     <tr>
                         <td>${item.bao_cao_id}</td>
-                        <td>${item.tieu_de}</td>
-                        <td>${item.loai_su_co}</td>
+                        <td>${escapeHtml(item.tieu_de)}</td>
+                        <td>${escapeHtml(item.loai_su_co)}</td>
                         <td>${formatDateTime(item.ngay_doi) || '—'}</td>
                         <td>${formatTrangThai(item.trang_thai_moi)}</td>
-                        <td>${item.ghi_chu || '—'}</td>
+                        <td>${escapeHtml(item.ghi_chu || '—')}</td>
+                        <td><button type="button" class="btn btn-secondary-light btn-view-report" data-id="${item.bao_cao_id}">Xem</button></td>
                     </tr>
                 `);
             });
@@ -749,6 +761,49 @@ function ensureEmployeeUi() {
             '</div>'
         );
     }
+
+    if ($('#employee-report-detail-modal').length === 0) {
+        $(document.body).append(
+            '<div id="employee-report-detail-modal" class="admin-modal" style="display:none;" aria-hidden="true">' +
+                '<div class="admin-modal__overlay"></div>' +
+                '<div class="admin-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="employee-report-title" style="max-width:min(960px, calc(100vw - 32px)); max-height:90vh; overflow-y:auto; padding:24px;">' +
+                    '<button type="button" class="admin-modal__close" id="employee-report-close" aria-label="Đóng">&times;</button>' +
+                    '<div style="margin-bottom:10px;color:#888;font-size:13px;">Chi tiết báo cáo &rsaquo; <strong id="employee-report-id"></strong></div>' +
+                    '<h2 id="employee-report-title" style="margin-top:0;color:#333;"></h2>' +
+                    '<p id="employee-report-address" style="color:#666;font-size:14px;margin-bottom:20px;"></p>' +
+                    '<div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(260px, 1fr));gap:20px;margin-bottom:24px;">' +
+                        '<div style="background:#f9f9f9;padding:15px;border-radius:8px;">' +
+                            '<h4 style="margin:0 0 10px 0;color:#555;">THÔNG TIN CHUNG</h4>' +
+                            '<p><strong>Loại sự cố:</strong> <span id="employee-report-type"></span></p>' +
+                            '<p><strong>Người báo cáo:</strong> <span id="employee-report-reporter"></span></p>' +
+                            '<p><strong>Nhân viên xử lý:</strong> <span id="employee-report-staff"></span></p>' +
+                            '<p><strong>Trạng thái:</strong> <span id="employee-report-status" class="badge"></span></p>' +
+                        '</div>' +
+                        '<div style="background:#f9f9f9;padding:15px;border-radius:8px;">' +
+                            '<h4 style="margin:0 0 10px 0;color:#555;">MÔ TẢ NỘI DUNG</h4>' +
+                            '<div id="employee-report-description" style="font-size:14px;line-height:1.5;color:#444;"></div>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div style="display:flex;justify-content:flex-end;margin:-4px 0 20px;">' +
+                        '<button type="button" id="employee-report-directions" class="btn btn-primary">Chỉ đường</button>' +
+                    '</div>' +
+                    '<div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:20px;">' +
+                        '<div class="image-section">' +
+                            '<h4 style="border-left:4px solid #007bff;padding-left:10px;color:#007bff;">ẢNH HIỆN TRƯỜNG</h4>' +
+                            '<div id="employee-report-original-images" class="report-image-grid" style="min-height:100px;background:#fcfcfc;border:1px dashed #ddd;border-radius:8px;padding:10px;"></div>' +
+                        '</div>' +
+                        '<div class="image-section">' +
+                            '<h4 style="border-left:4px solid #28a745;padding-left:10px;color:#28a745;">ẢNH HOÀN THÀNH</h4>' +
+                            '<div id="employee-report-completion-images" class="report-image-grid" style="min-height:100px;background:#fcfcfc;border:1px dashed #ddd;border-radius:8px;padding:10px;"></div>' +
+                        '</div>' +
+                    '</div>' +
+                    '<hr style="border:none;border-top:1px solid #eee;margin:25px 0;">' +
+                    '<h4 style="color:#555;">LỊCH SỬ TRẠNG THÁI</h4>' +
+                    '<div id="employee-report-timeline"></div>' +
+                '</div>' +
+            '</div>'
+        );
+    }
 }
 
 function openEmployeeActionModal(options) {
@@ -861,6 +916,122 @@ function loadTaskImages(id) {
     });
 }
 
+async function openEmployeeReportDetail(id) {
+    ensureEmployeeUi();
+
+    try {
+        const res = await window.apiRequest('GET', `/bao-cao/${id}`);
+        const payload = res && res.data ? res.data : {};
+        const info = payload.thong_tin || {};
+        const images = Array.isArray(payload.hinh_anh) ? payload.hinh_anh : [];
+        const timeline = Array.isArray(payload.lich_su) ? payload.lich_su : [];
+        const tenNguoiBaoCao = info.nguoi_bao_cao || info.ten_nguoi_gui || info.ten_nguoi_dung || info.ho_ten || 'Khách / Ẩn danh';
+        const $modal = $('#employee-report-detail-modal');
+
+        bindEmployeeReportDetailEvents($modal);
+
+        $('#employee-report-id').text('#' + id);
+        $('#employee-report-title').text(info.tieu_de || 'Không có tiêu đề');
+        $('#employee-report-address').text(info.dia_chi || 'Không rõ địa chỉ');
+        $('#employee-report-type').text(info.loai_su_co || info.loai || 'Chưa phân loại');
+        $('#employee-report-reporter').text(tenNguoiBaoCao);
+        $('#employee-report-staff').text(info.nhan_vien_phu_trach || localStorage.getItem('ho_ten') || 'Chưa có nhân viên');
+        $('#employee-report-description').text(info.mo_ta || 'Không có mô tả chi tiết');
+        $('#employee-report-status')
+            .text(formatTrangThai(info.trang_thai || 'cho_duyet'))
+            .attr('class', 'badge ' + (info.trang_thai || 'cho_duyet'));
+
+        renderEmployeeReportImages('#employee-report-original-images', images, 'bao_cao', 'Không có ảnh');
+        renderEmployeeReportImages('#employee-report-completion-images', images, 'sau_sua_chua', 'Chưa có ảnh đối chứng');
+        renderEmployeeReportTimeline('#employee-report-timeline', timeline);
+        updateEmployeeReportDirectionsButton(id, info);
+
+        $modal.stop(true, true).fadeIn(150).attr('aria-hidden', 'false');
+    } catch (err) {
+        showToast(err?.loi || err?.error || 'Không tải được chi tiết báo cáo', true);
+    }
+}
+
+function bindEmployeeReportDetailEvents($modal) {
+    $modal.find('#employee-report-close, .admin-modal__overlay')
+        .off('click.employeeReportDetail')
+        .on('click.employeeReportDetail', function () {
+            $modal.stop(true, true).fadeOut(150).attr('aria-hidden', 'true');
+        });
+}
+
+function renderEmployeeReportImages(containerSelector, images, imageType, emptyText) {
+    const $container = $(containerSelector).empty();
+    const filtered = images.filter(function (image) {
+        return image && image.loai_anh === imageType && image.duong_dan_anh;
+    });
+
+    if (!filtered.length) {
+        $container.html(`<small style="color:#999">${escapeHtml(emptyText)}</small>`);
+        return;
+    }
+
+    const html = filtered.map(function (image, index) {
+        const src = escapeHtmlAttr(image.duong_dan_anh);
+        const alt = imageType === 'bao_cao' ? `Ảnh hiện trường ${index + 1}` : `Ảnh hoàn thành ${index + 1}`;
+        return `<img src="${src}" data-src="${src}" class="report-image-thumb" alt="${escapeHtmlAttr(alt)}">`;
+    }).join('');
+
+    $container.html(html);
+}
+
+function renderEmployeeReportTimeline(containerSelector, timeline) {
+    const $timeline = $(containerSelector).empty();
+
+    if (!timeline.length) {
+        $timeline.html('<div class="report-image-empty">Chưa có lịch sử trạng thái.</div>');
+        return;
+    }
+
+    timeline.forEach(function (entry) {
+        $timeline.append(`
+            <div style="margin-bottom:10px;font-size:13px;padding-left:15px;border-left:2px solid #ddd;position:relative;">
+                <div style="position:absolute;left:-6px;top:4px;width:10px;height:10px;background:#ccc;border-radius:50%;"></div>
+                <strong>${escapeHtml(formatDateTime(entry.ngay_doi) || '—')}</strong>:
+                <span style="color:#888;">${escapeHtml(formatTrangThai(entry.trang_thai_cu || 'Mới'))}</span>
+                &rarr;
+                <span class="text-primary" style="font-weight:600;">${escapeHtml(formatTrangThai(entry.trang_thai_moi || ''))}</span>
+                ${entry.ghi_chu ? `<div style="font-style:italic;color:#666;margin-top:2px;">- Ghi chú: ${escapeHtml(entry.ghi_chu)}</div>` : ''}
+            </div>
+        `);
+    });
+}
+
+function updateEmployeeReportDirectionsButton(id, info) {
+    const lat = Number(info.vi_do);
+    const lng = Number(info.kinh_do);
+    const hasCoordinates = Number.isFinite(lat) && Number.isFinite(lng);
+
+    $('#employee-report-directions')
+        .prop('disabled', !hasCoordinates)
+        .css({
+            opacity: hasCoordinates ? '1' : '0.55',
+            cursor: hasCoordinates ? 'pointer' : 'not-allowed'
+        })
+        .attr('title', hasCoordinates ? 'Mở bản đồ chỉ đường đến vị trí báo cáo' : 'Báo cáo này chưa có tọa độ để chỉ đường')
+        .off('click.employeeReportDirections')
+        .on('click.employeeReportDirections', function () {
+            if (!hasCoordinates) return;
+
+            const params = new URLSearchParams({
+                lat: String(lat),
+                lng: String(lng),
+                route: '1',
+                reportId: String(id),
+                source: 'nhan_vien'
+            });
+
+            if (info.tieu_de) params.set('title', info.tieu_de);
+
+            window.location.href = `../user/ban_do2.html?${params.toString()}`;
+        });
+}
+
 function getTaskCoordinates(task) {
     if (!task) return null;
 
@@ -942,6 +1113,15 @@ function renderTaskImages(id, images) {
 function openImageViewer(src) {
     $('#image-viewer-src').attr('src', src || '');
     openModal('modal-image-viewer');
+}
+
+function escapeHtml(value) {
+    return String(value || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
 }
 
 function escapeHtmlAttr(value) {

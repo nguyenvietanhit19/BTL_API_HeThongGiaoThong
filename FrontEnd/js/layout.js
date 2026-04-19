@@ -120,6 +120,23 @@ $(document).ready(function () {
         window.location.href = "../user/ban_do2.html?source=admin";
     });
 
+    $(document).off("click", "#btn-back-profile-admin").on("click", "#btn-back-profile-admin", function (e) {
+        e.preventDefault();
+        closeSidebar();
+
+        if (window.history.length > 1) {
+            window.history.back();
+            return;
+        }
+
+        if (typeof window.ajaxNavigate === "function") {
+            window.ajaxNavigate("tong-quan.html");
+            return;
+        }
+
+        window.location.href = "tong-quan.html";
+    });
+
     $(window).on("resize", function () {
         if (window.innerWidth > 992) {
             closeSidebar();
