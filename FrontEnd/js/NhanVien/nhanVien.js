@@ -7,7 +7,7 @@
 //  Bước 5: Hoàn thành     – sang tab Đã hoàn thành
 // ============================================================
 
-const API_BASE = "https://unworthy-imprison-coleslaw.ngrok-free.dev";
+const API_BASE = window.API_BASE || 'http://127.0.0.1:5000';
 
 // ============ STATE ============
 let currentTaskId = null;   // ID task đang thao tác trong modal
@@ -997,6 +997,7 @@ function renderEmployeeReportTimeline(containerSelector, timeline) {
                 &rarr;
                 <span class="text-primary" style="font-weight:600;">${escapeHtml(formatTrangThai(entry.trang_thai_moi || ''))}</span>
                 ${entry.ghi_chu ? `<div style="font-style:italic;color:#666;margin-top:2px;">- Ghi chú: ${escapeHtml(entry.ghi_chu)}</div>` : ''}
+                ${entry.ten_nguoi_doi ? `<div style="font-size:12px;color:#666;margin-top:2px;">by ${escapeHtml(entry.ten_nguoi_doi)}</div>` : ''}
             </div>
         `);
     });

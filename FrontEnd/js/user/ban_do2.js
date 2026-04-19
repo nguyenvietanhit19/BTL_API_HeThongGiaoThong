@@ -7,7 +7,7 @@
 
 /* ---------- CONFIG ---------- */
 const API_BASE = window.API_BASE || 'http://127.0.0.1:5000';
-const MAPBOX_TOKEN = 'mytoken'; // ← thay bằng token của bạn
+const MAPBOX_TOKEN = 'my_mapbox_token'; // ← thay bằng token của bạn
 const BAN_KINH_KM = 10;
 
 /* ---------- STATE ---------- */

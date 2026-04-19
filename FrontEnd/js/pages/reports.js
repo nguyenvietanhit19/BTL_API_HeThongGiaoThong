@@ -406,6 +406,7 @@
                         <span style="color:#888;">${escapeHtml(entry.trang_thai_cu || 'Mới')}</span>
                         &rarr;
                         <span class="text-primary" style="font-weight:600;">${escapeHtml(entry.trang_thai_moi || '')}</span>
+                        ${entry.ten_nguoi_doi ? `<div style="font-size:12px;color:#666;margin-top:2px;">by ${escapeHtml(entry.ten_nguoi_doi)}</div>` : ''}
                         ${entry.ghi_chu ? `<div style="font-style:italic;color:#666;margin-top:2px;">- Ghi chú: ${escapeHtml(entry.ghi_chu)}</div>` : ''}
                     </div>
                 `);
