@@ -264,6 +264,8 @@ body {
   scrollbar-width: none;
   z-index: 10;
   background: linear-gradient(to bottom, rgba(13,27,42,.75) 0%, transparent 100%);
+  touch-action: pan-x;
+  -webkit-overflow-scrolling: touch;
 }
 .filter-bar::-webkit-scrollbar { display: none; }
 
