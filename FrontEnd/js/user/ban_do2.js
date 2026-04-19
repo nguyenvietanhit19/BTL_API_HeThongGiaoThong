@@ -6,7 +6,7 @@
 'use strict';
 
 /* ---------- CONFIG ---------- */
-const API_BASE = 'http://localhost:5000';         // Sửa thành URL deploy nếu cần
+const API_BASE = window.API_BASE || 'http://127.0.0.1:5000';
 const MAPBOX_TOKEN = 'mytoken'; // ← thay bằng token của bạn
 const BAN_KINH_KM = 10;
 
@@ -231,11 +231,67 @@ function initMap() {
   map.on('load', () => {
     applyPendingDirections();
   });
+
+  // Cho phép vuốt ngang filter bar trên mobile (Mapbox chiếm touch events)
+  const filterBar = document.querySelector('.filter-bar');
+  if (filterBar) {
+    let startX = 0, startScrollLeft = 0, isDragging = false;
+
+    filterBar.addEventListener('touchstart', e => {
+      e.stopPropagation();
+      startX = e.touches[0].pageX;
+      startScrollLeft = filterBar.scrollLeft;
+      isDragging = true;
+    }, { passive: true });
+
+    filterBar.addEventListener('touchmove', e => {
+      e.stopPropagation();
+      if (!isDragging) return;
+      const dx = startX - e.touches[0].pageX;
+      filterBar.scrollLeft = startScrollLeft + dx;
+    }, { passive: true });
+
+    filterBar.addEventListener('touchend', e => {
+      e.stopPropagation();
+      isDragging = false;
+    }, { passive: true });
+  }
 }
 
 /* ============================================================
    GEO LOCATION
    ============================================================ */
+async function reverseGeocode(lat, lng) {
+  try {
+    const res = await fetch(
+      `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?language=vi&access_token=${MAPBOX_TOKEN}`
+    );
+    const data = await res.json();
+    if (data.features && data.features.length > 0) {
+      return data.features[0].place_name;
+    }
+  } catch (e) {}
+  return '';
+}
+
+async function diaChiTuGPS() {
+  if (!currentLat || !currentLng) {
+    showToast('Chưa lấy được vị trí GPS', 'error');
+    return;
+  }
+  const btn = document.getElementById('btn-dia-chi-gps');
+  btn.textContent = '⏳ Đang lấy...';
+  btn.disabled = true;
+  const addr = await reverseGeocode(currentLat, currentLng);
+  btn.textContent = '📍 Vị trí hiện tại';
+  btn.disabled = false;
+  if (addr) {
+    document.getElementById('dia-chi').value = addr;
+  } else {
+    showToast('Không lấy được địa chỉ, vui lòng nhập thủ công', 'error');
+  }
+}
+
 function getUserLocation() {
   if (!navigator.geolocation) {
     document.getElementById('location-text').textContent = 'Trình duyệt không hỗ trợ GPS';

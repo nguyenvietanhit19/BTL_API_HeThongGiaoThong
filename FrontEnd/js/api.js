@@ -1,7 +1,7 @@
 (function(window, $) {
     'use strict';
 
-    const API_BASE = 'http://127.0.0.1:5000';
+    const API_BASE = window.API_BASE || 'http://127.0.0.1:5000';
 
     window.getToken = function() {
         return localStorage.getItem('token');

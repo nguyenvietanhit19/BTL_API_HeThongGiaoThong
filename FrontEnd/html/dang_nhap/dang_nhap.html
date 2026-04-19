@@ -3,12 +3,14 @@
 
 <head>
     <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="https://res.cloudinary.com/dk7nghcnr/image/upload/v1776567612/giao_thong/lrumeboihdokh8efppex.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Giao thông Cộng đồng — Đăng nhập</title>
     <link
         href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap"
         rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="/FrontEnd/js/config.js"></script>
     <style>
         :root {
             --do: #E24B4A;
@@ -923,7 +925,7 @@
     </div>
 
     <script>
-        const API = 'http://127.0.0.1:5000';
+        const API = window.API_BASE || 'http://127.0.0.1:5000';
         let emailDangKy = ''; // Lưu email để dùng ở bước 2
 
         // ==================== TAB ====================
@@ -977,9 +979,9 @@
 
                     // ✅ SỬA LẠI — đúng đường dẫn theo folder structure
                     setTimeout(() => {
-                        if (res.vai_tro === 'admin') window.location.replace('../admin/tong-quan.html');
-                        else if (res.vai_tro === 'nhan_vien') window.location.replace('../NhanVien/nhanVien.html');
-                        else window.location.replace('../user/ban_do2.html');   // ✅ đúng
+                        if (res.vai_tro === 'admin') window.location.replace('/FrontEnd/html/admin/tong-quan.html');
+                        else if (res.vai_tro === 'nhan_vien') window.location.replace('/FrontEnd/html/NhanVien/nhanVien.html');
+                        else window.location.replace('/FrontEnd/html/user/ban_do2.html');
                     }, 1000);
                 },
                 error: function (xhr) {

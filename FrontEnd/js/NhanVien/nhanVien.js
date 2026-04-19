@@ -7,7 +7,7 @@
 //  Bước 5: Hoàn thành     – sang tab Đã hoàn thành
 // ============================================================
 
-const API_BASE = "http://127.0.0.1:5000";
+const API_BASE = "https://unworthy-imprison-coleslaw.ngrok-free.dev";
 
 // ============ STATE ============
 let currentTaskId = null;   // ID task đang thao tác trong modal
