@@ -1004,6 +1004,7 @@ function renderEmployeeReportTimeline(containerSelector, timeline) {
                 &rarr;
                 <span class="text-primary" style="font-weight:600;">${escapeHtml(formatTrangThai(entry.trang_thai_moi || ''))}</span>
                 ${entry.ghi_chu ? `<div style="font-style:italic;color:#666;margin-top:2px;">- Ghi chú: ${escapeHtml(entry.ghi_chu)}</div>` : ''}
+                ${entry.ten_nguoi_doi ? `<div style="font-size:12px;color:#666;margin-top:2px;">by ${escapeHtml(entry.ten_nguoi_doi)}</div>` : ''}
             </div>
         `);
     });
