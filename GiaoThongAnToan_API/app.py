@@ -1,7 +1,6 @@
 import os
-
 from dotenv import load_dotenv
-from flask import Flask
+from flask import Flask, send_from_directory
 from flask_cors import CORS
 
 load_dotenv()
@@ -33,6 +32,21 @@ app.register_blueprint(nhan_vien_bp, url_prefix='/nhan-vien')
 app.register_blueprint(admin_bp, url_prefix='/admin')
 app.register_blueprint(admin_get_bp, url_prefix='/admin_get')
 app.register_blueprint(quan_ly_bp, url_prefix='/admin')
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+FRONTEND_DIR = os.path.join(BASE_DIR, '..', 'FrontEnd')
+
+@app.route('/')
+def index():
+    return send_from_directory(os.path.join(FRONTEND_DIR, 'html', 'dang_nhap'), 'dang_nhap.html')
+
+@app.route('/ban-do')
+def ban_do():
+    return send_from_directory(os.path.join(FRONTEND_DIR, 'html', 'user'), 'ban_do2.html')
+
+@app.route('/FrontEnd/<path:path>')
+def frontend(path):
+    return send_from_directory(FRONTEND_DIR, path)
 
 if __name__ == '__main__':
     print("Danh sách các API hiện có:")
