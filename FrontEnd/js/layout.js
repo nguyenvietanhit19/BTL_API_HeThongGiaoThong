@@ -1,3 +1,14 @@
+// Khi trở lại trang admin từ bfcache, reload dữ liệu
+window.addEventListener('pageshow', function (e) {
+    if (!e.persisted) return;
+    if (typeof window.loadDashboard === 'function')    window.loadDashboard();
+    if (typeof window.loadListByStatus === 'function') window.loadListByStatus();
+    if (typeof window.loadPhanCong === 'function')     window.loadPhanCong();
+    if (typeof window.loadNhanVien === 'function')     window.loadNhanVien();
+    if (typeof window.loadUsers === 'function')        window.loadUsers();
+    if (typeof window.refreshSidebarCounts === 'function') window.refreshSidebarCounts();
+});
+
 $(document).ready(function () {
     const _token = localStorage.getItem('token');
     const _vaiTro = localStorage.getItem('vai_tro');
@@ -308,4 +319,56 @@ $(document).ready(function () {
     } catch (e) {
         console.error(e);
     }
+
+    // Polling thông báo cho admin
+    batDauPollingAdmin();
 });
+
+function batDauPollingAdmin() {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    async function kiemTra() {
+        const tuId = parseInt(localStorage.getItem('last_lich_su_id') || '0');
+        try {
+            const res = await fetch((window.API_BASE || '') + '/bao-cao/thong-bao?tu_id=' + tuId, {
+                headers: { 'Authorization': 'Bearer ' + token, 'ngrok-skip-browser-warning': 'true' }
+            });
+            if (!res.ok) return;
+            const data = await res.json();
+            if (!Array.isArray(data) || data.length === 0) return;
+
+            const maxId = Math.max(...data.map(n => n.lich_su_id));
+            localStorage.setItem('last_lich_su_id', maxId);
+
+            // Tự động reload đúng tab đang hiện tại (routeToPage truyền đúng tham số cho từng trang)
+            if (typeof window.routeToPage === 'function') window.routeToPage(window.location.pathname);
+            if (typeof window.refreshSidebarCounts === 'function') window.refreshSidebarCounts();
+
+            data.forEach((tb, i) => {
+                setTimeout(() => hienThongBaoNoi(tb.noi_dung, tb.tieu_de), i * 1500);
+            });
+        } catch (e) {}
+    }
+
+    setTimeout(kiemTra, 1000);
+    setInterval(kiemTra, 2000);
+}
+
+function hienThongBaoNoi(noiDung, tieuDe) {
+    let container = document.getElementById('thongbao-stack');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'thongbao-stack';
+        container.style.cssText = 'position:fixed;bottom:24px;right:24px;display:flex;flex-direction:column;gap:8px;z-index:99999;max-width:320px;';
+        document.body.appendChild(container);
+    }
+    const el = document.createElement('div');
+    el.style.cssText = 'background:#1e293b;color:#fff;border-left:4px solid #3b82f6;padding:14px 18px;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.35);font-size:13px;line-height:1.5;cursor:pointer;';
+    el.innerHTML = '<div style="font-weight:700;margin-bottom:4px">🔔 Thông báo</div>' +
+        '<div>' + noiDung + '</div>' +
+        '<div style="color:rgba(255,255,255,.45);font-size:11px;margin-top:4px">' + tieuDe + '</div>';
+    el.onclick = () => el.remove();
+    container.appendChild(el);
+    setTimeout(() => el.remove(), 6000);
+}

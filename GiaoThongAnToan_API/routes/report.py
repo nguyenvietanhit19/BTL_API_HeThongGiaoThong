@@ -86,6 +86,14 @@ def tao_bao_cao():
         )
         bao_cao_id = cursor.fetchone()[0]
 
+        # Log vào lich_su_trang_thai để admin nhận thông báo
+        cursor.execute(
+            """INSERT INTO lich_su_trang_thai
+               (bao_cao_id, nguoi_doi_id, trang_thai_cu, trang_thai_moi)
+               VALUES (?, ?, NULL, 'cho_duyet')""",
+            (bao_cao_id, request.nguoi_dung_id)
+        )
+
         # Upload từng ảnh lên Cloudinary → lưu DB
         ds_url = []
         for f in files:
@@ -332,6 +340,166 @@ def xoa_bao_cao(id):
 
     except Exception as e:
         if conn: conn.rollback()
+        return jsonify({'loi': str(e)}), 500
+    finally:
+        if conn: conn.close()
+
+
+# Nội dung thông báo theo vai trò nhận
+THONG_BAO_USER = {
+    'da_duyet':       'Báo cáo của bạn đã được duyệt ✅',
+    'tu_choi':        'Báo cáo của bạn bị từ chối ❌',
+    'da_phan_cong':   'Báo cáo của bạn đã được phân công xử lý 🔧',
+    'dang_xu_ly':     'Báo cáo của bạn đang được xử lý 🔨',
+    'cho_nghiem_thu': 'Báo cáo của bạn đang chờ nghiệm thu 🔍',
+    'da_xu_ly':       'Báo cáo của bạn đã được xử lý xong 🎉',
+}
+THONG_BAO_ADMIN = {
+    'cho_duyet':      'Có báo cáo mới cần duyệt 📋',
+    'cho_nghiem_thu': 'Nhân viên vừa hoàn thành xử lý, chờ nghiệm thu 🔍',
+    'dang_xu_ly':     'Nhân viên đang xử lý báo cáo 🔨',
+    'tu_choi_viec':   'Nhân viên từ chối nhận việc, cần phân công lại ⚠️',
+}
+THONG_BAO_NV = {
+    'da_phan_cong': 'Bạn được phân công xử lý báo cáo mới 🔧',
+}
+
+@bao_cao_bp.route('/thong-bao', methods=['GET'])
+@can_access(['user', 'admin', 'nhan_vien'])
+def get_thong_bao():
+    conn = None
+    try:
+        tu_id = request.args.get('tu_id', 0, type=int)
+        user_id = request.nguoi_dung_id
+        vai_tro = request.vai_tro
+
+        conn = get_db()
+        cursor = conn.cursor()
+
+        rows = []
+
+        if vai_tro == 'user':
+            # User: nhận thông báo về báo cáo của chính mình, do người khác thực hiện
+            cursor.execute("""
+                SELECT ls.lich_su_id, ls.trang_thai_moi, bc.tieu_de, bc.bao_cao_id
+                FROM lich_su_trang_thai ls
+                JOIN bao_cao bc ON ls.bao_cao_id = bc.bao_cao_id
+                WHERE bc.nguoi_dung_id = ?
+                  AND ls.lich_su_id > ?
+                  AND ls.nguoi_doi_id != ?
+                ORDER BY ls.lich_su_id ASC
+            """, (user_id, tu_id, user_id))
+            rows = cursor.fetchall()
+            template = THONG_BAO_USER
+
+        elif vai_tro == 'admin':
+            # Admin: thông báo vai trò (báo cáo mới, nhân viên cập nhật)
+            cursor.execute("""
+                SELECT ls.lich_su_id,
+                       CASE
+                         WHEN nd.vai_tro = 'nhan_vien'
+                              AND ls.trang_thai_moi = 'da_duyet'
+                              AND ls.ghi_chu LIKE N'Từ chối nhận việc:%'
+                         THEN 'tu_choi_viec'
+                         ELSE ls.trang_thai_moi
+                       END AS trang_thai_key,
+                       bc.tieu_de, bc.bao_cao_id
+                FROM lich_su_trang_thai ls
+                JOIN bao_cao bc ON ls.bao_cao_id = bc.bao_cao_id
+                JOIN nguoi_dung nd ON ls.nguoi_doi_id = nd.nguoi_dung_id
+                WHERE ls.lich_su_id > ?
+                  AND ls.nguoi_doi_id != ?
+                  AND nd.vai_tro IN ('user', 'nhan_vien')
+                  AND (
+                    ls.trang_thai_moi IN ('cho_duyet', 'cho_nghiem_thu', 'dang_xu_ly')
+                    OR (
+                      nd.vai_tro = 'nhan_vien'
+                      AND ls.trang_thai_moi = 'da_duyet'
+                      AND ls.ghi_chu LIKE N'Từ chối nhận việc:%'
+                    )
+                  )
+                ORDER BY ls.lich_su_id ASC
+            """, (tu_id, user_id))
+            role_rows = [(r, THONG_BAO_ADMIN) for r in cursor.fetchall()]
+
+            # Admin cũng nhận thông báo về báo cáo do chính mình gửi
+            cursor.execute("""
+                SELECT ls.lich_su_id, ls.trang_thai_moi, bc.tieu_de, bc.bao_cao_id
+                FROM lich_su_trang_thai ls
+                JOIN bao_cao bc ON ls.bao_cao_id = bc.bao_cao_id
+                WHERE bc.nguoi_dung_id = ?
+                  AND ls.lich_su_id > ?
+                  AND ls.nguoi_doi_id != ?
+                ORDER BY ls.lich_su_id ASC
+            """, (user_id, tu_id, user_id))
+            own_rows = [(r, THONG_BAO_USER) for r in cursor.fetchall()]
+
+            all_rows = sorted(role_rows + own_rows, key=lambda x: x[0][0])
+            seen = set()
+            result = []
+            for r, tmpl in all_rows:
+                lich_su_id, trang_thai_moi, tieu_de, bao_cao_id = r
+                noi_dung = tmpl.get(trang_thai_moi, 'Có cập nhật mới')
+                key = (lich_su_id, noi_dung)
+                if key in seen:
+                    continue
+                seen.add(key)
+                result.append({'lich_su_id': lich_su_id, 'noi_dung': noi_dung, 'tieu_de': tieu_de, 'bao_cao_id': bao_cao_id})
+            return jsonify(result), 200
+
+        elif vai_tro == 'nhan_vien':
+            # Nhân viên: thông báo khi được phân công
+            cursor.execute("""
+                SELECT ls.lich_su_id, ls.trang_thai_moi, bc.tieu_de, bc.bao_cao_id
+                FROM lich_su_trang_thai ls
+                JOIN bao_cao bc ON ls.bao_cao_id = bc.bao_cao_id
+                WHERE bc.nhan_vien_id = ?
+                  AND ls.lich_su_id > ?
+                  AND ls.nguoi_doi_id != ?
+                  AND ls.trang_thai_moi IN ('da_phan_cong')
+                ORDER BY ls.lich_su_id ASC
+            """, (user_id, tu_id, user_id))
+            role_rows = [(r, THONG_BAO_NV) for r in cursor.fetchall()]
+
+            # Nhân viên cũng nhận thông báo về báo cáo do chính mình gửi
+            cursor.execute("""
+                SELECT ls.lich_su_id, ls.trang_thai_moi, bc.tieu_de, bc.bao_cao_id
+                FROM lich_su_trang_thai ls
+                JOIN bao_cao bc ON ls.bao_cao_id = bc.bao_cao_id
+                WHERE bc.nguoi_dung_id = ?
+                  AND ls.lich_su_id > ?
+                  AND ls.nguoi_doi_id != ?
+                ORDER BY ls.lich_su_id ASC
+            """, (user_id, tu_id, user_id))
+            own_rows = [(r, THONG_BAO_USER) for r in cursor.fetchall()]
+
+            all_rows = sorted(role_rows + own_rows, key=lambda x: x[0][0])
+            seen = set()
+            result = []
+            for r, tmpl in all_rows:
+                lich_su_id, trang_thai_moi, tieu_de, bao_cao_id = r
+                noi_dung = tmpl.get(trang_thai_moi, 'Có cập nhật mới')
+                key = (lich_su_id, noi_dung)
+                if key in seen:
+                    continue
+                seen.add(key)
+                result.append({'lich_su_id': lich_su_id, 'noi_dung': noi_dung, 'tieu_de': tieu_de, 'bao_cao_id': bao_cao_id})
+            return jsonify(result), 200
+
+        result = []
+        for r in rows:
+            lich_su_id, trang_thai_moi, tieu_de, bao_cao_id = r
+            noi_dung = THONG_BAO_USER.get(trang_thai_moi, 'Có cập nhật mới')
+            result.append({
+                'lich_su_id': lich_su_id,
+                'noi_dung': noi_dung,
+                'tieu_de': tieu_de,
+                'bao_cao_id': bao_cao_id,
+            })
+
+        return jsonify(result), 200
+
+    except Exception as e:
         return jsonify({'loi': str(e)}), 500
     finally:
         if conn: conn.close()

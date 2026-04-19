@@ -7,7 +7,7 @@
 //  Bước 5: Hoàn thành     – sang tab Đã hoàn thành
 // ============================================================
 
-const API_BASE = "https://unworthy-imprison-coleslaw.ngrok-free.dev";
+const API_BASE = window.API_BASE || 'http://127.0.0.1:5000';
 
 // ============ STATE ============
 let currentTaskId = null;   // ID task đang thao tác trong modal
@@ -19,6 +19,11 @@ let currentTaskLocation = null;
 function authHeader() {
     return { Authorization: `Bearer ${localStorage.getItem('token')}` };
 }
+
+// Khi trở lại trang từ bfcache (bấm nút back), reload dữ liệu
+window.addEventListener('pageshow', function (e) {
+    if (e.persisted) fetchTasks();
+});
 
 // ============ INIT ============
 $(document).ready(function () {
@@ -32,6 +37,7 @@ $(document).ready(function () {
 
     // --- Load dữ liệu ban đầu ---
     fetchTasks();
+    batDauPollingNhanVien();
 
     // --- Hiển thị tên nhân viên ---
     const name = localStorage.getItem("ho_ten") || localStorage.getItem("user_name");
@@ -69,6 +75,7 @@ $(document).ready(function () {
         const page = $(this).data('page');
         $(`#page-${page}`).addClass('active');
 
+        if (page === 'viec-cua-toi')  fetchTasks();
         if (page === 'da-hoan-thanh') loadDoneTasks();
         if (page === 'lich-su')       loadHistory();
 
@@ -1217,4 +1224,55 @@ function formatFileSize(bytes) {
     if (value < 1024) return value + ' B';
     if (value < 1024 * 1024) return (value / 1024).toFixed(1) + ' KB';
     return (value / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+/* ============================================================
+   THÔNG BÁO — polling cho nhân viên
+   ============================================================ */
+function batDauPollingNhanVien() {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    async function kiemTra() {
+        const tuId = parseInt(localStorage.getItem('last_lich_su_id') || '0');
+        try {
+            const res = await fetch(API_BASE + '/bao-cao/thong-bao?tu_id=' + tuId, {
+                headers: { 'Authorization': 'Bearer ' + token, 'ngrok-skip-browser-warning': 'true' }
+            });
+            if (!res.ok) return;
+            const data = await res.json();
+            if (!Array.isArray(data) || data.length === 0) return;
+
+            const maxId = Math.max(...data.map(n => n.lich_su_id));
+            localStorage.setItem('last_lich_su_id', maxId);
+
+            // Tự động reload danh sách việc khi có thông báo mới
+            fetchTasks();
+
+            data.forEach((tb, i) => {
+                setTimeout(() => hienThongBaoNV(tb.noi_dung, tb.tieu_de), i * 1500);
+            });
+        } catch (e) {}
+    }
+
+    setTimeout(kiemTra, 1000);
+    setInterval(kiemTra, 2000);
+}
+
+function hienThongBaoNV(noiDung, tieuDe) {
+    let container = document.getElementById('thongbao-stack');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'thongbao-stack';
+        container.style.cssText = 'position:fixed;bottom:24px;right:24px;display:flex;flex-direction:column;gap:8px;z-index:99999;max-width:320px;';
+        document.body.appendChild(container);
+    }
+    const el = document.createElement('div');
+    el.style.cssText = 'background:#1e293b;color:#fff;border-left:4px solid #22c55e;padding:14px 18px;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.35);font-size:13px;line-height:1.5;cursor:pointer;';
+    el.innerHTML = '<div style="font-weight:700;margin-bottom:4px">🔔 Thông báo</div>' +
+        '<div>' + noiDung + '</div>' +
+        '<div style="color:rgba(255,255,255,.45);font-size:11px;margin-top:4px">' + tieuDe + '</div>';
+    el.onclick = () => el.remove();
+    container.appendChild(el);
+    setTimeout(() => el.remove(), 6000);
 }
