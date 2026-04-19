@@ -7,7 +7,7 @@
 
 /* ---------- CONFIG ---------- */
 const API_BASE = window.API_BASE || 'http://127.0.0.1:5000';
-const MAPBOX_TOKEN = 'mytoken'; // ← thay bằng token của bạn
+const MAPBOX_TOKEN = 'mytoken'; // 
 const BAN_KINH_KM = 10;
 
 /* ---------- STATE ---------- */
@@ -53,6 +53,14 @@ let currentMyLoai = 0; // thêm cạnh currentMyFilter
    INIT
    ============================================================ */
 // Sửa lại phần init — thêm user_id
+// Khi trở lại trang bản đồ từ bfcache, reload báo cáo
+window.addEventListener('pageshow', function (e) {
+  if (e.persisted) {
+    if (typeof loadReportsNearby === 'function') loadReportsNearby();
+    if (typeof loadMyReports === 'function') loadMyReports();
+  }
+});
+
 document.addEventListener('DOMContentLoaded', () => {
   const token = localStorage.getItem('token');
   if (!token) {
@@ -68,6 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Gọi API lấy thông tin user để có ID
   taiThongTinUser();
+  batDauPollingThongBao();
   openedFromEmployeePage = isOpenedFromEmployeePage();    //từ nhân viên
   openedFromAdminPage = isOpenedFromAdminPage();
   pendingDirectionsRequest = readPendingDirectionsRequest();   //từ nhân viên
@@ -475,6 +484,7 @@ function switchTab(tab) {
   });
 
   if (tab === 'my-reports') loadMyReports();
+  if (tab === 'map') loadReportsNearby();
 }
 
 /* ============================================================
@@ -1085,4 +1095,61 @@ function toggleDirections() {
 //     document.querySelectorAll(sel).forEach(el => el.remove());
 //   });
 // }
+
+/* ============================================================
+   THÔNG BÁO — polling mỗi 30 giây
+   ============================================================ */
+function batDauPollingThongBao() {
+  const token = localStorage.getItem('token');
+  if (!token) return;
+
+  async function kiemTraThongBao() {
+    const tuId = parseInt(localStorage.getItem('last_lich_su_id') || '0');
+    try {
+      const res = await fetch(`${API_BASE}/bao-cao/thong-bao?tu_id=${tuId}`, {
+        headers: {
+          'Authorization': 'Bearer ' + token,
+          'ngrok-skip-browser-warning': 'true'
+        }
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      if (!Array.isArray(data) || data.length === 0) return;
+
+      // Cập nhật last_lich_su_id
+      const maxId = Math.max(...data.map(n => n.lich_su_id));
+      localStorage.setItem('last_lich_su_id', maxId);
+
+      // Tự động reload danh sách báo cáo
+      if (typeof loadReportsNearby === 'function') loadReportsNearby();
+
+      // Hiện toast cho từng thông báo
+      data.forEach((tb, i) => {
+        setTimeout(() => {
+          showToastThongBao(tb.noi_dung, tb.tieu_de);
+        }, i * 1500);
+      });
+    } catch (e) {}
+  }
+
+  // Chạy ngay lần đầu sau 2 giây, rồi mỗi 30 giây
+  setTimeout(kiemTraThongBao, 1000);
+  setInterval(kiemTraThongBao, 2000);
+}
+
+function showToastThongBao(noiDung, tieuDe) {
+  let container = document.getElementById('thongbao-stack');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'thongbao-stack';
+    container.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;gap:8px;z-index:9999;width:90%;max-width:320px;';
+    document.body.appendChild(container);
+  }
+  const el = document.createElement('div');
+  el.style.cssText = 'background:#1a1a2e;color:#fff;border-left:4px solid #4285F4;padding:12px 16px;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.4);font-size:13px;line-height:1.5;animation:slideUp .3s ease;cursor:pointer;';
+  el.innerHTML = `<div style="font-weight:700;margin-bottom:4px">🔔 Thông báo</div><div>${noiDung}</div><div style="color:rgba(255,255,255,.5);font-size:11px;margin-top:4px">${tieuDe}</div>`;
+  el.onclick = () => el.remove();
+  container.appendChild(el);
+  setTimeout(() => el.remove(), 5000);
+}
 
