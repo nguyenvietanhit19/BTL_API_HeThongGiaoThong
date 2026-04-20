@@ -1256,8 +1256,8 @@ function batDauPollingNhanVien() {
         } catch (e) {}
     }
 
-    setTimeout(kiemTra, 1000);
-    setInterval(kiemTra, 2000);
+    setTimeout(kiemTra, 300);
+    setInterval(kiemTra, 300);
 }
 
 function hienThongBaoNV(noiDung, tieuDe) {

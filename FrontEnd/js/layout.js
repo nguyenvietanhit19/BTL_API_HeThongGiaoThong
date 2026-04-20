@@ -351,8 +351,8 @@ function batDauPollingAdmin() {
         } catch (e) {}
     }
 
-    setTimeout(kiemTra, 1000);
-    setInterval(kiemTra, 2000);
+    setTimeout(kiemTra, 300);
+    setInterval(kiemTra, 300);
 }
 
 function hienThongBaoNoi(noiDung, tieuDe) {

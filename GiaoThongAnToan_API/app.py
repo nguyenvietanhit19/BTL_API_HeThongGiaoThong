@@ -1,11 +1,23 @@
 import os
+from datetime import datetime, date
 from dotenv import load_dotenv
 from flask import Flask, send_from_directory
+from flask.json.provider import DefaultJSONProvider
 from flask_cors import CORS
 
 load_dotenv()
 
+class VNJSONProvider(DefaultJSONProvider):
+    def default(self, o):
+        if isinstance(o, datetime):
+            return o.strftime('%Y-%m-%dT%H:%M:%S+07:00')
+        if isinstance(o, date):
+            return o.strftime('%Y-%m-%d')
+        return super().default(o)
+
 app = Flask(__name__)
+app.json_provider_class = VNJSONProvider
+app.json = VNJSONProvider(app)
 app.config["JSON_AS_ASCII"] = False
 app.json.ensure_ascii = False
 CORS(app, resources={r"/*": {"origins": "*"}})
