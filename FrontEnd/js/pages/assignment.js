@@ -119,10 +119,16 @@
 
                 selectHtml += '</select>';
 
+                const ngayDuyet = report.ngay_trang_thai || report.ngay_tao || '';
+                const ngayDuyetHtml = ngayDuyet
+                    ? `<span style="font-size:13px;color:#374151;">${new Date(ngayDuyet).toLocaleString('vi-VN', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})}</span>`
+                    : '<span style="color:#9ca3af;font-size:12px;">Chưa rõ</span>';
+
                 const $tr = $('<tr/>');
                 $tr.append($('<td/>').html(`<strong>#${id}</strong>`));
                 $tr.append($('<td/>').html(getTitleHtml(report)));
                 $tr.append($('<td/>').html(`<span style="background:#e9ecef;color:#495057;padding:4px 8px;border-radius:4px;font-size:12px;font-weight:600;">${loai}</span>`));
+                $tr.append($('<td/>').html(ngayDuyetHtml));
                 $tr.append($('<td/>').html(selectHtml));
                 $tr.append($('<td/>').html('<button class="btn-action primary btn-assign-now" data-id="' + id + '" style="background:#0d6efd;color:white;border:none;padding:6px 12px;border-radius:4px;cursor:pointer;">Giao việc</button>'));
                 $tbody.append($tr);

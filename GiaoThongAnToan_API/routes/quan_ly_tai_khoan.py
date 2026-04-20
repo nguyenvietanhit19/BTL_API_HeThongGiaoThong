@@ -107,7 +107,9 @@ def chi_tiet_nguoi_dung(id):
         nhat_ky = [dict(zip(cols_nk, r)) for r in rows]
 
         hoat_dong = []
+        vai_tro_nguoi_dung = nguoi_dung.get('vai_tro', '')
 
+        # Báo cáo do người này gửi (mọi vai trò đều có thể gửi báo cáo)
         for bc in bao_cao:
             hoat_dong.append({
                 'loai': 'bao_cao_tao',
@@ -118,47 +120,147 @@ def chi_tiet_nguoi_dung(id):
                 'trang_thai': bc.get('trang_thai')
             })
 
-        cursor.execute("""
-            SELECT
-                ls.bao_cao_id,
-                ls.trang_thai_cu,
-                ls.trang_thai_moi,
-                ls.ghi_chu,
-                ls.ngay_doi,
-                bc.tieu_de,
-                nd.ho_ten AS ten_nguoi_doi
-            FROM lich_su_trang_thai ls
-            JOIN bao_cao bc ON bc.bao_cao_id = ls.bao_cao_id
-            LEFT JOIN nguoi_dung nd ON nd.nguoi_dung_id = ls.nguoi_doi_id
-            WHERE bc.nguoi_dung_id = ?
-            ORDER BY ls.ngay_doi DESC
-        """, (id,))
-        rows = cursor.fetchall()
-        cols_ls = [d[0] for d in cursor.description]
-        lich_su_bao_cao = [dict(zip(cols_ls, r)) for r in rows]
+        if vai_tro_nguoi_dung == 'admin':
+            # Admin: hiện những gì ADMIN ĐÃ LÀM trên báo cáo (duyệt, từ chối, phân công...)
+            cursor.execute("""
+                SELECT
+                    ls.bao_cao_id,
+                    ls.trang_thai_cu,
+                    ls.trang_thai_moi,
+                    ls.ghi_chu,
+                    ls.ngay_doi,
+                    bc.tieu_de,
+                    nd.ho_ten AS ten_nguoi_gui
+                FROM lich_su_trang_thai ls
+                JOIN bao_cao bc ON bc.bao_cao_id = ls.bao_cao_id
+                LEFT JOIN nguoi_dung nd ON nd.nguoi_dung_id = bc.nguoi_dung_id
+                WHERE ls.nguoi_doi_id = ?
+                ORDER BY ls.ngay_doi DESC
+            """, (id,))
+            rows = cursor.fetchall()
+            cols_ls = [d[0] for d in cursor.description]
+            for ls in [dict(zip(cols_ls, r)) for r in rows]:
+                hoat_dong.append({
+                    'loai': 'bao_cao_xu_ly',
+                    'thoi_gian': ls.get('ngay_doi'),
+                    'tieu_de': 'Xử lý báo cáo',
+                    'mo_ta': ls.get('tieu_de') or 'Báo cáo sự cố',
+                    'tham_chieu': ls.get('bao_cao_id'),
+                    'trang_thai_cu': ls.get('trang_thai_cu'),
+                    'trang_thai_moi': ls.get('trang_thai_moi'),
+                    'ghi_chu': ls.get('ghi_chu'),
+                    'ten_nguoi_gui': ls.get('ten_nguoi_gui')
+                })
 
-        for ls in lich_su_bao_cao:
-            hoat_dong.append({
-                'loai': 'bao_cao_cap_nhat',
-                'thoi_gian': ls.get('ngay_doi'),
-                'tieu_de': 'Cập nhật trạng thái báo cáo',
-                'mo_ta': ls.get('tieu_de') or 'Báo cáo sự cố',
-                'tham_chieu': ls.get('bao_cao_id'),
-                'trang_thai_cu': ls.get('trang_thai_cu'),
-                'trang_thai_moi': ls.get('trang_thai_moi'),
-                'ghi_chu': ls.get('ghi_chu'),
-                'ten_nguoi_thuc_hien': ls.get('ten_nguoi_doi')
-            })
+            # Nhật ký quản lý tài khoản DO admin này thực hiện
+            cursor.execute("""
+                SELECT
+                    nk.nhat_ky_id,
+                    nk.hanh_dong,
+                    nk.gia_tri_cu,
+                    nk.gia_tri_moi,
+                    nk.thoi_gian,
+                    nd.ho_ten AS ten_nguoi_bi_tac_dong,
+                    nd.email  AS email_nguoi_bi_tac_dong
+                FROM nhat_ky_admin nk
+                JOIN nguoi_dung nd ON nk.nguoi_dung_id = nd.nguoi_dung_id
+                WHERE nk.admin_id = ?
+                ORDER BY nk.thoi_gian DESC
+            """, (id,))
+            rows = cursor.fetchall()
+            cols_nk2 = [d[0] for d in cursor.description]
+            for nk in [dict(zip(cols_nk2, r)) for r in rows]:
+                hoat_dong.append({
+                    'loai': 'tai_khoan_quan_ly',
+                    'thoi_gian': nk.get('thoi_gian'),
+                    'tieu_de': nk.get('hanh_dong'),
+                    'gia_tri_cu': nk.get('gia_tri_cu'),
+                    'gia_tri_moi': nk.get('gia_tri_moi'),
+                    'ten_nguoi_bi_tac_dong': nk.get('ten_nguoi_bi_tac_dong'),
+                    'email_nguoi_bi_tac_dong': nk.get('email_nguoi_bi_tac_dong')
+                })
+        else:
+            # User / nhan_vien: trạng thái báo cáo của họ + hành động quản lý TÁC ĐỘNG LÊN họ
+            cursor.execute("""
+                SELECT
+                    ls.bao_cao_id,
+                    ls.trang_thai_cu,
+                    ls.trang_thai_moi,
+                    ls.ghi_chu,
+                    ls.ngay_doi,
+                    bc.tieu_de,
+                    nd.ho_ten AS ten_nguoi_doi
+                FROM lich_su_trang_thai ls
+                JOIN bao_cao bc ON bc.bao_cao_id = ls.bao_cao_id
+                LEFT JOIN nguoi_dung nd ON nd.nguoi_dung_id = ls.nguoi_doi_id
+                WHERE bc.nguoi_dung_id = ?
+                ORDER BY ls.ngay_doi DESC
+            """, (id,))
+            rows = cursor.fetchall()
+            cols_ls = [d[0] for d in cursor.description]
+            for ls in [dict(zip(cols_ls, r)) for r in rows]:
+                hoat_dong.append({
+                    'loai': 'bao_cao_cap_nhat',
+                    'thoi_gian': ls.get('ngay_doi'),
+                    'tieu_de': 'Cập nhật trạng thái báo cáo',
+                    'mo_ta': ls.get('tieu_de') or 'Báo cáo sự cố',
+                    'tham_chieu': ls.get('bao_cao_id'),
+                    'trang_thai_cu': ls.get('trang_thai_cu'),
+                    'trang_thai_moi': ls.get('trang_thai_moi'),
+                    'ghi_chu': ls.get('ghi_chu'),
+                    'ten_nguoi_thuc_hien': ls.get('ten_nguoi_doi')
+                })
 
-        for nk in nhat_ky:
-            hoat_dong.append({
-                'loai': 'tai_khoan_cap_nhat',
-                'thoi_gian': nk.get('thoi_gian'),
-                'tieu_de': nk.get('hanh_dong'),
-                'gia_tri_cu': nk.get('gia_tri_cu'),
-                'gia_tri_moi': nk.get('gia_tri_moi'),
-                'ten_nguoi_thuc_hien': nk.get('ten_admin')
-            })
+            # Nhân viên: thêm các hành động nhân viên tự tác động lên báo cáo được giao
+            if vai_tro_nguoi_dung == 'nhan_vien':
+                cursor.execute("""
+                    SELECT
+                        ls.bao_cao_id,
+                        ls.trang_thai_cu,
+                        ls.trang_thai_moi,
+                        ls.ghi_chu,
+                        ls.ngay_doi,
+                        bc.tieu_de
+                    FROM lich_su_trang_thai ls
+                    JOIN bao_cao bc ON bc.bao_cao_id = ls.bao_cao_id
+                    WHERE ls.nguoi_doi_id = ?
+                      AND (
+                        ls.trang_thai_moi IN ('dang_xu_ly', 'cho_nghiem_thu')
+                        OR (ls.trang_thai_moi = 'da_duyet'
+                            AND ls.ghi_chu LIKE N'Từ chối nhận việc:%')
+                      )
+                    ORDER BY ls.ngay_doi DESC
+                """, (id,))
+                rows = cursor.fetchall()
+                cols_nv = [d[0] for d in cursor.description]
+                NHAN_VIEN_LABEL = {
+                    'dang_xu_ly': 'Nhận báo cáo',
+                    'cho_nghiem_thu': 'Báo hoàn thành',
+                    'da_duyet': 'Từ chối nhận báo cáo',
+                }
+                for ls in [dict(zip(cols_nv, r)) for r in rows]:
+                    tt = ls.get('trang_thai_moi', '')
+                    label = NHAN_VIEN_LABEL.get(tt, 'Tác động báo cáo')
+                    hoat_dong.append({
+                        'loai': 'nhan_vien_xu_ly',
+                        'thoi_gian': ls.get('ngay_doi'),
+                        'tieu_de': label,
+                        'mo_ta': ls.get('tieu_de') or 'Báo cáo sự cố',
+                        'tham_chieu': ls.get('bao_cao_id'),
+                        'trang_thai_cu': ls.get('trang_thai_cu'),
+                        'trang_thai_moi': tt,
+                        'ghi_chu': ls.get('ghi_chu'),
+                    })
+
+            for nk in nhat_ky:
+                hoat_dong.append({
+                    'loai': 'tai_khoan_cap_nhat',
+                    'thoi_gian': nk.get('thoi_gian'),
+                    'tieu_de': nk.get('hanh_dong'),
+                    'gia_tri_cu': nk.get('gia_tri_cu'),
+                    'gia_tri_moi': nk.get('gia_tri_moi'),
+                    'ten_nguoi_thuc_hien': nk.get('ten_admin')
+                })
 
         hoat_dong.sort(key=_sort_activity_key, reverse=True)
 
@@ -212,6 +314,18 @@ def cap_nhat_vai_tro(id):
         # Không đổi nếu vai trò giống nhau
         if vai_tro_cu == vai_tro_moi:
             return jsonify({'loi': f'{ho_ten} đã có vai trò {vai_tro_cu} rồi'}), 400
+
+        # Nếu đang là nhân viên và còn việc đang thực hiện → không cho đổi
+        if vai_tro_cu == 'nhan_vien':
+            cursor.execute("""
+                SELECT COUNT(*) FROM bao_cao
+                WHERE nhan_vien_id = ? AND trang_thai IN ('da_phan_cong', 'dang_xu_ly')
+            """, (id,))
+            so_viec = cursor.fetchone()[0]
+            if so_viec > 0:
+                return jsonify({
+                    'loi': f'{ho_ten} đang có {so_viec} việc chưa hoàn thành, không thể thay đổi vai trò'
+                }), 400
 
         # Cập nhật vai trò
         cursor.execute(

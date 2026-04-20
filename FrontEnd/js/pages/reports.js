@@ -123,12 +123,10 @@
     }
 
     function fmtDate(value) {
-        if (window.formatToTZ) return window.formatToTZ(value);
         if (!value) return '';
         const date = new Date(value);
         if (isNaN(date.getTime())) return String(value);
-        const pad = function(num) { return num < 10 ? '0' + num : String(num); };
-        return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+        return date.toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
     }
 
     function renderEmptyState($tbody, status) {

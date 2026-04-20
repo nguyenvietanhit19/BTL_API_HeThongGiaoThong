@@ -1133,8 +1133,8 @@ function batDauPollingThongBao() {
   }
 
   // Chạy ngay lần đầu sau 2 giây, rồi mỗi 30 giây
-  setTimeout(kiemTraThongBao, 1000);
-  setInterval(kiemTraThongBao, 2000);
+  setTimeout(kiemTraThongBao, 300);
+  setInterval(kiemTraThongBao, 300);
 }
 
 function showToastThongBao(noiDung, tieuDe) {

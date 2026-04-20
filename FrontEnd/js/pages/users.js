@@ -328,6 +328,16 @@
         if (item.loai === 'bao_cao_cap_nhat') {
             return { label: 'Cập nhật trạng thái báo cáo', color: '#7c3aed' };
         }
+        if (item.loai === 'bao_cao_xu_ly') {
+            return { label: 'Xử lý báo cáo', color: '#0891b2' };
+        }
+        if (item.loai === 'nhan_vien_xu_ly') {
+            return { label: item.tieu_de || 'Tác động báo cáo', color: '#059669' };
+        }
+        if (item.loai === 'tai_khoan_quan_ly') {
+            const accountMeta = getHistoryActionMeta(item.tieu_de);
+            return { label: accountMeta.label, color: accountMeta.color };
+        }
         const accountMeta = getHistoryActionMeta(item.tieu_de);
         return { label: accountMeta.label, color: accountMeta.color };
     }
@@ -344,18 +354,26 @@
                     detailLine = `${item.mo_ta || 'Báo cáo sự cố'}${item.tham_chieu ? ' • Mã BC #' + item.tham_chieu : ''}`;
                 } else if (item.loai === 'bao_cao_cap_nhat') {
                     detailLine = `${item.mo_ta || 'Báo cáo sự cố'}${item.tham_chieu ? ' • Mã BC #' + item.tham_chieu : ''}`;
+                } else if (item.loai === 'bao_cao_xu_ly' || item.loai === 'nhan_vien_xu_ly') {
+                    detailLine = `${item.mo_ta || 'Báo cáo sự cố'}${item.tham_chieu ? ' • Mã BC #' + item.tham_chieu : ''}`;
+                } else if (item.loai === 'tai_khoan_quan_ly') {
+                    const oldValue = formatHistoryValueByAction(item.tieu_de, item.gia_tri_cu);
+                    const newValue = formatHistoryValueByAction(item.tieu_de, item.gia_tri_moi);
+                    detailLine = item.ten_nguoi_bi_tac_dong || '';
+                    if (oldValue || newValue) detailLine += ` • ${oldValue || '∅'} → ${newValue || '∅'}`;
                 } else {
                     const oldValue = formatHistoryValueByAction(item.tieu_de, item.gia_tri_cu);
                     const newValue = formatHistoryValueByAction(item.tieu_de, item.gia_tri_moi);
                     detailLine = oldValue || newValue ? `${oldValue || '∅'} → ${newValue || '∅'}` : '';
                 }
 
-                const extraLine = item.loai === 'bao_cao_cap_nhat'
+                const extraLine = (item.loai === 'bao_cao_cap_nhat' || item.loai === 'bao_cao_xu_ly' || item.loai === 'nhan_vien_xu_ly')
                     ? `${formatStatusLabel(item.trang_thai_cu || 'mới')} → ${formatStatusLabel(item.trang_thai_moi)}`
                     : '';
 
                 const noteLine = item.ghi_chu ? `Ghi chú: ${item.ghi_chu}` : '';
-                const actorLine = item.ten_nguoi_thuc_hien ? `Thực hiện bởi: ${item.ten_nguoi_thuc_hien}` : '';
+                const actorLine = item.ten_nguoi_thuc_hien ? `Thực hiện bởi: ${item.ten_nguoi_thuc_hien}`
+                    : item.ten_nguoi_gui ? `Người gửi: ${item.ten_nguoi_gui}` : '';
 
                 $logs.append(`
                     <div style="padding:10px;border-bottom:1px dashed #ddd;display:flex;justify-content:space-between;gap:12px;align-items:flex-start;">

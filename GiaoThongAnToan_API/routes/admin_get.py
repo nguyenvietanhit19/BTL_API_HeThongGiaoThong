@@ -140,7 +140,7 @@ def dashboard():
                 -- last note associated with this status change (if any)
                 (SELECT TOP 1 ls2.ghi_chu FROM lich_su_trang_thai ls2 WHERE ls2.bao_cao_id = bc.bao_cao_id AND ls2.trang_thai_moi = bc.trang_thai ORDER BY ls2.ngay_doi DESC) AS ghi_chu_trang_thai
             {query}
-            ORDER BY bc.bao_cao_id DESC
+            ORDER BY ngay_trang_thai DESC, bc.bao_cao_id DESC
             OFFSET ? ROWS FETCH NEXT ? ROWS ONLY
         """, params + [offset, limit])
 
