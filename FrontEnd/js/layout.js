@@ -324,36 +324,90 @@ $(document).ready(function () {
     batDauPollingAdmin();
 });
 
-function batDauPollingAdmin() {
+// function batDauPollingAdmin() {
+//     const token = localStorage.getItem('token');
+//     if (!token) return;
+
+//     async function kiemTra() {
+//         const tuId = parseInt(localStorage.getItem('last_lich_su_id') || '0');
+//         try {
+//             const res = await fetch((window.API_BASE || '') + '/bao-cao/thong-bao?tu_id=' + tuId, {
+//                 headers: { 'Authorization': 'Bearer ' + token, 'ngrok-skip-browser-warning': 'true' }
+//             });
+//             if (!res.ok) return;
+//             const data = await res.json();
+//             if (!Array.isArray(data) || data.length === 0) return;
+
+//             const maxId = Math.max(...data.map(n => n.lich_su_id));
+//             localStorage.setItem('last_lich_su_id', maxId);
+
+//             // Tự động reload đúng tab đang hiện tại (routeToPage truyền đúng tham số cho từng trang)
+//             if (typeof window.routeToPage === 'function') window.routeToPage(window.location.pathname);
+//             if (typeof window.refreshSidebarCounts === 'function') window.refreshSidebarCounts();
+
+//             data.forEach((tb, i) => {
+//                 setTimeout(() => hienThongBaoNoi(tb.noi_dung, tb.tieu_de), i * 1500);
+//             });
+//         } catch (e) {}
+//     }
+
+//     setTimeout(kiemTra, 300);
+//     setInterval(kiemTra, 300);
+// }
+
+// 1. Tạo một biến khóa toàn cục
+let dangTaiThongBao = false; 
+
+async function kiemTraThongBaoAnToan() {
+    // Nếu đang có một request đang chạy, thoát ngay để tránh lặp
+    if (dangTaiThongBao) return;
+
     const token = localStorage.getItem('token');
     if (!token) return;
 
-    async function kiemTra() {
-        const tuId = parseInt(localStorage.getItem('last_lich_su_id') || '0');
-        try {
-            const res = await fetch((window.API_BASE || '') + '/bao-cao/thong-bao?tu_id=' + tuId, {
-                headers: { 'Authorization': 'Bearer ' + token, 'ngrok-skip-browser-warning': 'true' }
-            });
-            if (!res.ok) return;
+    // Đánh dấu là đang bắt đầu tải
+    dangTaiThongBao = true; 
+    const tuId = localStorage.getItem('last_lich_su_id') || '0';
+
+    try {
+        const res = await fetch(`${API_BASE}/bao-cao/thong-bao?tu_id=${tuId}`, {
+            headers: { 
+                'Authorization': 'Bearer ' + token,
+                'ngrok-skip-browser-warning': 'true' 
+            }
+        });
+
+        if (res.ok) {
             const data = await res.json();
-            if (!Array.isArray(data) || data.length === 0) return;
+            if (Array.isArray(data) && data.length > 0) {
+                // QUAN TRỌNG: Cập nhật ID mới nhất vào localStorage NGAY LẬP TỨC
+                const maxId = Math.max(...data.map(n => n.lich_su_id));
+                localStorage.setItem('last_lich_su_id', maxId);
 
-            const maxId = Math.max(...data.map(n => n.lich_su_id));
-            localStorage.setItem('last_lich_su_id', maxId);
-
-            // Tự động reload đúng tab đang hiện tại (routeToPage truyền đúng tham số cho từng trang)
-            if (typeof window.routeToPage === 'function') window.routeToPage(window.location.pathname);
-            if (typeof window.refreshSidebarCounts === 'function') window.refreshSidebarCounts();
-
-            data.forEach((tb, i) => {
-                setTimeout(() => hienThongBaoNoi(tb.noi_dung, tb.tieu_de), i * 1500);
-            });
-        } catch (e) {}
+                // Hiển thị thông báo (Toast)
+                data.forEach((tb, i) => {
+                    setTimeout(() => {
+                        hienThongBaoNoi(tb.noi_dung, tb.tieu_de);
+                    }, i * 1200); // Các thông báo hiện cách nhau 1.2s cho đẹp
+                });
+            }
+        }
+    } catch (e) {
+        console.error("Lỗi mạng, sẽ thử lại sau 10s...");
+    } finally {
+        // Sau khi xong (dù thành công hay lỗi), mở khóa
+        dangTaiThongBao = false;
+        
+        // Hẹn giờ chạy lại sau 10 giây (10000ms)
+        // Đây là cách thay thế setInterval cực kỳ an toàn
+        setTimeout(kiemTraThongBaoAnToan, 10000); 
     }
-
-    setTimeout(kiemTra, 300);
-    setInterval(kiemTra, 300);
 }
+
+// Chạy lần đầu tiên khi trang web tải xong
+$(document).ready(function() {
+    kiemTraThongBaoAnToan();
+});
 
 function hienThongBaoNoi(noiDung, tieuDe) {
     let container = document.getElementById('thongbao-stack');

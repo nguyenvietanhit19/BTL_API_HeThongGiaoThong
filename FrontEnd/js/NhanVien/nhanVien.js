@@ -1230,34 +1230,84 @@ function formatFileSize(bytes) {
 /* ============================================================
    THÔNG BÁO — polling cho nhân viên
    ============================================================ */
-function batDauPollingNhanVien() {
+// function batDauPollingNhanVien() {
+//     const token = localStorage.getItem('token');
+//     if (!token) return;
+
+//     async function kiemTra() {
+//         const tuId = parseInt(localStorage.getItem('last_lich_su_id') || '0');
+//         try {
+//             const res = await fetch(API_BASE + '/bao-cao/thong-bao?tu_id=' + tuId, {
+//                 headers: { 'Authorization': 'Bearer ' + token, 'ngrok-skip-browser-warning': 'true' }
+//             });
+//             if (!res.ok) return;
+//             const data = await res.json();
+//             if (!Array.isArray(data) || data.length === 0) return;
+
+//             const maxId = Math.max(...data.map(n => n.lich_su_id));
+//             localStorage.setItem('last_lich_su_id', maxId);
+
+//             // Tự động reload danh sách việc khi có thông báo mới
+//             fetchTasks();
+
+//             data.forEach((tb, i) => {
+//                 setTimeout(() => hienThongBaoNV(tb.noi_dung, tb.tieu_de), i * 1500);
+//             });
+//         } catch (e) {}
+//     }
+
+//     setTimeout(kiemTra, 300);
+//     setInterval(kiemTra, 300);
+// }
+
+// Biến khóa để ngăn chặn nhiều request gửi đi cùng lúc khi mạng chậm
+let dangTaiThongBaoNV = false;
+
+async function batDauPollingNhanVien() {
+    // 1. Nếu đang có một request chạy rồi thì không gửi thêm cái mới
+    if (dangTaiThongBaoNV) return;
+
     const token = localStorage.getItem('token');
     if (!token) return;
 
-    async function kiemTra() {
-        const tuId = parseInt(localStorage.getItem('last_lich_su_id') || '0');
-        try {
-            const res = await fetch(API_BASE + '/bao-cao/thong-bao?tu_id=' + tuId, {
-                headers: { 'Authorization': 'Bearer ' + token, 'ngrok-skip-browser-warning': 'true' }
-            });
-            if (!res.ok) return;
+    dangTaiThongBaoNV = true; // Khóa lại
+    const tuId = localStorage.getItem('last_lich_su_id') || '0';
+
+    try {
+        const res = await fetch(`${API_BASE}/bao-cao/thong-bao?tu_id=${tuId}`, {
+            headers: { 
+                'Authorization': 'Bearer ' + token,
+                'ngrok-skip-browser-warning': 'true' 
+            }
+        });
+
+        if (res.ok) {
             const data = await res.json();
-            if (!Array.isArray(data) || data.length === 0) return;
+            
+            if (Array.isArray(data) && data.length > 0) {
+                // 2. CẬP NHẬT ID MỚI NHẤT NGAY LẬP TỨC vào localStorage
+                const maxId = Math.max(...data.map(n => n.lich_su_id));
+                localStorage.setItem('last_lich_su_id', maxId);
 
-            const maxId = Math.max(...data.map(n => n.lich_su_id));
-            localStorage.setItem('last_lich_su_id', maxId);
+                // 3. Làm mới danh sách công việc trên màn hình
+                if (typeof fetchTasks === 'function') fetchTasks();
 
-            // Tự động reload danh sách việc khi có thông báo mới
-            fetchTasks();
-
-            data.forEach((tb, i) => {
-                setTimeout(() => hienThongBaoNV(tb.noi_dung, tb.tieu_de), i * 1500);
-            });
-        } catch (e) {}
+                // 4. Hiển thị Toast thông báo
+                data.forEach((tb, i) => {
+                    setTimeout(() => hienThongBaoNV(tb.noi_dung, tb.tieu_de), i * 1500);
+                });
+            }
+        }
+    } catch (e) {
+        console.error("Lỗi kết nối thông báo nhân viên:", e);
+    } finally {
+        // 5. Mở khóa sau khi xử lý xong
+        dangTaiThongBaoNV = false;
+        
+        // 6. ĐỆ QUY: Đợi 10 giây sau khi request này kết thúc mới chạy request tiếp theo
+        // Điều này đảm bảo không bao giờ có 2 request chạy song song gây lặp thông báo
+        setTimeout(batDauPollingNhanVien, 10000); 
     }
-
-    setTimeout(kiemTra, 300);
-    setInterval(kiemTra, 300);
 }
 
 function hienThongBaoNV(noiDung, tieuDe) {
