@@ -37,7 +37,7 @@ $(document).ready(function () {
 
     // --- Load dữ liệu ban đầu ---
     fetchTasks();
-    batDauPollingNhanVien();
+    kiemTraThongBaoAnToan();
 
     // --- Hiển thị tên nhân viên ---
     const name = localStorage.getItem("ho_ten") || localStorage.getItem("user_name");
@@ -148,9 +148,24 @@ $(document).ready(function () {
         e.preventDefault();
         e.stopPropagation();
         if (!currentTaskId) return;
-        apiTuChoi(currentTaskId, function () {
-            closeModal('modal-nhan-viec');
-        });
+
+        var taskId = currentTaskId;
+        var task = taskMap[taskId];
+
+        var doTuChoi = function() {
+            apiTuChoi(taskId, function () {
+                closeModal('modal-nhan-viec');
+            });
+        };
+
+        if (task && Number(task.lan_thu) >= 2) {
+            showCanhBaoDinhChi(
+                function() { doTuChoi(); },           // Xác nhận → từ chối
+                function() { /* Hủy → không làm gì */ }
+            );
+        } else {
+            doTuChoi();
+        }
     });
 
     // Nút "Báo hoàn thành" trong modal chi tiết (dang_xu_ly)
@@ -214,9 +229,21 @@ $(document).ready(function () {
     $(document).on('click', '.btn-tu-choi-card', function (e) {
         e.preventDefault();
         e.stopPropagation();
-        const id = $(this).closest('.task-card').data('id');
+        var id = $(this).closest('.task-card').data('id');
         if (!id) return;
-        apiTuChoi(id);
+
+        var task = taskMap[id];
+
+        var doTuChoi = function() { apiTuChoi(id); };
+
+        if (task && Number(task.lan_thu) >= 2) {
+            showCanhBaoDinhChi(
+                function() { doTuChoi(); },
+                function() { /* Hủy */ }
+            );
+        } else {
+            doTuChoi();
+        }
     });
 
     // Mở modal chi tiết khi bấm vào card, nhưng bỏ qua các nút thao tác bên trong.
@@ -1260,17 +1287,18 @@ function formatFileSize(bytes) {
 //     setInterval(kiemTra, 300);
 // }
 
-// Biến khóa để ngăn chặn nhiều request gửi đi cùng lúc khi mạng chậm
-let dangTaiThongBaoNV = false;
+// 1. Tạo một biến khóa toàn cục
+let dangTaiThongBao = false; 
 
-async function batDauPollingNhanVien() {
-    // 1. Nếu đang có một request chạy rồi thì không gửi thêm cái mới
-    if (dangTaiThongBaoNV) return;
+async function kiemTraThongBaoAnToan() {
+    // Nếu đang có một request đang chạy, thoát ngay để tránh lặp
+    if (dangTaiThongBao) return;
 
     const token = localStorage.getItem('token');
     if (!token) return;
 
-    dangTaiThongBaoNV = true; // Khóa lại
+    // Đánh dấu là đang bắt đầu tải
+    dangTaiThongBao = true; 
     const tuId = localStorage.getItem('last_lich_su_id') || '0';
 
     try {
@@ -1283,30 +1311,42 @@ async function batDauPollingNhanVien() {
 
         if (res.ok) {
             const data = await res.json();
-            
             if (Array.isArray(data) && data.length > 0) {
-                // 2. CẬP NHẬT ID MỚI NHẤT NGAY LẬP TỨC vào localStorage
+                // QUAN TRỌNG: Cập nhật ID mới nhất vào localStorage NGAY LẬP TỨC
                 const maxId = Math.max(...data.map(n => n.lich_su_id));
                 localStorage.setItem('last_lich_su_id', maxId);
 
-                // 3. Làm mới danh sách công việc trên màn hình
-                if (typeof fetchTasks === 'function') fetchTasks();
+                // ĐỒNG BỘ LÊN SERVER (Phần mới thêm vào)
+                // Chúng ta không dùng 'await' ở đây để việc hiện thông báo được nhanh, 
+                // việc gửi lên server sẽ chạy ngầm.
+                fetch(`${API_BASE}/bao-cao/update-last-seen`, {
+                    method: 'PUT',
+                    headers: { 
+                        'Authorization': 'Bearer ' + token,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ last_id: maxId })
+                }).catch(err => console.error("Lỗi đồng bộ mốc thông báo:", err));
 
-                // 4. Hiển thị Toast thông báo
+                // Hiển thị thông báo (Toast)
                 data.forEach((tb, i) => {
-                    setTimeout(() => hienThongBaoNV(tb.noi_dung, tb.tieu_de), i * 1500);
+                    setTimeout(() => {
+                        showToastThongBao(tb.noi_dung, tb.tieu_de);
+                    }, i * 1200); // Các thông báo hiện cách nhau 1.2s cho đẹp
                 });
+
+                if (typeof loadReportsNearby === 'function') loadReportsNearby();
             }
         }
     } catch (e) {
-        console.error("Lỗi kết nối thông báo nhân viên:", e);
+        console.error("Lỗi mạng, sẽ thử lại sau 10s...");
     } finally {
-        // 5. Mở khóa sau khi xử lý xong
-        dangTaiThongBaoNV = false;
+        // Sau khi xong (dù thành công hay lỗi), mở khóa
+        dangTaiThongBao = false;
         
-        // 6. ĐỆ QUY: Đợi 10 giây sau khi request này kết thúc mới chạy request tiếp theo
-        // Điều này đảm bảo không bao giờ có 2 request chạy song song gây lặp thông báo
-        setTimeout(batDauPollingNhanVien, 10000); 
+        // Hẹn giờ chạy lại sau 10 giây (10000ms)
+        // Đây là cách thay thế setInterval cực kỳ an toàn
+        setTimeout(kiemTraThongBaoAnToan, 300); 
     }
 }
 
@@ -1326,4 +1366,60 @@ function hienThongBaoNV(noiDung, tieuDe) {
     el.onclick = () => el.remove();
     container.appendChild(el);
     setTimeout(() => el.remove(), 6000);
+}
+
+// ============================================================
+//  POPUP CẢNH BÁO ĐÌNH CHỈ (dùng native, không phụ thuộc modal hệ thống)
+// ============================================================
+function showCanhBaoDinhChi(onConfirm, onCancel) {
+    // Xóa popup cũ nếu có
+    var old = document.getElementById('popup-canh-bao-dinh-chi');
+    if (old) old.remove();
+
+    var popup = document.createElement('div');
+    popup.id = 'popup-canh-bao-dinh-chi';
+    popup.style.cssText = [
+        'position:fixed', 'inset:0', 'z-index:999999',
+        'display:flex', 'align-items:center', 'justify-content:center',
+        'background:rgba(0,0,0,0.55)', 'padding:16px'
+    ].join(';');
+
+    popup.innerHTML = [
+        '<div style="background:#fff;border-radius:16px;padding:32px 28px;max-width:420px;width:100%;box-shadow:0 8px 40px rgba(0,0,0,0.25);text-align:center;">',
+            '<div style="font-size:48px;margin-bottom:12px;">⚠️</div>',
+            '<div style="display:inline-block;background:#fee2e2;color:#be123c;font-size:12px;font-weight:700;padding:4px 12px;border-radius:99px;margin-bottom:16px;letter-spacing:0.05em;">CẢNH BÁO ĐÌNH CHỈ</div>',
+            '<h3 style="margin:0 0 12px;font-size:18px;color:#111;">Từ chối lần này sẽ bị đình chỉ!</h3>',
+            '<p style="margin:0 0 24px;font-size:14px;color:#555;line-height:1.6;">',
+                'Bạn đã từ chối công việc <strong>1 lần</strong> trước đó.<br>',
+                'Nếu từ chối thêm lần này, tài khoản của bạn sẽ bị <strong style="color:#be123c;">đình chỉ</strong>.<br><br>',
+                'Bạn có chắc chắn muốn từ chối không?',
+            '</p>',
+            '<div style="display:flex;gap:12px;justify-content:center;">',
+                '<button id="popup-dinh-chi-huy" style="flex:1;padding:12px;border:1.5px solid #d1d5db;border-radius:10px;background:#fff;color:#374151;font-size:14px;font-weight:600;cursor:pointer;">Quay lại</button>',
+                '<button id="popup-dinh-chi-xacnhan" style="flex:1;padding:12px;border:none;border-radius:10px;background:#be123c;color:#fff;font-size:14px;font-weight:600;cursor:pointer;">Vẫn muốn từ chối</button>',
+            '</div>',
+        '</div>'
+    ].join('');
+
+    document.body.appendChild(popup);
+
+    function close() { popup.remove(); }
+
+    document.getElementById('popup-dinh-chi-huy').onclick = function() {
+        close();
+        if (typeof onCancel === 'function') onCancel();
+    };
+
+    document.getElementById('popup-dinh-chi-xacnhan').onclick = function() {
+        close();
+        if (typeof onConfirm === 'function') onConfirm();
+    };
+
+    // Bấm nền ngoài = hủy
+    popup.onclick = function(e) {
+        if (e.target === popup) {
+            close();
+            if (typeof onCancel === 'function') onCancel();
+        }
+    };
 }

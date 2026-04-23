@@ -162,7 +162,7 @@ def dang_nhap():
         cursor.execute(
             """
             SELECT nguoi_dung_id, mat_khau, ho_ten, vai_tro,
-                   dang_hoat_dong, da_xac_nhan, ISNULL(bi_dinh_chi, 0)
+                   dang_hoat_dong, da_xac_nhan, ISNULL(bi_dinh_chi, 0), last_seen_id
             FROM nguoi_dung
             WHERE email = ?
             """,
@@ -173,7 +173,7 @@ def dang_nhap():
         if not row:
             return jsonify({'loi': 'Email hoặc mật khẩu sai'}), 401
 
-        nguoi_dung_id, hash_mk, ho_ten, vai_tro, dang_hoat_dong, da_xac_nhan, bi_dinh_chi = row
+        nguoi_dung_id, hash_mk, ho_ten, vai_tro, dang_hoat_dong, da_xac_nhan, bi_dinh_chi, last_seen_id = row   #last_seen_id để lưu lịch sử trạng thái mới nhất mà người dùng này đã xem
 
         if not da_xac_nhan:
             return jsonify({'loi': 'Tài khoản chưa xác nhận'}), 403
@@ -196,7 +196,8 @@ def dang_nhap():
         return jsonify({
             'token': token,
             'ho_ten': ho_ten,
-            'vai_tro': vai_tro
+            'vai_tro': vai_tro,
+            'last_seen_id': last_seen_id or 0  # Trả về để Frontend lưu vào localStorage
         }), 200
 
     except Exception as e:

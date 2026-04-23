@@ -1167,12 +1167,26 @@ async function kiemTraThongBaoAnToan() {
                 const maxId = Math.max(...data.map(n => n.lich_su_id));
                 localStorage.setItem('last_lich_su_id', maxId);
 
+                // ĐỒNG BỘ LÊN SERVER (Phần mới thêm vào)
+                // Chúng ta không dùng 'await' ở đây để việc hiện thông báo được nhanh, 
+                // việc gửi lên server sẽ chạy ngầm.
+                fetch(`${API_BASE}/bao-cao/update-last-seen`, {
+                    method: 'PUT',
+                    headers: { 
+                        'Authorization': 'Bearer ' + token,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ last_id: maxId })
+                }).catch(err => console.error("Lỗi đồng bộ mốc thông báo:", err));
+
                 // Hiển thị thông báo (Toast)
                 data.forEach((tb, i) => {
                     setTimeout(() => {
-                        hienThongBaoNoi(tb.noi_dung, tb.tieu_de);
+                        showToastThongBao(tb.noi_dung, tb.tieu_de);
                     }, i * 1200); // Các thông báo hiện cách nhau 1.2s cho đẹp
                 });
+
+                if (typeof loadReportsNearby === 'function') loadReportsNearby();
             }
         }
     } catch (e) {
@@ -1183,11 +1197,11 @@ async function kiemTraThongBaoAnToan() {
         
         // Hẹn giờ chạy lại sau 10 giây (10000ms)
         // Đây là cách thay thế setInterval cực kỳ an toàn
-        setTimeout(kiemTraThongBaoAnToan, 10000); 
+        setTimeout(kiemTraThongBaoAnToan, 300); 
     }
 }
 
-// Chạy lần đầu tiên khi trang web tải xong
+
 
 
 function showToastThongBao(noiDung, tieuDe) {
