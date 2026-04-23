@@ -76,7 +76,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Gọi API lấy thông tin user để có ID
   taiThongTinUser();
-  batDauPollingThongBao();
+  // batDauPollingThongBao();
+  kiemTraThongBaoAnToan();
   openedFromEmployeePage = isOpenedFromEmployeePage();    //từ nhân viên
   openedFromAdminPage = isOpenedFromAdminPage();
   pendingDirectionsRequest = readPendingDirectionsRequest();   //từ nhân viên
@@ -1099,43 +1100,95 @@ function toggleDirections() {
 /* ============================================================
    THÔNG BÁO — polling mỗi 30 giây
    ============================================================ */
-function batDauPollingThongBao() {
-  const token = localStorage.getItem('token');
-  if (!token) return;
+// function batDauPollingThongBao() {
+//   const token = localStorage.getItem('token');
+//   if (!token) return;
 
-  async function kiemTraThongBao() {
-    const tuId = parseInt(localStorage.getItem('last_lich_su_id') || '0');
+//   async function kiemTraThongBao() {
+//     const tuId = parseInt(localStorage.getItem('last_lich_su_id') || '0');
+//     try {
+//       const res = await fetch(`${API_BASE}/bao-cao/thong-bao?tu_id=${tuId}`, {
+//         headers: {
+//           'Authorization': 'Bearer ' + token,
+//           'ngrok-skip-browser-warning': 'true'
+//         }
+//       });
+//       if (!res.ok) return;
+//       const data = await res.json();
+//       if (!Array.isArray(data) || data.length === 0) return;
+
+//       // Cập nhật last_lich_su_id
+//       const maxId = Math.max(...data.map(n => n.lich_su_id));
+//       localStorage.setItem('last_lich_su_id', maxId);
+
+//       // Tự động reload danh sách báo cáo
+//       if (typeof loadReportsNearby === 'function') loadReportsNearby();
+
+//       // Hiện toast cho từng thông báo
+//       data.forEach((tb, i) => {
+//         setTimeout(() => {
+//           showToastThongBao(tb.noi_dung, tb.tieu_de);
+//         }, i * 1500);
+//       });
+//     } catch (e) {}
+//   }
+
+//   // Chạy ngay lần đầu sau 2 giây, rồi mỗi 30 giây
+//   setTimeout(kiemTraThongBao, 300);
+//   setInterval(kiemTraThongBao, 300);
+// }
+
+// 1. Tạo một biến khóa toàn cục
+let dangTaiThongBao = false; 
+
+async function kiemTraThongBaoAnToan() {
+    // Nếu đang có một request đang chạy, thoát ngay để tránh lặp
+    if (dangTaiThongBao) return;
+
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    // Đánh dấu là đang bắt đầu tải
+    dangTaiThongBao = true; 
+    const tuId = localStorage.getItem('last_lich_su_id') || '0';
+
     try {
-      const res = await fetch(`${API_BASE}/bao-cao/thong-bao?tu_id=${tuId}`, {
-        headers: {
-          'Authorization': 'Bearer ' + token,
-          'ngrok-skip-browser-warning': 'true'
+        const res = await fetch(`${API_BASE}/bao-cao/thong-bao?tu_id=${tuId}`, {
+            headers: { 
+                'Authorization': 'Bearer ' + token,
+                'ngrok-skip-browser-warning': 'true' 
+            }
+        });
+
+        if (res.ok) {
+            const data = await res.json();
+            if (Array.isArray(data) && data.length > 0) {
+                // QUAN TRỌNG: Cập nhật ID mới nhất vào localStorage NGAY LẬP TỨC
+                const maxId = Math.max(...data.map(n => n.lich_su_id));
+                localStorage.setItem('last_lich_su_id', maxId);
+
+                // Hiển thị thông báo (Toast)
+                data.forEach((tb, i) => {
+                    setTimeout(() => {
+                        hienThongBaoNoi(tb.noi_dung, tb.tieu_de);
+                    }, i * 1200); // Các thông báo hiện cách nhau 1.2s cho đẹp
+                });
+            }
         }
-      });
-      if (!res.ok) return;
-      const data = await res.json();
-      if (!Array.isArray(data) || data.length === 0) return;
-
-      // Cập nhật last_lich_su_id
-      const maxId = Math.max(...data.map(n => n.lich_su_id));
-      localStorage.setItem('last_lich_su_id', maxId);
-
-      // Tự động reload danh sách báo cáo
-      if (typeof loadReportsNearby === 'function') loadReportsNearby();
-
-      // Hiện toast cho từng thông báo
-      data.forEach((tb, i) => {
-        setTimeout(() => {
-          showToastThongBao(tb.noi_dung, tb.tieu_de);
-        }, i * 1500);
-      });
-    } catch (e) {}
-  }
-
-  // Chạy ngay lần đầu sau 2 giây, rồi mỗi 30 giây
-  setTimeout(kiemTraThongBao, 300);
-  setInterval(kiemTraThongBao, 300);
+    } catch (e) {
+        console.error("Lỗi mạng, sẽ thử lại sau 10s...");
+    } finally {
+        // Sau khi xong (dù thành công hay lỗi), mở khóa
+        dangTaiThongBao = false;
+        
+        // Hẹn giờ chạy lại sau 10 giây (10000ms)
+        // Đây là cách thay thế setInterval cực kỳ an toàn
+        setTimeout(kiemTraThongBaoAnToan, 10000); 
+    }
 }
+
+// Chạy lần đầu tiên khi trang web tải xong
+
 
 function showToastThongBao(noiDung, tieuDe) {
   let container = document.getElementById('thongbao-stack');
