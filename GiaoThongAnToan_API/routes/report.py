@@ -503,3 +503,34 @@ def get_thong_bao():
         return jsonify({'loi': str(e)}), 500
     finally:
         if conn: conn.close()
+
+
+# Thêm vào cuối file report.py
+
+@bao_cao_bp.route('/update-last-seen', methods=['PUT'])
+@can_access()  # Cho phép tất cả vai trò truy cập
+def update_last_seen():
+    conn = None
+    try:
+        data = request.get_json()
+        new_id = data.get('last_id')
+        user_id = request.nguoi_dung_id
+
+        if new_id is None:
+            return jsonify({'loi': 'Thiếu last_id'}), 400
+
+        conn = get_db()
+        cursor = conn.cursor()
+
+        # Cập nhật mốc ID thông báo cuối cùng cho người dùng này
+        cursor.execute(
+            "UPDATE nguoi_dung SET last_seen_id = ? WHERE nguoi_dung_id = ?",
+            (new_id, user_id)
+        )
+        conn.commit()
+
+        return jsonify({'tin_nhan': 'Cập nhật thành công'}), 200
+    except Exception as e:
+        return jsonify({'loi': str(e)}), 500
+    finally:
+        if conn: conn.close()
