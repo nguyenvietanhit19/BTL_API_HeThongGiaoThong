@@ -1091,7 +1091,7 @@ function openDirectionsForCurrentTask() {
         return;
     }
 
-    const location = currentTaskLocation || getTaskCoordinates(taskMap[currentTaskId]);
+    const location = currentTaskLocation || getTaskCoordinates(taskMap[currentTaskId]);  //taskMap chưa toàn bộ báo cáo
     if (!location) {
         showToast('Báo cáo này chưa có tọa độ để chỉ đường', true);
         return;

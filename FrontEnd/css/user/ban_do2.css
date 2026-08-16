@@ -362,9 +362,7 @@ body {
 /* ---- CUSTOM MARKER ---- */
 .marker-wrap {
   cursor: pointer;
-  transition: transform .2s;
 }
-.marker-wrap:hover { transform: scale(1.15); }
 
 .marker-pin {
   width: 36px; height: 36px;
@@ -375,6 +373,10 @@ body {
   justify-content: center;
   box-shadow: 0 3px 12px rgba(0,0,0,.3);
   border: 2.5px solid rgba(255,255,255,.6);
+  transition: transform .2s;
+}
+.marker-wrap:hover .marker-pin {
+  transform: rotate(-45deg) scale(1.15);
 }
 .marker-emoji {
   transform: rotate(45deg);
@@ -385,8 +387,12 @@ body {
   width: 12px; height: 12px;
   border-radius: 50%;
   margin: 2px auto 0;
-  opacity: .5;
-  animation: pulse 1.8s infinite;
+  animation: markerPulse 1.8s ease-out infinite;
+}
+@keyframes markerPulse {
+  0%   { transform: scale(1);   opacity: 0.6; }
+  70%  { transform: scale(2.5); opacity: 0;   }
+  100% { transform: scale(2.5); opacity: 0;   }
 }
 
 /* ============================================================

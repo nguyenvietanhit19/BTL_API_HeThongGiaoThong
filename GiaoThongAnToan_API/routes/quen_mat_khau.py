@@ -81,7 +81,7 @@ def quen_mat_khau():
         # Tạo mã 6 số ngẫu nhiên
         ma = str(random.randint(100000, 999999))
 
-        # Thời gian hết hạn = hiện tại + 10 phút
+        # Thời gian hết hạn = hiện tại + 1 phút
         het_han = datetime.datetime.now() + datetime.timedelta(minutes=1)
 
         # Lưu mã vào DB

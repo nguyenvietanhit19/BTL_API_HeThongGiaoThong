@@ -15,12 +15,12 @@ let currentLat = null;
 let currentLng = null;
 let map = null;
 let markers = {};           // { bao_cao_id: mapboxMarker } 
-let allReports = [];
+let allReports = [];     //lưu tất cả reports
 let currentFilter = 0;          // 0 = tất cả
 let selectedFiles = [];
-let selectedLoaiId = null;
+let selectedLoaiId = null;  // để xử lí khi chọn loại báo cáo để gửi
 let activePopup = null;
-let pendingDirectionsRequest = null;
+let pendingDirectionsRequest = null;     // chứa kd, vđ, id báo cáo, tiêu đề từ admin/nhân viên
 let openedFromEmployeePage = false;
 let openedFromAdminPage = false;
 
@@ -54,6 +54,7 @@ let currentMyLoai = 0; // thêm cạnh currentMyFilter
    ============================================================ */
 // Sửa lại phần init — thêm user_id
 // Khi trở lại trang bản đồ từ bfcache, reload báo cáo
+//sự kiện pageshow sẽ kích hoạt mọi lúc trang web được hiển thị cho người dùng
 window.addEventListener('pageshow', function (e) {
   if (e.persisted) {
     if (typeof loadReportsNearby === 'function') loadReportsNearby();
@@ -61,6 +62,7 @@ window.addEventListener('pageshow', function (e) {
   }
 });
 
+//đảm bảo mã js chỉ chạy sau khi html đc tải xong (dùng DOM nhanh hơn ready vì là sự kiện gốc của trình duyệt)
 document.addEventListener('DOMContentLoaded', () => {
   const token = localStorage.getItem('token');
   if (!token) {
@@ -80,7 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
   kiemTraThongBaoAnToan();
   openedFromEmployeePage = isOpenedFromEmployeePage();    //từ nhân viên
   openedFromAdminPage = isOpenedFromAdminPage();
-  pendingDirectionsRequest = readPendingDirectionsRequest();   //từ nhân viên
+  pendingDirectionsRequest = readPendingDirectionsRequest();   //lấy ra kđ, vđ , id báo cáo, tiêu đề từ trang nhân viên/admin
   setupEmployeeBackButton();
 
   initMap();
@@ -88,6 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 
+//tải thông tin user khi ở tab bản đồ đề có id người dùng dưới avt
 function taiThongTinUser() {
   const token = localStorage.getItem('token');
   $.ajax({
@@ -102,12 +105,12 @@ function taiThongTinUser() {
       // Lưu vào localStorage để dùng sau
       localStorage.setItem('nguoi_dung_id', id);
       localStorage.setItem('email', res.email || '');
-      localStorage.setItem('ngay_tao', res.ngay_tao || ''); // ← thêm dòng này
+      localStorage.setItem('ngay_tao', res.ngay_tao || ''); 
     }
   });
 }
 
-// Mở modal thông tin
+// Mở modal thông tin (khi click nút thông tin tài khoản từ avt)
 function moThongTin() {
   $('#user-dropdown').removeClass('open');
   $('#thong-tin-overlay, #thong-tin-modal').addClass('open');
@@ -157,6 +160,7 @@ function moThongTin() {
   `);
 }
 
+//khi ấn cái bút để sửa tên
 function batDauSuaTen() {
   $('#edit-ten-row').show();
   $('#input-ho-ten').focus();
@@ -166,6 +170,7 @@ function huyDoiTen() {
   $('#edit-ten-row').hide();
 }
 
+//khi ấn lưu đổi tên
 function luuDoiTen() {
   const hoTenMoi = $('#input-ho-ten').val().trim();
   if (!hoTenMoi) { showToast('Họ tên không được để trống', 'error'); return; }
@@ -178,8 +183,8 @@ function luuDoiTen() {
     data: JSON.stringify({ ho_ten: hoTenMoi }),
     success: () => {
       localStorage.setItem('ho_ten', hoTenMoi);
-      $('#display-ho-ten').text(hoTenMoi);
-      $('#user-name-display').text(hoTenMoi);
+      $('#display-ho-ten').text(hoTenMoi);  //tên trong thông tin
+      $('#user-name-display').text(hoTenMoi);   //hiển tên cạnh avt 
       $('#avatar-text').text(hoTenMoi.charAt(0).toUpperCase());
       $('#edit-ten-row').hide();
       showToast('✅ Cập nhật tên thành công!', 'success');
@@ -188,10 +193,12 @@ function luuDoiTen() {
   });
 }
 
+//khi ấn nút x đóng xem thông tin tk
 function dongThongTin() {
   $('#thong-tin-overlay, #thong-tin-modal').removeClass('open');
 }
 
+//chuyển từ vai trò từ DB sang tiếng việt
 function vaiTroLabel(vt) {
   return { admin: 'Quản trị viên', nhan_vien: 'Nhân viên', user: 'Người dùng' }[vt] || vt;
 }
@@ -202,42 +209,46 @@ function vaiTroLabel(vt) {
 function initMap() {
   mapboxgl.accessToken = MAPBOX_TOKEN;
 
+  //khởi tạo map
   map = new mapboxgl.Map({
-    container: 'map',
-    style: 'mapbox://styles/mapbox/standard',
+    container: 'map',    //nơi đặt mapbox (thẻ div có id là map trong ban_do2.html)
+    style: 'mapbox://styles/mapbox/standard',   
     center: [105.8412, 21.0245],   // Hà Nội
     zoom: 12,
   });
 
-  map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'bottom-left');
-  map.addControl(new mapboxgl.FullscreenControl(), 'bottom-left');
+  map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'bottom-left');   //nút +/-
+  map.addControl(new mapboxgl.FullscreenControl(), 'bottom-left');  //nút toàn màn hình
 
-  // ✅ Thêm directions
+  // directions (điểm đến, đi)
   window.directionsControl = new MapboxDirections({
     accessToken: MAPBOX_TOKEN,
-    unit: 'metric',
-    profile: 'mapbox/driving',
+    unit: 'metric',   //đơn vị đo là m,km 
+    profile: 'mapbox/driving',  // chế độ di chuyển mặc định
     language: 'vi',
-    controls: { profileSwitcher: true, inputs: true }
+    controls: { profileSwitcher: true, inputs: true }   //hiện chuyển đổi các chế độ di chuyển  /  hiển thị 2 ô input A/B
   });
 
-  // ✅ THÊM DÒNG NÀY
+  // thêm direction vào map
   map.addControl(window.directionsControl, 'top-left');
 
   map.addControl(
     new mapboxgl.GeolocateControl({
-      positionOptions: { enableHighAccuracy: true },
+      positionOptions: { enableHighAccuracy: true },  //Yêu cầu thiết bị sử dụng GPS với độ chính xác cao nhất
       trackUserLocation: false,  // chỉ nhảy về 1 lần, không track liên tục
-      showUserHeading: true,
-      showUserLocation: true
+      showUserHeading: true,  //Hiển thị một biểu tượng hình nón hoặc mũi tên đi kèm với chấm xanh để chỉ hướng mà thiết bị
+      showUserLocation: true //Hiển thị chấm tròn xanh dương biểu diễn vị trí thực tế của người dùng trên bản đồ
     }),
     'bottom-left'
   );
 
+  //tắt popup khi click vào bất cứ đâu map
   map.on('click', () => {
-    if (activePopup) { activePopup.remove(); activePopup = null; }
+    //activePopup.remove() : hàm xóa "hình xác" trên mh, còn gán =null xóa kí ức về nó
+    if (activePopup) { activePopup.remove(); activePopup = null; }    //activePopup: biến kiểm tra xem có cái nào đang mở ko
   });
 
+  //kich hoạt tính năng chỉ đường chỉ khi bản đồ load xong
   map.on('load', () => {
     applyPendingDirections();
   });
@@ -245,19 +256,19 @@ function initMap() {
   // Cho phép vuốt ngang filter bar trên mobile (Mapbox chiếm touch events)
   const filterBar = document.querySelector('.filter-bar');
   if (filterBar) {
-    let startX = 0, startScrollLeft = 0, isDragging = false;
+    let startX = 0, startScrollLeft = 0, isDragging = false;  //vtri ngón tay lúc chạm ,  trạng thái khi đã cuộn đc bnh, xác nhận có đang chạm ko
 
     filterBar.addEventListener('touchstart', e => {
-      e.stopPropagation();
+      e.stopPropagation();   //ngăn ko cho sự kiện truyền xuống mapbox
       startX = e.touches[0].pageX;
       startScrollLeft = filterBar.scrollLeft;
       isDragging = true;
-    }, { passive: true });
+    }, { passive: true }); //giúp phản hồi tức thì
 
     filterBar.addEventListener('touchmove', e => {
       e.stopPropagation();
       if (!isDragging) return;
-      const dx = startX - e.touches[0].pageX;
+      const dx = startX - e.touches[0].pageX;   //touches[0] : ngón tay đâu tiên chạm vào
       filterBar.scrollLeft = startScrollLeft + dx;
     }, { passive: true });
 
@@ -271,6 +282,7 @@ function initMap() {
 /* ============================================================
    GEO LOCATION
    ============================================================ */
+//lấy ra địa chỉ từ kđ, vđ
 async function reverseGeocode(lat, lng) {
   try {
     const res = await fetch(
@@ -278,12 +290,13 @@ async function reverseGeocode(lat, lng) {
     );
     const data = await res.json();
     if (data.features && data.features.length > 0) {
-      return data.features[0].place_name;
+      return data.features[0].place_name;   //lấy ra cái địa chỉ đầu tiên vì độ tin cậy cao nhất
     }
   } catch (e) {}
   return '';
 }
 
+//khi click nút lấy địa chỉ từ modal gửi báo cáo
 async function diaChiTuGPS() {
   if (!currentLat || !currentLng) {
     showToast('Chưa lấy được vị trí GPS', 'error');
@@ -303,20 +316,21 @@ async function diaChiTuGPS() {
 }
 
 function getUserLocation() {
-  if (!navigator.geolocation) {
+  if (!navigator.geolocation) {   //kiểm tra trình duyệt có hỗ trợ định vị ko
     document.getElementById('location-text').textContent = 'Trình duyệt không hỗ trợ GPS';
     loadReportsNearby();
     applyPendingDirections();
     return;
   }
 
-  navigator.geolocation.getCurrentPosition(
+  //Nó cho phép trang web của bạn hỏi mượn chip GPS của thiết bị để biết chính xác người dùng đang đứng ở đâu.
+  navigator.geolocation.getCurrentPosition( 
     pos => {
       currentLat = pos.coords.latitude;
       currentLng = pos.coords.longitude;
 
       // Fly to user location
-      map.flyTo({ center: [currentLng, currentLat], zoom: 13, duration: 1600 });
+      map.flyTo({ center: [currentLng, currentLat], zoom: 13, duration: 1600 });  //duration là thời gian 
 
       // User location marker
       const el = document.createElement('div');
@@ -338,8 +352,11 @@ function getUserLocation() {
         `Hiển thị sự cố trong ${BAN_KINH_KM}km quanh bạn`;
       setTimeout(() => document.getElementById('location-bar').classList.add('hidden'), 4000);
 
+      //ô kđ, vđ trong modal tạo báo cáo
       document.getElementById('gps-text').textContent =
         `${currentLat.toFixed(6)}, ${currentLng.toFixed(6)}`;
+
+      //thêm dữ liệu vào input kđ, vđ (input đó để hidden)
       document.getElementById('vi-do').value = currentLat;
       document.getElementById('kinh-do').value = currentLng;
 
@@ -348,11 +365,11 @@ function getUserLocation() {
     },
     err => {
       document.getElementById('location-text').textContent = 'Không lấy được vị trí, hiển thị toàn bộ';
-      document.getElementById('gps-text').textContent = 'Không lấy được GPS — nhập thủ công';
+      document.getElementById('gps-text').textContent = 'Không lấy được GPS';
       loadReportsNearby();
       applyPendingDirections();
     },
-    { enableHighAccuracy: true, timeout: 8000 }
+    { enableHighAccuracy: true, timeout: 8000 }    //Ép thiết bị phải bật chip GPS thật sự lên để bắt tín hiệu vệ tinh   / "hạn chót"đặt ra cho trình duyệt
   );
 }
 
@@ -381,7 +398,7 @@ function addRadiusCircle(lat, lng) {
 
 /* ============================================================
    LOAD REPORTS (API)
-   ============================================================ */
+============================================================ */
 function loadReportsNearby() {
   $.ajax({
     url: API_BASE + '/bao-cao',
@@ -775,6 +792,7 @@ function closeReportModal() {
   document.body.style.overflow = '';
 }
 
+//chọn loại sự cố khi gửi báo cáo
 function selectLoai(id, btn) {
   selectedLoaiId = id;
   document.querySelectorAll('.loai-btn').forEach(b => b.classList.remove('selected'));
@@ -783,7 +801,7 @@ function selectLoai(id, btn) {
 }
 
 function previewImages(e) {
-  const newFiles = Array.from(e.target.files);
+  const newFiles = Array.from(e.target.files);  //thuộc tính file của input ko phải mảng thực thụ, nên phải chuyển sang mảng 
   if (!newFiles.length) return;
 
   // Cộng dồn vào selectedFiles thay vì gán lại
@@ -936,6 +954,8 @@ function formatDate(dateStr) {
   return d.toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
 
+
+//đọc url params từ nhân viên hoặc admin để chỉ đường
 function readPendingDirectionsRequest() {
   const params = new URLSearchParams(window.location.search);
   const lat = Number(params.get('lat'));

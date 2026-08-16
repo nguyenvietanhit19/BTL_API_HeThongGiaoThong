@@ -68,7 +68,7 @@ def tao_bao_cao():
 
         # Kiểm tra GPS từng ảnh
         for i, f in enumerate(files):
-            f.seek(0)
+            f.seek(0) #để đưa nó về đầu, giúp bước upload lên Cloudinary sau đó không bị lỗi
             hop_le, thong_bao = kiem_tra_vi_tri_anh(f, vi_do, kinh_do)
             if not hop_le:
                 return jsonify({'loi': f'Ảnh {i + 1}: {thong_bao}'}), 400
@@ -136,7 +136,7 @@ def get_danh_sach_bao_cao():
         conn = get_db()
         cursor = conn.cursor()
 
-        # ✅ Thêm 'cho_duyet' vào NOT IN
+        # Thêm 'cho_duyet' vào NOT IN
         if loai_su_co_id:
             sql = """
                 SELECT v.* FROM v_bao_cao_day_du v
@@ -205,8 +205,6 @@ def get_chi_tiet(bao_cao_id):
     try:
         conn = get_db()
         cursor = conn.cursor()
-
-        # ✅ Fix: dùng bao_cao_id
         # Lấy thông tin báo cáo kèm tên nhân viên phụ trách và loại sự cố
         cursor.execute("""
             SELECT 
@@ -230,7 +228,7 @@ def get_chi_tiet(bao_cao_id):
         )
         hinh_anh = dict_fetchall(cursor)
 
-        # ✅ Fix: dùng nguoi_doi_id thay vì nguoi_doi
+
         cursor.execute(
             """
             SELECT
