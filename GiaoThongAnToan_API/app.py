@@ -18,8 +18,8 @@ class VNJSONProvider(DefaultJSONProvider):
 app = Flask(__name__)
 app.json_provider_class = VNJSONProvider
 app.json = VNJSONProvider(app)
-app.config["JSON_AS_ASCII"] = False
-app.json.ensure_ascii = False
+app.config["JSON_AS_ASCII"] = False  #Dòng này cho phép Flask "chấp nhận" các ký tự nằm ngoài bảng mã ASCII
+app.json.ensure_ascii = False #Khi đặt False: JSON sẽ xuất ra đúng chữ "Hà Nội" mà bạn có thể đọc được
 CORS(app, resources={r"/*": {"origins": "*"}})
 
 from routes.admin import admin_bp
